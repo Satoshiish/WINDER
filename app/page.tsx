@@ -2710,7 +2710,7 @@ export default function WeatherApp() {
                             setShowSuggestions(false)
                             handleLocationSearch(suggestion)
                           }}
-                          className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                          className="w-full text-left mt-2 px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
                         >
                           {suggestion}
                         </button>
