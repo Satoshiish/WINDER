@@ -2548,7 +2548,7 @@ export default function WeatherApp() {
               <Button
                 onClick={handleCurrentLocation}
                 disabled={currentLocationLoading}
-                className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
+                className="w-full mt-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
               >
                 {currentLocationLoading ? (
                   <>
@@ -2701,7 +2701,7 @@ export default function WeatherApp() {
 
                   {/* Search Suggestions */}
                   {showSuggestions && filteredSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-200 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
                       {filteredSuggestions.map((suggestion, index) => (
                         <button
                           key={index}
@@ -2710,7 +2710,7 @@ export default function WeatherApp() {
                             setShowSuggestions(false)
                             handleLocationSearch(suggestion)
                           }}
-                          className="w-full text-left mt-2 px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                          className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
                         >
                           {suggestion}
                         </button>
