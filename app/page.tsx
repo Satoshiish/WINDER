@@ -3012,7 +3012,7 @@ export default function WeatherApp() {
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-4 w-4 mr-3" />
+                <Phone className="h-4 w-10 mr-3" />
                 Call 911 - NDRRMC Emergency
               </Button>
 
