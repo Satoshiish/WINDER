@@ -2996,7 +2996,7 @@ export default function WeatherApp() {
           <DialogContent className="!w-[30vw] !h-[35vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-md flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-8 bg-red-500 rounded-lg flex items-center justify-center">
                   <Phone className="w-5 h-5 text-white" />
                 </div>
                 Emergency Services
