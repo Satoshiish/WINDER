@@ -2845,185 +2845,124 @@ export default function WeatherApp() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 pt-20 lg:pt-0 pb-20 lg:pb-0">
-          <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden min-w-0">
-            <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-8 border border-slate-600/30 backdrop-blur-sm">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
-                <div className="mb-6 lg:mb-0 min-w-0 flex-1">
-                  <h1 className="text-4xl lg:text-5xl font-light text-white mb-4 leading-tight truncate">
-                    {searchWeather ? selectedLocationName || searchLocation : currentLocationName || "Loading..."}
-                  </h1>
-                  <div className="flex items-center space-x-8">
-                    <span className="text-6xl lg:text-7xl font-thin text-white">
-                      {searchWeather
-                        ? Math.round(convertTemperature(searchWeather.temperature))
-                        : currentWeather
-                          ? Math.round(convertTemperature(currentWeather.temperature))
-                          : "--"}
-                      {getTemperatureUnit()}
-                    </span>
-                    {getMainWeatherIcon(
-                      searchWeather?.condition || currentWeather?.condition || "clear",
-                      searchWeather?.icon || currentWeather?.icon,
-                    )}
+          {/* Dashboard View */}
+          {activeView === "dashboard" && (
+            <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden min-w-0">
+              {/* Current Weather */}
+              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-6 border border-slate-600/30 backdrop-blur-sm">
+                {loading ? (
+                  <div className="flex items-center justify-center h-48">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
                   </div>
-                  {(searchWeather || currentWeather) && (
-                    <p className="text-slate-300 mt-4 text-lg">
-                      {searchWeather ? searchWeather.description : currentWeather?.description}
-                    </p>
-                  )}
-                </div>
+                ) : locationError ? (
+                  <div className="text-center text-slate-400">
+                    <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                    {locationError}
+                  </div>
+                ) : currentWeather ? (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
+                        <p className="text-sm text-slate-300">
+                          {formatDate(new Date())} • {currentWeather.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        {getMainWeatherIcon(currentWeather.condition, currentWeather.icon)}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-5xl font-bold">
+                          {convertTemperature(currentWeather.temperature).toFixed(1)}
+                          {getTemperatureUnit()}
+                        </h3>
+                        <p className="text-sm text-slate-300">
+                          Feels like {convertTemperature(currentWeather.feelsLike).toFixed(1)}
+                          {getTemperatureUnit()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-slate-300">Humidity: {currentWeather.humidity}%</p>
+                        <p className="text-sm text-slate-300">
+                          Wind Speed: {convertWindSpeed(currentWeather.windSpeed).toFixed(1)}
+                          {getWindSpeedUnit()}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-slate-400">
+                    <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                    No weather data available.
+                  </div>
+                )}
               </div>
 
-              {(currentWeather || searchWeather) && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                  <div className="text-center bg-slate-700/30 rounded-xl p-4 md:p-6 border border-slate-600/20">
-                    <p className="text-sm text-slate-400 mb-2">Humidity</p>
-                    <p className="text-lg md:text-xl text-white font-medium">
-                      {searchWeather ? searchWeather.humidity : currentWeather?.humidity}%
-                    </p>
-                  </div>
-                  <div className="text-center bg-slate-700/30 rounded-xl p-4 md:p-6 border border-slate-600/20">
-                    <p className="text-sm text-slate-400 mb-2">Wind Speed</p>
-                    <p className="text-lg md:text-xl text-white font-medium">
-                      {Math.round(
-                        convertWindSpeed(searchWeather ? searchWeather.windSpeed : currentWeather?.windSpeed || 0),
-                      )}{" "}
-                      {getWindSpeedUnit()}
-                    </p>
-                  </div>
-                  <div className="text-center bg-slate-700/30 rounded-xl p-4 md:p-6 border border-slate-600/20">
-                    <p className="text-sm text-slate-400 mb-2">Feels Like</p>
-                    <p className="text-lg md:text-xl text-white font-medium">
-                      {Math.round(
-                        convertTemperature(searchWeather ? searchWeather.feelsLike : currentWeather?.feelsLike || 0),
-                      )}
-                      {getTemperatureUnit()}
-                    </p>
+              {/* Forecast */}
+              {forecast.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                    Weather Forecast
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {forecast.slice(0, 4).map((day) => (
+                      <div
+                        key={day.date}
+                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                      >
+                        <p className="text-sm font-medium">{formatDate(day.date)}</p>
+                        <div className="flex items-center justify-between my-2">
+                          <div className="flex items-center">{getWeatherIcon(day.condition, day.icon)}</div>
+                          <div className="text-right">
+                            <p className="text-sm text-slate-300">
+                              {convertTemperature(day.temperature.max).toFixed(1)}
+                              {getTemperatureUnit()}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {convertTemperature(day.temperature.min).toFixed(1)}
+                              {getTemperatureUnit()}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400">{day.description}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {forecast.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>5 Day
-                    Forecast
-                  </h3>
-                  <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/20">
-                    <div className="space-y-3">
-                      {forecast.slice(0, 5).map((day, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between py-3 border-b border-slate-600/20 last:border-b-0"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm text-slate-400 w-12">
-                              {index === 0
-                                ? "Today"
-                                : new Date(day.date).toLocaleDateString("en", { weekday: "short" })}
-                            </span>
-                            {getWeatherIcon(day.condition, day.icon)}
-                            <span className="text-sm text-white">{day.description}</span>
+              {/* Risk Predictions */}
+              {riskPredictions.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                    Risk Predictions
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {riskPredictions.map((risk) => (
+                      <div
+                        key={risk.category}
+                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">{risk.category}</h3>
+                          <div className="flex items-center">
+                            {getTrendIcon(risk.trend)}
+                            <span className={`text-sm ml-1 ${getRiskColor(risk.risk)}`}>{risk.risk}%</span>
                           </div>
-                          <span className="text-sm text-white font-medium">
-                            {Math.round(convertTemperature(day.temperature.max))}
-                            {getTemperatureUnit()}/{Math.round(convertTemperature(day.temperature.min))}
-                            {getTemperatureUnit()}
-                          </span>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-sm text-slate-300">{risk.description}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Loading State */}
-            {loading && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                <div className="flex justify-center items-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
-                  <span className="ml-3 text-white">Loading weather data...</span>
-                </div>
-              </div>
-            )}
-
-            {alerts.length > 0 && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-400 rounded-full"></div>
-                  Active Alerts
-                </h3>
-                <div className="space-y-3">
-                  {alerts.slice(0, 3).map((alert) => (
-                    <div key={alert.id} className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-white">{alert.title}</span>
-                        <Badge variant={getSeverityColor(alert.severity)} className="text-xs">
-                          {alert.severity.toUpperCase()}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-slate-300 mb-2">{alert.description}</p>
-                      <div className="flex items-center justify-between text-xs text-slate-400">
-                        <span>Areas: {alert.areas.join(", ")}</span>
-                        <span>Until: {alert.validUntil.toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {alerts.length > 3 && (
-                    <button
-                      onClick={() => setAlertsModalOpen(true)}
-                      className="w-full text-center py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      View all {alerts.length} alerts
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {riskPredictions.length > 0 && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></div>
-                  Risk Predictions
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {riskPredictions.map((prediction, index) => (
-                    <div key={index} className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-white">{prediction.category}</span>
-                        <div className="flex items-center space-x-1">
-                          {prediction.trend === "increasing" && <TrendingUp className="h-4 w-4 text-red-400" />}
-                          {prediction.trend === "decreasing" && <TrendingDown className="h-4 w-4 text-green-400" />}
-                          {prediction.trend === "stable" && <Minus className="h-4 w-4 text-yellow-400" />}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                          <span>Risk Level</span>
-                          <span>{prediction.risk}%</span>
-                        </div>
-                        <div className="w-full bg-slate-600/50 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              prediction.risk >= 70
-                                ? "bg-red-500"
-                                : prediction.risk >= 40
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
-                            }`}
-                            style={{ width: `${prediction.risk}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-300">{prediction.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
