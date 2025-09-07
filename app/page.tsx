@@ -3039,18 +3039,6 @@ export default function WeatherApp() {
                 <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-3" />
                 Call 117 - Philippine Coast Guard
               </Button>
-
-              <Button
-                variant="outline"
-                className="w-full py-3 sm:py-4 justify-start bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white text-base sm:text-lg"
-                onClick={() => {
-                  setWeatherMapModalOpen(true)
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-3" />
-                Open Weather Map
-              </Button>
             </div>
           </DialogContent>
         </Dialog>
