@@ -2964,20 +2964,19 @@ export default function WeatherApp() {
         </div>
       </div>
 
+      {/* Weather Map Modal */}
       {weatherMapModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white">Weather Map</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setWeatherMapModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
+        <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-4xl h-[80vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center gap-3 text-xl">
+                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
+                Weather Map
+              </DialogTitle>
+            </DialogHeader>
+
             <div className="flex-1 p-6">
               <iframe
                 src={getWeatherMapUrl()}
@@ -2985,27 +2984,23 @@ export default function WeatherApp() {
                 title="Weather Map"
               />
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
+      {/* Emergency Modal */}
       {emergencyModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-400 rounded-full"></div>
+        <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-md flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center gap-3 text-xl">
+                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
                 Emergency Services
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setEmergencyModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
+              </DialogTitle>
+            </DialogHeader>
+
             <div className="p-6 space-y-3">
               <Button
                 variant="destructive"
@@ -3018,6 +3013,7 @@ export default function WeatherApp() {
                 <Phone className="h-4 w-4 mr-3" />
                 Call 911 - NDRRMC Emergency
               </Button>
+
               <Button
                 variant="outline"
                 className="w-full justify-start bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white"
@@ -3029,6 +3025,7 @@ export default function WeatherApp() {
                 <Phone className="h-4 w-4 mr-3" />
                 Call 143 - Red Cross
               </Button>
+
               <Button
                 variant="outline"
                 className="w-full justify-start bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-white"
@@ -3040,6 +3037,7 @@ export default function WeatherApp() {
                 <Phone className="h-4 w-4 mr-3" />
                 Call 117 - Philippine Coast Guard
               </Button>
+
               <Button
                 variant="outline"
                 className="w-full justify-start bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white"
@@ -3052,8 +3050,8 @@ export default function WeatherApp() {
                 Open Weather Map
               </Button>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Alerts Modal */}
