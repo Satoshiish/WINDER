@@ -2739,86 +2739,38 @@ export default function WeatherApp() {
               </div>
             </div>
 
-            {/* Current Weather Summary */}
-            {(currentWeather || searchWeather) && (
-              <div className="space-y-3 relative z-10">
-                {" "}
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  Current Weather
-                </h2>
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      {getWeatherIcon(
-                        searchWeather?.condition || currentWeather?.condition || "clear",
-                        searchWeather?.icon || currentWeather?.icon,
-                      )}
-                      <div>
-                        <p className="text-lg font-medium text-white">
-                          {Math.round(
-                            convertTemperature(searchWeather?.temperature || currentWeather?.temperature || 0),
-                          )}
-                          {getTemperatureUnit()}
-                        </p>
-                        <p className="text-sm text-slate-300">
-                          {searchWeather?.description || currentWeather?.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div>
-                      <p className="text-xs text-slate-400">Humidity</p>
-                      <p className="text-sm font-medium text-white">
-                        {searchWeather?.humidity || currentWeather?.humidity}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Wind</p>
-                      <p className="text-sm font-medium text-white">
-                        {Math.round(convertWindSpeed(searchWeather?.windSpeed || currentWeather?.windSpeed || 0))}{" "}
-                        {getWindSpeedUnit()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Feels Like</p>
-                      <p className="text-sm font-medium text-white">
-                        {Math.round(convertTemperature(searchWeather?.feelsLike || currentWeather?.feelsLike || 0))}
-                        {getTemperatureUnit()}
-                      </p>
-                    </div>
-                  </div>
+            {/* Quick Actions */}
+            <div className="space-y-3">
+              <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                Quick Actions
+              </h2>
+              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setEmergencyContactsModalOpen(true)}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Phone className="h-4 w-4 text-red-400" />
+                    Emergency Contacts
+                  </button>
+                  <button
+                    onClick={() => setLocationSharingModalOpen(true)}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4 text-blue-400" />
+                    Share Location
+                  </button>
+                  <button
+                    onClick={() => setWeatherHistoryModalOpen(true)}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Clock className="h-4 w-4 text-green-400" />
+                    Weather History
+                  </button>
                 </div>
               </div>
-            )}
-
-            {/* Recent Searches */}
-            {recentSearches.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  Recent Searches
-                </h2>
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
-                  <div className="space-y-2">
-                    {recentSearches.slice(0, 3).map((search, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSearchLocation(search)
-                          handleLocationSearch(search)
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                      >
-                        <Clock className="h-4 w-4 text-slate-400" />
-                        {search}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Suggested Locations */}
             {suggestedLocations.length > 0 && (
@@ -2861,43 +2813,33 @@ export default function WeatherApp() {
               </div>
             )}
 
-            {/* Quick Actions */}
-            <div className="space-y-3">
-              <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                Quick Actions
-              </h2>
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setForecastModalOpen(true)}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Sun className="h-4 w-4 text-blue-400" />
-                    View 5-Day Forecast
-                  </button>
-                  <button
-                    onClick={() => setWeatherMapModalOpen(true)}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <MapPin className="h-4 w-4 text-green-400" />
-                    Open Weather Map
-                  </button>
-                  <button
-                    onClick={() => setAlertsModalOpen(true)}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Bell className="h-4 w-4 text-orange-400" />
-                    Weather Alerts
-                    {alerts.length > 0 && (
-                      <Badge variant="destructive" className="ml-auto text-xs">
-                        {alerts.length}
-                      </Badge>
-                    )}
-                  </button>
+            {/* Recent Searches */}
+            {recentSearches.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                  Recent Searches
+                </h2>
+                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+                  <div className="space-y-2">
+                    {recentSearches.slice(0, 3).map((search, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchLocation(search)
+                          handleLocationSearch(search)
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Clock className="h-4 w-4 text-slate-400" />
+                        {search}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
           </div>
         </div>
 
