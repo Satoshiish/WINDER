@@ -2968,18 +2968,8 @@ export default function WeatherApp() {
 {weatherMapModalOpen && (
   <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
     <DialogContent
-  className="
-    w-[90vw] h-[90vh]     /* default for very small screens */
-    lg:w-[70vw] sm:h-[70vh] 
-    md:w-[50vw] md:h-[50vh] 
-    sm:w-[40vw] lg:h-[35vh]
-    max-w-full max-h-full
-    bg-gradient-to-br from-slate-900 to-slate-800 
-    border border-slate-700 text-white 
-    flex flex-col
-  "
->
-
+      className="!w-[70vw] !h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white flex flex-col"
+    >
       <DialogHeader className="flex-shrink-0">
         <DialogTitle className="flex items-center gap-3 text-xl">
           <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
