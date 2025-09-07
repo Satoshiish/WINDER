@@ -2968,7 +2968,7 @@ export default function WeatherApp() {
       {weatherMapModalOpen && (
         <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
           <DialogContent
-            className="w-[90vw] h-[75vh] sm:w-[90vw] sm:!h-[85vh] max-w-none bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white flex flex-col"
+            className="w-[90vw] h-[75vh] sm:!w-[90vw] sm:!h-[85vh] max-w-none bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white flex flex-col"
           >
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-3 text-xl">
