@@ -3056,50 +3056,58 @@ export default function WeatherApp() {
         </div>
       )}
 
-      {alertsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></div>
-                Weather Alerts & Warnings
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAlertsModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="flex-1 p-6 overflow-y-auto scrollbar-hidden">
-              {alerts.length > 0 ? (
-                <div className="space-y-4">
-                  {alerts.map((alert) => (
-                    <div key={alert.id} className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium text-white">{alert.title}</span>
-                        <Badge variant={getSeverityColor(alert.severity)}>{alert.severity.toUpperCase()}</Badge>
-                      </div>
-                      <p className="text-slate-300 mb-2">{alert.description}</p>
-                      <div className="text-sm text-slate-400">
-                        <p>Areas: {alert.areas.join(", ")}</p>
-                        <p>Valid until: {formatDate(alert.validUntil)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Bell className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400">No active weather alerts</p>
-                </div>
-              )}
-            </div>
+      {/* Weather Alerts Modal */}
+{alertsModalOpen && (
+  <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
+    <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 text-white max-w-2xl max-h-[80vh] flex flex-col p-0 rounded-2xl">
+      <DialogHeader className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+        <DialogTitle className="flex items-center gap-3 text-xl">
+          <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+            <Bell className="w-5 h-5 text-white" />
           </div>
-        </div>
-      )}
+          Weather Alerts & Warnings
+        </DialogTitle>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setAlertsModalOpen(false)}
+          className="text-slate-400 hover:text-white"
+        >
+          ✕
+        </Button>
+      </DialogHeader>
+
+      <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {alerts.length > 0 ? (
+          alerts.map((alert) => (
+            <div
+              key={alert.id}
+              className="bg-red-500/10 border border-red-500/20 rounded-xl p-4"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium text-white">{alert.title}</span>
+                <Badge variant={getSeverityColor(alert.severity)}>
+                  {alert.severity.toUpperCase()}
+                </Badge>
+              </div>
+              <p className="text-slate-300 mb-2">{alert.description}</p>
+              <div className="text-sm text-slate-400">
+                <p>Areas: {alert.areas.join(", ")}</p>
+                <p>Valid until: {formatDate(alert.validUntil)}</p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-12">
+            <Bell className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400">No active weather alerts</p>
+          </div>
+        )}
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
+
 
       {/* Settings Modal */}
       {settingsModalOpen && (
