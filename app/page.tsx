@@ -2701,7 +2701,7 @@ export default function WeatherApp() {
 
                   {/* Search Suggestions */}
                   {showSuggestions && filteredSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
+                    <div className="absolute top-full left-0 right-0 mt-200 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
                       {filteredSuggestions.map((suggestion, index) => (
                         <button
                           key={index}
