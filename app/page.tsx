@@ -2970,9 +2970,9 @@ export default function WeatherApp() {
     <DialogContent
   className="
     w-[90vw] h-[90vh]     /* default for very small screens */
-    sm:w-[70vw] sm:h-[70vh] 
+    lg:w-[70vw] sm:h-[70vh] 
     md:w-[50vw] md:h-[50vh] 
-    lg:w-[40vw] lg:h-[35vh]
+    sm:w-[40vw] lg:h-[35vh]
     max-w-full max-h-full
     bg-gradient-to-br from-slate-900 to-slate-800 
     border border-slate-700 text-white 
