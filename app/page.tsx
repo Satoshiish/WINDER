@@ -2909,7 +2909,7 @@ export default function WeatherApp() {
                     Weather Forecast
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {forecast.slice(0, 4).map((day) => (
+                    {forecast.slice(1, 4).map((day) => (
                       <div
                         key={day.date}
                         className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
