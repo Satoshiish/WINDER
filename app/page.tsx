@@ -2993,9 +2993,9 @@ export default function WeatherApp() {
       {/* Emergency Modal */}
       {emergencyModalOpen && (
         <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-          <DialogContent className="!w-[30vw] !h-[35vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-md flex flex-col">
+          <DialogContent className="!w-[40vw] !h-[40vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-2xl flex flex-col">
             <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl">
+              <DialogTitle className="flex items-center gap-3 text-2xl">
                 <div className="w-12 h-8 bg-red-500 rounded-lg flex items-center justify-center">
                   <Phone className="w-5 h-5 text-white" />
                 </div>
@@ -3003,52 +3003,52 @@ export default function WeatherApp() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="p-6 space-y-3">
+            <div className="p-6 space-y-4">
               <Button
                 variant="destructive"
-                className="w-full justify-start bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-white"
+                className="w-full py-4 justify-start bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-white text-lg"
                 onClick={() => {
                   window.open("tel:911", "_self")
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-4 w-10 mr-3" />
+                <Phone className="h-5 w-5 mr-3" />
                 Call 911 - NDRRMC Emergency
               </Button>
 
               <Button
                 variant="outline"
-                className="w-full justify-start bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white"
+                className="w-full py-4 justify-start bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white text-lg"
                 onClick={() => {
                   window.open("tel:143", "_self")
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-4 w-4 mr-3" />
+                <Phone className="h-5 w-5 mr-3" />
                 Call 143 - Red Cross
               </Button>
 
               <Button
                 variant="outline"
-                className="w-full justify-start bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-white"
+                className="w-full py-4 justify-start bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-white text-lg"
                 onClick={() => {
                   window.open("tel:117", "_self")
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-4 w-4 mr-3" />
+                <Phone className="h-5 w-5 mr-3" />
                 Call 117 - Philippine Coast Guard
               </Button>
 
               <Button
                 variant="outline"
-                className="w-full justify-start bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white"
+                className="w-full py-4 justify-start bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white text-lg"
                 onClick={() => {
                   setWeatherMapModalOpen(true)
                   setEmergencyModalOpen(false)
                 }}
               >
-                <MapPin className="h-4 w-4 mr-3" />
+                <MapPin className="h-5 w-5 mr-3" />
                 Open Weather Map
               </Button>
             </div>
