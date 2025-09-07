@@ -2548,7 +2548,7 @@ export default function WeatherApp() {
               <Button
                 onClick={handleCurrentLocation}
                 disabled={currentLocationLoading}
-                className="w-full mt-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
+                className="w-full mt-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-1.5 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
               >
                 {currentLocationLoading ? (
                   <>
