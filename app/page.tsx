@@ -2967,7 +2967,7 @@ export default function WeatherApp() {
       {/* Weather Map Modal */}
 {weatherMapModalOpen && (
   <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
-    <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-6xl h-[80vh] flex flex-col">
+    <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-[90vw] h-[85vh] flex flex-col">
       <DialogHeader className="flex-shrink-0">
         <DialogTitle className="flex items-center gap-3 text-xl">
           <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
@@ -2977,7 +2977,7 @@ export default function WeatherApp() {
         </DialogTitle>
       </DialogHeader>
 
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-4">
         <iframe
           src={getWeatherMapUrl()}
           className="w-full h-full rounded-xl border border-slate-600"
@@ -2987,7 +2987,6 @@ export default function WeatherApp() {
     </DialogContent>
   </Dialog>
 )}
-
 
       {/* Emergency Modal */}
       {emergencyModalOpen && (
