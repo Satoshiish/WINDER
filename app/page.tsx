@@ -2964,36 +2964,36 @@ export default function WeatherApp() {
         </div>
       </div>
 
-{/* Weather Map Modal */}
-{weatherMapModalOpen && (
-  <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
-    <DialogContent
-      className="!w-[70vw] !h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white flex flex-col"
-    >
-      <DialogHeader className="flex-shrink-0">
-        <DialogTitle className="flex items-center gap-3 text-xl">
-          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-white" />
-          </div>
-          Weather Map
-        </DialogTitle>
-      </DialogHeader>
+      {/* Weather Map Modal */}
+      {weatherMapModalOpen && (
+        <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
+          <DialogContent
+            className="!w-[70vw] !h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white flex flex-col"
+          >
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center gap-3 text-xl">
+                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
+                Weather Map
+              </DialogTitle>
+            </DialogHeader>
 
-      <div className="flex-1 p-4">
-        <iframe
-          src={getWeatherMapUrl()}
-          className="w-full h-full rounded-xl border border-slate-600"
-          title="Weather Map"
-        />
-      </div>
-    </DialogContent>
-  </Dialog>
-)}
+            <div className="flex-1 p-4">
+              <iframe
+                src={getWeatherMapUrl()}
+                className="w-full h-full rounded-xl border border-slate-600"
+                title="Weather Map"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Emergency Modal */}
       {emergencyModalOpen && (
         <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-md flex flex-col">
+          <DialogContent className="!w-[30vw] !h-[35vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-md flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-3 text-xl">
                 <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
