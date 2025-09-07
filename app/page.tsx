@@ -3057,7 +3057,7 @@ export default function WeatherApp() {
       )}
 
       {alertsModalOpen && (
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-lg max-h-[80vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-800 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-slate-700">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
