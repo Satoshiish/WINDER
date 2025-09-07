@@ -2993,7 +2993,7 @@ export default function WeatherApp() {
       {/* Emergency Modal */}
       {emergencyModalOpen && (
         <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-          <DialogContent className="w-[90vw] h-[40vh] sm:!w-[40vw] sm:!h-[40vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-2xl flex flex-col">
+          <DialogContent className="w-[90vw] h-[30vh] sm:!w-[40vw] sm:!h-[40vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-2xl flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl">
                 <div className="w-12 h-8 bg-red-500 rounded-lg flex items-center justify-center">
