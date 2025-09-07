@@ -2566,7 +2566,7 @@ export default function WeatherApp() {
               {/* Recent Searches */}
               {recentSearches.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                  <h3 className=" mt-2 text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                     Recent Searches
                   </h3>
