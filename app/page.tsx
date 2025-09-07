@@ -2965,28 +2965,29 @@ export default function WeatherApp() {
       </div>
 
       {/* Weather Map Modal */}
-      {weatherMapModalOpen && (
-        <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-4xl h-[80vh] flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-white" />
-                </div>
-                Weather Map
-              </DialogTitle>
-            </DialogHeader>
+{weatherMapModalOpen && (
+  <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
+    <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-6xl h-[80vh] flex flex-col">
+      <DialogHeader className="flex-shrink-0">
+        <DialogTitle className="flex items-center gap-3 text-xl">
+          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+            <MapPin className="w-5 h-5 text-white" />
+          </div>
+          Weather Map
+        </DialogTitle>
+      </DialogHeader>
 
-            <div className="flex-1 p-6">
-              <iframe
-                src={getWeatherMapUrl()}
-                className="w-full h-full rounded-xl border border-slate-600"
-                title="Weather Map"
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <div className="flex-1 p-6">
+        <iframe
+          src={getWeatherMapUrl()}
+          className="w-full h-full rounded-xl border border-slate-600"
+          title="Weather Map"
+        />
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
+
 
       {/* Emergency Modal */}
       {emergencyModalOpen && (
