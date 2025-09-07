@@ -1,6 +1,5 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   AlertTriangle,
   Phone,
@@ -24,7 +23,9 @@ import {
 import { useState, useEffect, useCallback } from "react"
 
 import { useToast } from "@/hooks/use-toast"
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Share2, MessageSquare, History } from "lucide-react"
 
 interface WeatherData {
   temperature: number
@@ -87,10 +88,14 @@ export default function WeatherApp() {
   const [selectedLocationName, setSelectedLocationName] = useState("")
   const [currentLocationName, setCurrentLocationName] = useState("")
   const [activeView, setActiveView] = useState("dashboard")
+
   const [alertsModalOpen, setAlertsModalOpen] = useState(false)
   const [forecastModalOpen, setForecastModalOpen] = useState(false)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   const [windModalOpen, setWindModalOpen] = useState(false)
+  const [emergencyContactsModalOpen, setEmergencyContactsModalOpen] = useState(false)
+  const [locationSharingModalOpen, setLocationSharingModalOpen] = useState(false)
+  const [weatherHistoryModalOpen, setWeatherHistoryModalOpen] = useState(false)
   const [notifications, setNotifications] = useState<
     Array<{
       id: string
@@ -1579,9 +1584,6 @@ export default function WeatherApp() {
     } else if (rand < pattern.rainChance + 0.2 + pattern.sunnyChance) {
       // Clear/sunny weather
       condition = "clear"
-    } else {
-      // Remaining probability goes to partly cloudy
-      condition = "clouds"
     }
 
     return {
@@ -2248,7 +2250,7 @@ export default function WeatherApp() {
 
   const fetchRiskPredictions = async (lat: number, lon: number, locationName: string) => {
     try {
-      const response = await fetch(`/api/weather/alerts?lat=${lat}&lon=${lon}`)
+      const response = await fetch(`/api/weather/alerts?lat=${lat}&lon=${lat}`)
       if (response.ok) {
         const alertData = await response.json()
 
@@ -2739,59 +2741,38 @@ export default function WeatherApp() {
               </div>
             </div>
 
-            {/* Current Weather Summary */}
-            {(currentWeather || searchWeather) && (
-              <div className="space-y-3 relative z-10">
-                {" "}
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  Current Weather
-                </h2>
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      {getWeatherIcon(
-                        searchWeather?.condition || currentWeather?.condition || "clear",
-                        searchWeather?.icon || currentWeather?.icon,
-                      )}
-                      <div>
-                        <p className="text-lg font-medium text-white">
-                          {Math.round(
-                            convertTemperature(searchWeather?.temperature || currentWeather?.temperature || 0),
-                          )}
-                          {getTemperatureUnit()}
-                        </p>
-                        <p className="text-sm text-slate-300">
-                          {searchWeather?.description || currentWeather?.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div>
-                      <p className="text-xs text-slate-400">Humidity</p>
-                      <p className="text-sm font-medium text-white">
-                        {searchWeather?.humidity || currentWeather?.humidity}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Wind</p>
-                      <p className="text-sm font-medium text-white">
-                        {Math.round(convertWindSpeed(searchWeather?.windSpeed || currentWeather?.windSpeed || 0))}{" "}
-                        {getWindSpeedUnit()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Feels Like</p>
-                      <p className="text-sm font-medium text-white">
-                        {Math.round(convertTemperature(searchWeather?.feelsLike || currentWeather?.feelsLike || 0))}
-                        {getTemperatureUnit()}
-                      </p>
-                    </div>
-                  </div>
+            {/* Quick Actions */}
+            <div className="space-y-3">
+              <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                Quick Actions
+              </h2>
+              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setEmergencyContactsModalOpen(true)}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Phone className="h-4 w-4 text-red-400" />
+                    Emergency Contacts
+                  </button>
+                  <button
+                    onClick={() => setLocationSharingModalOpen(true)}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4 text-blue-400" />
+                    Share Location
+                  </button>
+                  <button
+                    onClick={() => setWeatherHistoryModalOpen(true)}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Clock className="h-4 w-4 text-green-400" />
+                    Weather History
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Recent Searches */}
             {recentSearches.length > 0 && (
@@ -2819,669 +2800,555 @@ export default function WeatherApp() {
                 </div>
               </div>
             )}
-
-            {/* Suggested Locations */}
-            {suggestedLocations.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  Suggested Locations
-                </h2>
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
-                  <div className="space-y-2">
-                    {suggestedLocations.slice(0, 3).map((location, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSearchLocation(location.name)
-                          handleLocationSearch(location.name)
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-600/50 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            {getWeatherIcon(location.condition, location.icon)}
-                            <div>
-                              <p className="text-sm font-medium text-white">{location.name}</p>
-                              <p className="text-xs text-slate-400">{location.reason}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-white">
-                              {Math.round(convertTemperature(location.temperature))}
-                              {getTemperatureUnit()}
-                            </p>
-                            <p className="text-xs text-slate-400">{location.condition}</p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="space-y-3">
-              <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                Quick Actions
-              </h2>
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setForecastModalOpen(true)}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Sun className="h-4 w-4 text-blue-400" />
-                    View 5-Day Forecast
-                  </button>
-                  <button
-                    onClick={() => setWeatherMapModalOpen(true)}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <MapPin className="h-4 w-4 text-green-400" />
-                    Open Weather Map
-                  </button>
-                  <button
-                    onClick={() => setAlertsModalOpen(true)}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Bell className="h-4 w-4 text-orange-400" />
-                    Weather Alerts
-                    {alerts.length > 0 && (
-                      <Badge variant="destructive" className="ml-auto text-xs">
-                        {alerts.length}
-                      </Badge>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 pt-20 lg:pt-0 pb-20 lg:pb-0">
-          <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden min-w-0">
-            <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-8 border border-slate-600/30 backdrop-blur-sm">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
-                <div className="mb-6 lg:mb-0 min-w-0 flex-1">
-                  <h1 className="text-4xl lg:text-5xl font-light text-white mb-4 leading-tight truncate">
-                    {searchWeather ? selectedLocationName || searchLocation : currentLocationName || "Loading..."}
-                  </h1>
-                  <div className="flex items-center space-x-8">
-                    <span className="text-6xl lg:text-7xl font-thin text-white">
-                      {searchWeather
-                        ? Math.round(convertTemperature(searchWeather.temperature))
-                        : currentWeather
-                          ? Math.round(convertTemperature(currentWeather.temperature))
-                          : "--"}
-                      {getTemperatureUnit()}
-                    </span>
-                    {getMainWeatherIcon(
-                      searchWeather?.condition || currentWeather?.condition || "clear",
-                      searchWeather?.icon || currentWeather?.icon,
-                    )}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Dashboard View */}
+          {activeView === "dashboard" && (
+            <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-hidden">
+              {/* Current Weather */}
+              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-6 border border-slate-600/30 backdrop-blur-sm">
+                {loading ? (
+                  <div className="flex items-center justify-center h-48">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
                   </div>
-                  {(searchWeather || currentWeather) && (
-                    <p className="text-slate-300 mt-4 text-lg">
-                      {searchWeather ? searchWeather.description : currentWeather?.description}
-                    </p>
-                  )}
-                </div>
+                ) : locationError ? (
+                  <div className="text-center text-slate-400">
+                    <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                    {locationError}
+                  </div>
+                ) : currentWeather ? (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
+                        <p className="text-sm text-slate-300">
+                          {formatDate(new Date())} • {currentWeather.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        {getMainWeatherIcon(currentWeather.condition, currentWeather.icon)}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-5xl font-bold">
+                          {convertTemperature(currentWeather.temperature).toFixed(1)}
+                          {getTemperatureUnit()}
+                        </h3>
+                        <p className="text-sm text-slate-300">
+                          Feels like {convertTemperature(currentWeather.feelsLike).toFixed(1)}
+                          {getTemperatureUnit()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-slate-300">Humidity: {currentWeather.humidity}%</p>
+                        <p className="text-sm text-slate-300">
+                          Wind Speed: {convertWindSpeed(currentWeather.windSpeed).toFixed(1)}
+                          {getWindSpeedUnit()}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-slate-400">
+                    <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                    No weather data available.
+                  </div>
+                )}
               </div>
 
-              {(currentWeather || searchWeather) && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                  <div className="text-center bg-slate-700/30 rounded-xl p-4 md:p-6 border border-slate-600/20">
-                    <p className="text-sm text-slate-400 mb-2">Humidity</p>
-                    <p className="text-lg md:text-xl text-white font-medium">
-                      {searchWeather ? searchWeather.humidity : currentWeather?.humidity}%
-                    </p>
-                  </div>
-                  <div className="text-center bg-slate-700/30 rounded-xl p-4 md:p-6 border border-slate-600/20">
-                    <p className="text-sm text-slate-400 mb-2">Wind Speed</p>
-                    <p className="text-lg md:text-xl text-white font-medium">
-                      {Math.round(
-                        convertWindSpeed(searchWeather ? searchWeather.windSpeed : currentWeather?.windSpeed || 0),
-                      )}{" "}
-                      {getWindSpeedUnit()}
-                    </p>
-                  </div>
-                  <div className="text-center bg-slate-700/30 rounded-xl p-4 md:p-6 border border-slate-600/20">
-                    <p className="text-sm text-slate-400 mb-2">Feels Like</p>
-                    <p className="text-lg md:text-xl text-white font-medium">
-                      {Math.round(
-                        convertTemperature(searchWeather ? searchWeather.feelsLike : currentWeather?.feelsLike || 0),
-                      )}
-                      {getTemperatureUnit()}
-                    </p>
+              {/* Suggested Locations */}
+              {suggestedLocations.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                    Suggested Locations
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {suggestedLocations.map((location) => (
+                      <button
+                        key={location.name}
+                        onClick={() => handleSuggestionCardClick(location.name)}
+                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm hover:scale-105 transition-transform duration-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">{location.name}</h3>
+                          <div className="flex items-center">{getWeatherIcon(location.condition, location.icon)}</div>
+                        </div>
+                        <p className="text-sm text-slate-300">
+                          {convertTemperature(location.temperature).toFixed(1)}
+                          {getTemperatureUnit()} • {location.condition}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-2">{location.reason}</p>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
 
+              {/* Forecast */}
               {forecast.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>5 Day
-                    Forecast
-                  </h3>
-                  <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/20">
-                    <div className="space-y-3">
-                      {forecast.slice(0, 5).map((day, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between py-3 border-b border-slate-600/20 last:border-b-0"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm text-slate-400 w-12">
-                              {index === 0
-                                ? "Today"
-                                : new Date(day.date).toLocaleDateString("en", { weekday: "short" })}
-                            </span>
-                            {getWeatherIcon(day.condition, day.icon)}
-                            <span className="text-sm text-white">{day.description}</span>
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                    Weather Forecast
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {forecast.slice(0, 4).map((day) => (
+                      <div
+                        key={day.date}
+                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                      >
+                        <p className="text-sm font-medium">{formatDate(day.date)}</p>
+                        <div className="flex items-center justify-between my-2">
+                          <div className="flex items-center">{getWeatherIcon(day.condition, day.icon)}</div>
+                          <div className="text-right">
+                            <p className="text-sm text-slate-300">
+                              {convertTemperature(day.temperature.max).toFixed(1)}
+                              {getTemperatureUnit()}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {convertTemperature(day.temperature.min).toFixed(1)}
+                              {getTemperatureUnit()}
+                            </p>
                           </div>
-                          <span className="text-sm text-white font-medium">
-                            {Math.round(convertTemperature(day.temperature.max))}
-                            {getTemperatureUnit()}/{Math.round(convertTemperature(day.temperature.min))}
-                            {getTemperatureUnit()}
-                          </span>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-xs text-slate-400">{day.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Risk Predictions */}
+              {riskPredictions.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                    Risk Predictions
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {riskPredictions.map((risk) => (
+                      <div
+                        key={risk.category}
+                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold">{risk.category}</h3>
+                          <div className="flex items-center">
+                            {getTrendIcon(risk.trend)}
+                            <span className={`text-sm ml-1 ${getRiskColor(risk.risk)}`}>{risk.risk}%</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-300">{risk.description}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Loading State */}
-            {loading && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                <div className="flex justify-center items-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
-                  <span className="ml-3 text-white">Loading weather data...</span>
-                </div>
-              </div>
-            )}
-
-            {alerts.length > 0 && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-400 rounded-full"></div>
-                  Active Alerts
-                </h3>
-                <div className="space-y-3">
-                  {alerts.slice(0, 3).map((alert) => (
-                    <div key={alert.id} className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-white">{alert.title}</span>
-                        <Badge variant={getSeverityColor(alert.severity)} className="text-xs">
-                          {alert.severity.toUpperCase()}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-slate-300 mb-2">{alert.description}</p>
-                      <div className="flex items-center justify-between text-xs text-slate-400">
-                        <span>Areas: {alert.areas.join(", ")}</span>
-                        <span>Until: {alert.validUntil.toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {alerts.length > 3 && (
-                    <button
-                      onClick={() => setAlertsModalOpen(true)}
-                      className="w-full text-center py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      View all {alerts.length} alerts
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {riskPredictions.length > 0 && (
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-2xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></div>
-                  Risk Predictions
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {riskPredictions.map((prediction, index) => (
-                    <div key={index} className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-white">{prediction.category}</span>
-                        <div className="flex items-center space-x-1">
-                          {prediction.trend === "increasing" && <TrendingUp className="h-4 w-4 text-red-400" />}
-                          {prediction.trend === "decreasing" && <TrendingDown className="h-4 w-4 text-green-400" />}
-                          {prediction.trend === "stable" && <Minus className="h-4 w-4 text-yellow-400" />}
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                          <span>Risk Level</span>
-                          <span>{prediction.risk}%</span>
-                        </div>
-                        <div className="w-full bg-slate-600/50 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              prediction.risk >= 70
-                                ? "bg-red-500"
-                                : prediction.risk >= 40
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
-                            }`}
-                            style={{ width: `${prediction.risk}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-300">{prediction.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
-      {weatherMapModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white">Weather Map</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setWeatherMapModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
+      {/* Modals */}
+      {/* Emergency Modal */}
+      <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5" />
+              Emergency Services
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300">In case of emergency, please contact the following services:</p>
+            <div className="grid gap-3">
+              <Button variant="destructive" onClick={() => window.open("tel:911")}>
+                Call 911
+              </Button>
+              <Button variant="secondary" onClick={() => window.open("tel:143")}>
+                Call Red Cross (143)
               </Button>
             </div>
-            <div className="flex-1 p-6">
-              <iframe
-                src={getWeatherMapUrl()}
-                className="w-full h-full rounded-xl border border-slate-600"
-                title="Weather Map"
-              />
-            </div>
+            <p className="text-xs text-slate-400 mt-2">
+              Please use these services responsibly and only in genuine emergency situations.
+            </p>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {emergencyModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-400 rounded-full"></div>
-                Emergency Services
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setEmergencyModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="p-6 space-y-3">
-              <Button
-                variant="destructive"
-                className="w-full justify-start bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-white"
-                onClick={() => {
-                  window.open("tel:911", "_self")
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <Phone className="h-4 w-4 mr-3" />
-                Call 911 - NDRRMC Emergency
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white"
-                onClick={() => {
-                  window.open("tel:143", "_self")
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <Phone className="h-4 w-4 mr-3" />
-                Call 143 - Red Cross
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-white"
-                onClick={() => {
-                  window.open("tel:117", "_self")
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <Phone className="h-4 w-4 mr-3" />
-                Call 117 - Philippine Coast Guard
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white"
-                onClick={() => {
-                  setWeatherMapModalOpen(true)
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <MapPin className="h-4 w-4 mr-3" />
-                Open Weather Map
-              </Button>
-            </div>
+      {/* Weather Map Modal */}
+      <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Weather Map
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <iframe src={getWeatherMapUrl()} width="100%" height="600" style={{ border: "none" }} title="Weather Map" />
+            <p className="text-xs text-slate-400 mt-2">This weather map is provided by OpenWeatherMap.</p>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {alertsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-full"></div>
-                Weather Alerts & Warnings
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAlertsModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="flex-1 p-6 overflow-y-auto scrollbar-hidden">
-              {alerts.length > 0 ? (
-                <div className="space-y-4">
-                  {alerts.map((alert) => (
-                    <div key={alert.id} className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium text-white">{alert.title}</span>
-                        <Badge variant={getSeverityColor(alert.severity)}>{alert.severity.toUpperCase()}</Badge>
-                      </div>
-                      <p className="text-slate-300 mb-2">{alert.description}</p>
-                      <div className="text-sm text-slate-400">
-                        <p>Areas: {alert.areas.join(", ")}</p>
-                        <p>Valid until: {formatDate(alert.validUntil)}</p>
-                      </div>
+      {/* Alerts Modal */}
+      <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Weather Alerts
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {alerts.length > 0 ? (
+              alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">{alert.title}</h3>
+                      <p className="text-sm text-slate-300">{alert.description}</p>
+                      <p className="text-xs text-slate-400 mt-2">Areas: {alert.areas.join(", ")}</p>
+                      <p className="text-xs text-slate-400">Issued: {formatDate(alert.issued)}</p>
+                      <p className="text-xs text-slate-400">Valid Until: {formatDate(alert.validUntil)}</p>
                     </div>
-                  ))}
+                    <Button variant={getSeverityColor(alert.severity)}>{alert.severity}</Button>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Bell className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400">No active weather alerts</p>
-                </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="text-center text-slate-400">
+                <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                No weather alerts available for your location.
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {forecastModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                Extended Weather Forecast
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setForecastModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="flex-1 p-6 overflow-y-auto scrollbar-hidden">
-              {forecast.length > 0 ? (
-                <div className="space-y-4">
-                  {forecast.map((day, index) => (
-                    <div key={index} className="glass-card rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <Sun className="h-6 w-6 text-yellow-400" />
-                          <div>
-                            <h3 className="font-medium text-white">
-                              {index === 0
-                                ? "Today"
-                                : new Date(day.date).toLocaleDateString("en", {
-                                    weekday: "long",
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                            </h3>
-                            <p className="text-sm text-slate-400">{day.description}</p>
-                          </div>
-                        </div>
-                        <span className="text-2xl font-light text-white">
-                          {Math.round(convertTemperature(day.temperature.max))}
-                          {getTemperatureUnit()}/{Math.round(convertTemperature(day.temperature.min))}
-                          {getTemperatureUnit()}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-slate-400">Humidity</p>
-                          <p className="text-white">{day.humidity}%</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Wind</p>
-                          <p className="text-white">
-                            {Math.round(convertWindSpeed(day.windSpeed))} {getWindSpeedUnit()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Rainfall</p>
-                          <p className="text-white">{day.rainfall}mm</p>
-                        </div>
-                      </div>
+      {/* Forecast Modal */}
+      <Dialog open={forecastModalOpen} onOpenChange={setForecastModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CloudRain className="h-5 w-5" />
+              Weather Forecast
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {forecast.map((day) => (
+                <div
+                  key={day.date}
+                  className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                >
+                  <p className="text-sm font-medium">{formatDate(day.date)}</p>
+                  <div className="flex items-center justify-between my-2">
+                    <div className="flex items-center">{getWeatherIcon(day.condition, day.icon)}</div>
+                    <div className="text-right">
+                      <p className="text-sm text-slate-300">
+                        {convertTemperature(day.temperature.max).toFixed(1)}
+                        {getTemperatureUnit()}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {convertTemperature(day.temperature.min).toFixed(1)}
+                        {getTemperatureUnit()}
+                      </p>
                     </div>
-                  ))}
+                  </div>
+                  <p className="text-xs text-slate-400">{day.description}</p>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Sun className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400">No forecast data available</p>
-                </div>
-              )}
+              ))}
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Settings Modal */}
-      {settingsModalOpen && (
-        <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-lg max-h-[80vh] flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-                Settings
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-8 py-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Temperature Unit</h3>
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant={temperatureUnit === "celsius" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setTemperatureUnit("celsius")}
-                    className={`flex-1 h-12 ${
-                      temperatureUnit === "celsius"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    Celsius (°C)
-                  </Button>
-                  <Button
-                    variant={temperatureUnit === "fahrenheit" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setTemperatureUnit("fahrenheit")}
-                    className={`flex-1 h-12 ${
-                      temperatureUnit === "fahrenheit"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    Fahrenheit (°F)
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Wind Speed Unit</h3>
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant={windSpeedUnit === "kmh" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setWindSpeedUnit("kmh")}
-                    className={`flex-1 h-12 ${
-                      windSpeedUnit === "kmh"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    km/h
-                  </Button>
-                  <Button
-                    variant={windSpeedUnit === "mph" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setWindSpeedUnit("mph")}
-                    className={`flex-1 h-12 ${
-                      windSpeedUnit === "mph"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    mph
-                  </Button>
-                  <Button
-                    variant={windSpeedUnit === "ms" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setWindSpeedUnit("ms")}
-                    className={`flex-1 h-12 ${
-                      windSpeedUnit === "ms"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    m/s
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Location Services</h3>
-                </div>
-                <div className="bg-slate-700/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Use your location for local weather</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        locationServicesEnabled
-                          ? "bg-slate-700 text-white border-slate-600"
-                          : "bg-white text-slate-900 border-white"
-                      }`}
-                    >
-                      {locationServicesEnabled ? "Enabled" : "Disabled"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Notifications</h3>
-                </div>
-                <div className="bg-slate-700/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Enable weather alerts and updates</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        notificationsEnabled
-                          ? "bg-slate-700 text-white border-slate-600"
-                          : "bg-white text-slate-900 border-white"
-                      }`}
-                    >
-                      {notificationsEnabled ? "Enabled" : "Disabled"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Push Notifications</h3>
-                </div>
-                <div className="bg-slate-700/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Enable push notifications for alerts</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (!pushNotificationsEnabled) {
-                          requestPushNotificationPermission()
-                        } else {
-                          setPushNotificationsEnabled(false)
-                        }
-                      }}
-                      disabled={!notificationsEnabled}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        pushNotificationsEnabled
-                          ? "bg-slate-700 text-white border-slate-600"
-                          : "bg-white text-slate-900 border-white"
-                      } ${!notificationsEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      {pushNotificationsEnabled ? "Enabled" : "Disabled"}
-                    </Button>
-                  </div>
-                </div>
+      <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Settings
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Temperature Unit</h3>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant={temperatureUnit === "celsius" ? "default" : "outline"}
+                  onClick={() => setTemperatureUnit("celsius")}
+                >
+                  Celsius (°C)
+                </Button>
+                <Button
+                  variant={temperatureUnit === "fahrenheit" ? "default" : "outline"}
+                  onClick={() => setTemperatureUnit("fahrenheit")}
+                >
+                  Fahrenheit (°F)
+                </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Wind Speed Unit</h3>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant={windSpeedUnit === "kmh" ? "default" : "outline"}
+                  onClick={() => setWindSpeedUnit("kmh")}
+                >
+                  km/h
+                </Button>
+                <Button
+                  variant={windSpeedUnit === "mph" ? "default" : "outline"}
+                  onClick={() => setWindSpeedUnit("mph")}
+                >
+                  mph
+                </Button>
+                <Button variant={windSpeedUnit === "ms" ? "default" : "outline"} onClick={() => setWindSpeedUnit("ms")}>
+                  m/s
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Location Services</h3>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant={locationServicesEnabled ? "default" : "outline"}
+                  onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
+                >
+                  {locationServicesEnabled ? "Enabled" : "Disabled"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Notifications</h3>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant={notificationsEnabled ? "default" : "outline"}
+                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                >
+                  {notificationsEnabled ? "Enabled" : "Disabled"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Push Notifications</h3>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant={pushNotificationsEnabled ? "default" : "outline"}
+                  onClick={requestPushNotificationPermission}
+                >
+                  {pushNotificationsEnabled ? "Enabled" : "Enable"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Wind Modal */}
+      <Dialog open={windModalOpen} onOpenChange={setWindModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Cloud className="h-5 w-5" />
+              Wind Information
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300">Wind information will be displayed here.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Emergency Contacts Modal */}
+      <Dialog open={emergencyContactsModalOpen} onOpenChange={setEmergencyContactsModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5" />
+              Emergency Contacts
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div>
+                  <p className="font-medium text-red-700 dark:text-red-300">Emergency Hotline</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">911</p>
+                </div>
+                <button
+                  onClick={() => window.open("tel:911")}
+                  className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                >
+                  <Phone className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div>
+                  <p className="font-medium text-blue-700 dark:text-blue-300">NDRRMC</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">(02) 8911-1406</p>
+                </div>
+                <button
+                  onClick={() => window.open("tel:+63289111406")}
+                  className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+                >
+                  <Phone className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                <div>
+                  <p className="font-medium text-orange-700 dark:text-orange-300">PAGASA Weather</p>
+                  <p className="text-sm text-orange-600 dark:text-orange-400">(02) 8284-0800</p>
+                </div>
+                <button
+                  onClick={() => window.open("tel:+63282840800")}
+                  className="p-2 bg-orange-600 text-white rounded-full hover:bg-orange-700"
+                >
+                  <Phone className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div>
+                  <p className="font-medium text-green-700 dark:text-green-300">Red Cross</p>
+                  <p className="text-sm text-green-600 dark:text-green-400">143</p>
+                </div>
+                <button
+                  onClick={() => window.open("tel:143")}
+                  className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                >
+                  <Phone className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Location Modal */}
+      <Dialog open={locationSharingModalOpen} onOpenChange={setLocationSharingModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Share2 className="h-5 w-5" />
+              Share Location & Weather
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">Current Location:</p>
+              <p className="font-medium">{selectedLocationName || currentLocationName}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {currentWeather?.condition} • {Math.round(currentWeather?.temperature || 0)}°C
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => {
+                  const message = `I'm currently at ${selectedLocationName || currentLocationName}. Weather: ${currentWeather?.condition}, ${Math.round(currentWeather?.temperature || 0)}°C. Stay safe! - Sent via WINDER+`
+                  window.open(`sms:?body=${encodeURIComponent(message)}`)
+                }}
+                className="flex items-center justify-center gap-2 p-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <MessageSquare className="h-4 w-4" />
+                SMS
+              </button>
+
+              <button
+                onClick={() => {
+                  const message = `I'm currently at ${selectedLocationName || currentLocationName}. Weather: ${currentWeather?.condition}, ${Math.round(currentWeather?.temperature || 0)}°C. Stay safe! - Sent via WINDER+`
+                  navigator.share?.({
+                    title: "My Location & Weather",
+                    text: message,
+                  }) || navigator.clipboard?.writeText(message)
+                }}
+                className="flex items-center justify-center gap-2 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Share your location and current weather conditions with family and friends for safety.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Weather History Modal */}
+      <Dialog open={weatherHistoryModalOpen} onOpenChange={setWeatherHistoryModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Weather History - {selectedLocationName || currentLocationName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              {[
+                {
+                  date: "Today",
+                  temp: Math.round(currentWeather?.temperature || 28),
+                  condition: currentWeather?.condition || "Partly Cloudy",
+                  humidity: currentWeather?.humidity || 65,
+                },
+                { date: "Yesterday", temp: 29, condition: "Sunny", humidity: 58 },
+                { date: "2 days ago", temp: 26, condition: "Light Rain", humidity: 78 },
+                { date: "3 days ago", temp: 27, condition: "Cloudy", humidity: 72 },
+                { date: "4 days ago", temp: 30, condition: "Partly Cloudy", humidity: 60 },
+                { date: "5 days ago", temp: 28, condition: "Thunderstorm", humidity: 85 },
+                { date: "6 days ago", temp: 25, condition: "Heavy Rain", humidity: 90 },
+              ].map((day, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-center">
+                      <p className="text-sm font-medium">{day.date}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">{day.condition}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Humidity: {day.humidity}%</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold">{day.temp}°C</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center pt-4 border-t">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Historical weather data helps track patterns and prepare for similar conditions.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
