@@ -2992,57 +2992,58 @@ export default function WeatherApp() {
 
       {/* Emergency Modal */}
       {emergencyModalOpen && (
-        <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-          <DialogContent className="w-[90vw] h-[30vh] sm:!w-[40vw] sm:!h-[40vh] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-2xl flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl">
-                <div className="w-12 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                Emergency Services
-              </DialogTitle>
-            </DialogHeader>
+  <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
+    <DialogContent className="w-[92vw] sm:w-[40vw] max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl p-0 overflow-hidden">
+      
+      {/* Header */}
+      <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+        <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+          <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
+            <Phone className="w-6 h-6 text-white" />
+          </div>
+          Emergency Services
+        </DialogTitle>
+      </DialogHeader>
 
-            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-              <Button
-                variant="destructive"
-                className="w-full py-3 sm:py-4 justify-start bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-white text-base sm:text-lg"
-                onClick={() => {
-                  window.open("tel:911", "_self")
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-3" />
-                Call 911 - NDRRMC Emergency
-              </Button>
+      {/* Buttons */}
+      <div className="p-6 space-y-4">
+        <Button
+          className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 border border-red-400/40 text-white text-lg font-medium shadow-md transition-all"
+          onClick={() => {
+            window.open("tel:911", "_self")
+            setEmergencyModalOpen(false)
+          }}
+        >
+          <Phone className="h-5 w-5 mr-3" />
+          Call 911 – NDRRMC Emergency
+        </Button>
 
-              <Button
-                variant="outline"
-                className="w-full py-3 sm:py-4 justify-start bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white text-base sm:text-lg"
-                onClick={() => {
-                  window.open("tel:143", "_self")
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-3" />
-                Call 143 - Red Cross
-              </Button>
+        <Button
+          className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 border border-blue-400/40 text-white text-lg font-medium shadow-md transition-all"
+          onClick={() => {
+            window.open("tel:143", "_self")
+            setEmergencyModalOpen(false)
+          }}
+        >
+          <Phone className="h-5 w-5 mr-3" />
+          Call 143 – Red Cross
+        </Button>
 
-              <Button
-                variant="outline"
-                className="w-full py-3 sm:py-4 justify-start bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-white text-base sm:text-lg"
-                onClick={() => {
-                  window.open("tel:117", "_self")
-                  setEmergencyModalOpen(false)
-                }}
-              >
-                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-3" />
-                Call 117 - Philippine Coast Guard
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+        <Button
+          className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 border border-orange-400/40 text-white text-lg font-medium shadow-md transition-all"
+          onClick={() => {
+            window.open("tel:117", "_self")
+            setEmergencyModalOpen(false)
+          }}
+        >
+          <Phone className="h-5 w-5 mr-3" />
+          Call 117 – Philippine Coast Guard
+        </Button>
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
+
 
       {/* Alerts Modal */}
       {alertsModalOpen && (
