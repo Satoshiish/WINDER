@@ -3016,7 +3016,11 @@ export default function WeatherApp() {
             </DialogHeader>
 
             <div className="flex-1 p-6 space-y-4">
-              <p className="text-slate-300">Quickly share your live location with contacts.</p>
+              <p className="text-slate-300">
+                Quickly share your live location with emergency contacts or copy it to your clipboard.
+              </p>
+
+              {/* Copy Location Button */}
               <Button
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-3 font-medium"
                 onClick={() => {
@@ -3024,7 +3028,7 @@ export default function WeatherApp() {
                     navigator.geolocation.getCurrentPosition((pos) => {
                       const url = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`
                       navigator.clipboard.writeText(url)
-                      alert("Location copied to clipboard! Share it with your contacts.")
+                      alert("📍 Location copied to clipboard!")
                     })
                   } else {
                     alert("Geolocation is not supported by your browser.")
@@ -3032,6 +3036,40 @@ export default function WeatherApp() {
                 }}
               >
                 Copy My Location
+              </Button>
+
+              {/* Share with 911 */}
+              <Button
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium"
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                      const url = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`
+                      window.open(`sms:911?body=My current location is ${url}`, "_self")
+                    })
+                  } else {
+                    alert("Geolocation is not supported by your browser.")
+                  }
+                }}
+              >
+                📞 Send to 911
+              </Button>
+
+              {/* Share with Red Cross */}
+              <Button
+                className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl py-3 font-medium"
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                      const url = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`
+                      window.open(`sms:143?body=My current location is ${url}`, "_self")
+                    })
+                  } else {
+                    alert("Geolocation is not supported by your browser.")
+                  }
+                }}
+              >
+                🚑 Send to Red Cross (143)
               </Button>
             </div>
           </DialogContent>
