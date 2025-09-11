@@ -3114,11 +3114,18 @@ export default function WeatherApp() {
       {/* Settings Modal */}
       {settingsModalOpen && (
         <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-lg max-h-[80vh] flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -3136,168 +3143,134 @@ export default function WeatherApp() {
                 Settings
               </DialogTitle>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-8 py-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Temperature Unit</h3>
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant={temperatureUnit === "celsius" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setTemperatureUnit("celsius")}
-                    className={`flex-1 h-12 ${
-                      temperatureUnit === "celsius"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    Celsius (°C)
-                  </Button>
-                  <Button
-                    variant={temperatureUnit === "fahrenheit" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setTemperatureUnit("fahrenheit")}
-                    className={`flex-1 h-12 ${
-                      temperatureUnit === "fahrenheit"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    Fahrenheit (°F)
-                  </Button>
-                </div>
-              </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Wind Speed Unit</h3>
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant={windSpeedUnit === "kmh" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setWindSpeedUnit("kmh")}
-                    className={`flex-1 h-12 ${
-                      windSpeedUnit === "kmh"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    km/h
-                  </Button>
-                  <Button
-                    variant={windSpeedUnit === "mph" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setWindSpeedUnit("mph")}
-                    className={`flex-1 h-12 ${
-                      windSpeedUnit === "mph"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    mph
-                  </Button>
-                  <Button
-                    variant={windSpeedUnit === "ms" ? "default" : "outline"}
-                    size="lg"
-                    onClick={() => setWindSpeedUnit("ms")}
-                    className={`flex-1 h-12 ${
-                      windSpeedUnit === "ms"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                        : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
-                    }`}
-                  >
-                    m/s
-                  </Button>
-                </div>
-              </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide py-6 px-5 sm:px-6 space-y-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
+              {/* Temperature Unit */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Location Services</h3>
-                </div>
-                <div className="bg-slate-700/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Use your location for local weather</span>
+                  Temperature Unit
+                </h3>
+                <div className="flex space-x-3">
+                  {["celsius", "fahrenheit"].map((unit) => (
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        locationServicesEnabled
-                          ? "bg-slate-700 text-white border-slate-600"
-                          : "bg-white text-slate-900 border-white"
+                      key={unit}
+                      size="lg"
+                      onClick={() => setTemperatureUnit(unit)}
+                      className={`flex-1 h-12 rounded-xl font-medium transition-all ${
+                        temperatureUnit === unit
+                          ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500 shadow-md"
+                          : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
                       }`}
                     >
-                      {locationServicesEnabled ? "Enabled" : "Disabled"}
+                      {unit === "celsius" ? "Celsius (°C)" : "Fahrenheit (°F)"}
                     </Button>
-                  </div>
+                  ))}
                 </div>
               </div>
 
+              {/* Wind Speed Unit */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Notifications</h3>
-                </div>
-                <div className="bg-slate-700/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Enable weather alerts and updates</span>
+                  Wind Speed Unit
+                </h3>
+                <div className="flex space-x-3">
+                  {["kmh", "mph", "ms"].map((unit) => (
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        notificationsEnabled
-                          ? "bg-slate-700 text-white border-slate-600"
-                          : "bg-white text-slate-900 border-white"
+                      key={unit}
+                      size="lg"
+                      onClick={() => setWindSpeedUnit(unit)}
+                      className={`flex-1 h-12 rounded-xl font-medium transition-all ${
+                        windSpeedUnit === unit
+                          ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500 shadow-md"
+                          : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border-slate-600"
                       }`}
                     >
-                      {notificationsEnabled ? "Enabled" : "Disabled"}
+                      {unit === "kmh" ? "km/h" : unit === "mph" ? "mph" : "m/s"}
                     </Button>
-                  </div>
+                  ))}
                 </div>
               </div>
 
+              {/* Location Services */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
-                  <h3 className="text-lg font-medium text-white">Push Notifications</h3>
+                  Location Services
+                </h3>
+                <div className="bg-slate-700/30 rounded-xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Use your location for local weather</span>
+                  <Button
+                    size="sm"
+                    onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      locationServicesEnabled
+                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                        : "bg-slate-600 hover:bg-slate-500 text-slate-200 border-slate-500"
+                    }`}
+                  >
+                    {locationServicesEnabled ? "Enabled" : "Disabled"}
+                  </Button>
                 </div>
-                <div className="bg-slate-700/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Enable push notifications for alerts</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (!pushNotificationsEnabled) {
-                          requestPushNotificationPermission()
-                        } else {
-                          setPushNotificationsEnabled(false)
-                        }
-                      }}
-                      disabled={!notificationsEnabled}
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        pushNotificationsEnabled
-                          ? "bg-slate-700 text-white border-slate-600"
-                          : "bg-white text-slate-900 border-white"
-                      } ${!notificationsEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      {pushNotificationsEnabled ? "Enabled" : "Disabled"}
-                    </Button>
-                  </div>
+              </div>
+
+              {/* Notifications */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
+                  Notifications
+                </h3>
+                <div className="bg-slate-700/30 rounded-xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Enable weather alerts and updates</span>
+                  <Button
+                    size="sm"
+                    onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      notificationsEnabled
+                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                        : "bg-slate-600 hover:bg-slate-500 text-slate-200 border-slate-500"
+                    }`}
+                  >
+                    {notificationsEnabled ? "Enabled" : "Disabled"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Push Notifications */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
+                  Push Notifications
+                </h3>
+                <div className="bg-slate-700/30 rounded-xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Enable push notifications for alerts</span>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (!pushNotificationsEnabled) {
+                        requestPushNotificationPermission()
+                      } else {
+                        setPushNotificationsEnabled(false)
+                      }
+                    }}
+                    disabled={!notificationsEnabled}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      pushNotificationsEnabled
+                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                        : "bg-slate-600 hover:bg-slate-500 text-slate-200 border-slate-500"
+                    } ${!notificationsEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {pushNotificationsEnabled ? "Enabled" : "Disabled"}
+                  </Button>
                 </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       )}
-
       
     </div>
   )
