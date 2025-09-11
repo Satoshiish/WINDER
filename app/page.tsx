@@ -2968,21 +2968,23 @@ export default function WeatherApp() {
       {weatherMapModalOpen && (
         <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
           <DialogContent
-            className="w-[80vw] h-[60vh] lg:w-[70vw] lg:h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white flex flex-col"
+            className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-white" />
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-md">
+                  <MapPin className="w-6 h-6 text-white" />
                 </div>
                 Weather Map
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-4">
+            {/* Map Content */}
+            <div className="flex-1 p-4 sm:p-6">
               <iframe
                 src={getWeatherMapUrl()}
-                className="w-full h-full rounded-xl border border-slate-600"
+                className="w-full h-full rounded-xl border border-slate-600 shadow-inner"
                 title="Weather Map"
               />
             </div>
@@ -2992,98 +2994,106 @@ export default function WeatherApp() {
 
       {/* Emergency Modal */}
       {emergencyModalOpen && (
-  <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-    <DialogContent className="w-[92vw] sm:w-[40vw] max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl p-0 overflow-hidden">
-      
-      {/* Header */}
-      <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-        <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-          <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
-            <Phone className="w-6 h-6 text-white" />
+      <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
+        <DialogContent className="w-[92vw] sm:w-[40vw] max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl p-0 overflow-hidden">
+          
+          {/* Header */}
+          <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+            <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+              <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
+                <Phone className="w-6 h-6 text-white" />
+              </div>
+              Emergency Services
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Buttons */}
+          <div className="p-6 space-y-4">
+            <Button
+              className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 border border-red-400/40 text-white text-lg font-medium shadow-md transition-all"
+              onClick={() => {
+                window.open("tel:911", "_self")
+                setEmergencyModalOpen(false)
+              }}
+            >
+              <Phone className="h-5 w-5 mr-3" />
+              Call 911 – NDRRMC Emergency
+            </Button>
+
+            <Button
+              className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 border border-blue-400/40 text-white text-lg font-medium shadow-md transition-all"
+              onClick={() => {
+                window.open("tel:143", "_self")
+                setEmergencyModalOpen(false)
+              }}
+            >
+              <Phone className="h-5 w-5 mr-3" />
+              Call 143 – Red Cross
+            </Button>
+
+            <Button
+              className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 border border-orange-400/40 text-white text-lg font-medium shadow-md transition-all"
+              onClick={() => {
+                window.open("tel:117", "_self")
+                setEmergencyModalOpen(false)
+              }}
+            >
+              <Phone className="h-5 w-5 mr-3" />
+              Call 117 – Philippine Coast Guard
+            </Button>
           </div>
-          Emergency Services
-        </DialogTitle>
-      </DialogHeader>
-
-      {/* Buttons */}
-      <div className="p-6 space-y-4">
-        <Button
-          className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 border border-red-400/40 text-white text-lg font-medium shadow-md transition-all"
-          onClick={() => {
-            window.open("tel:911", "_self")
-            setEmergencyModalOpen(false)
-          }}
-        >
-          <Phone className="h-5 w-5 mr-3" />
-          Call 911 – NDRRMC Emergency
-        </Button>
-
-        <Button
-          className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 border border-blue-400/40 text-white text-lg font-medium shadow-md transition-all"
-          onClick={() => {
-            window.open("tel:143", "_self")
-            setEmergencyModalOpen(false)
-          }}
-        >
-          <Phone className="h-5 w-5 mr-3" />
-          Call 143 – Red Cross
-        </Button>
-
-        <Button
-          className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 border border-orange-400/40 text-white text-lg font-medium shadow-md transition-all"
-          onClick={() => {
-            window.open("tel:117", "_self")
-            setEmergencyModalOpen(false)
-          }}
-        >
-          <Phone className="h-5 w-5 mr-3" />
-          Call 117 – Philippine Coast Guard
-        </Button>
-      </div>
-    </DialogContent>
-  </Dialog>
-)}
+        </DialogContent>
+      </Dialog>
+      )}
 
 
       {/* Alerts Modal */}
       {alertsModalOpen && (
         <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white max-w-2xl max-h-[80vh] flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-white" />
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-2xl w-[92vw] sm:w-[40vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center shadow-md">
+                  <Bell className="w-6 h-6 text-white" />
                 </div>
                 Weather Alerts & Warnings
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-6 py-6 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {/* Alerts Content */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-5 py-6 px-4 sm:px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {alerts.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {alerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className="bg-red-500/10 border border-red-500/20 rounded-xl p-5"
+                      className="bg-gradient-to-br from-red-600/10 via-red-500/10 to-red-600/10 border border-red-500/30 rounded-xl p-5 shadow-md hover:shadow-lg transition-all"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium text-white text-lg">
+                        <span className="font-semibold text-lg text-white leading-snug">
                           {alert.title}
                         </span>
-                        <Badge variant={getSeverityColor(alert.severity)}>
-                          {alert.severity.toUpperCase()}
+                        <Badge
+                          variant={getSeverityColor(alert.severity)}
+                          className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
+                        >
+                          {alert.severity}
                         </Badge>
                       </div>
-                      <p className="text-slate-300 mb-3">{alert.description}</p>
-                      <div className="text-sm text-slate-400 space-y-1">
+
+                      <p className="text-slate-300 mb-4 leading-relaxed">
+                        {alert.description}
+                      </p>
+
+                      <div className="text-sm text-slate-400 space-y-2">
                         <p>
                           <span className="font-medium text-slate-300">Areas:</span>{" "}
                           {alert.areas.join(", ")}
                         </p>
                         <p>
-                          <span className="font-medium text-slate-300">
-                            Valid until:
-                          </span>{" "}
+                          <span className="font-medium text-slate-300">Valid until:</span>{" "}
                           {formatDate(alert.validUntil)}
                         </p>
                       </div>
@@ -3091,9 +3101,9 @@ export default function WeatherApp() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <Bell className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400">No active weather alerts</p>
+                <div className="text-center py-16">
+                  <Bell className="h-14 w-14 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400 text-lg">No active weather alerts</p>
                 </div>
               )}
             </div>
