@@ -3004,8 +3004,11 @@ export default function WeatherApp() {
       {/* Location Sharing Modal */}
       {locationSharingModalOpen && (
         <Dialog open={locationSharingModalOpen} onOpenChange={setLocationSharingModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[70vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
+            border border-slate-700 text-white max-w-lg w-[92vw] max-h-[75vh] rounded-2xl shadow-2xl 
+            flex flex-col overflow-hidden">
             
+            {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
@@ -3015,12 +3018,13 @@ export default function WeatherApp() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-6 space-y-4">
+            {/* Body */}
+            <div className="flex-1 p-6 space-y-5">
               <p className="text-slate-300">
-                Quickly share your live location with emergency contacts or copy it to your clipboard.
+                Quickly share your live location with emergency services or copy it to your clipboard.
               </p>
 
-              {/* Copy Location Button */}
+              {/* Copy Location */}
               <Button
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-3 font-medium"
                 onClick={() => {
@@ -3035,10 +3039,17 @@ export default function WeatherApp() {
                   }
                 }}
               >
-                Copy My Location
+                📍 Copy My Location
               </Button>
 
-              {/* Share with 911 */}
+              {/* Divider */}
+              <div className="flex items-center gap-2 my-2">
+                <div className="flex-1 h-px bg-slate-700"></div>
+                <span className="text-slate-500 text-xs uppercase tracking-wide">Send To</span>
+                <div className="flex-1 h-px bg-slate-700"></div>
+              </div>
+
+              {/* Send to 911 */}
               <Button
                 className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium"
                 onClick={() => {
@@ -3055,7 +3066,7 @@ export default function WeatherApp() {
                 📞 Send to 911
               </Button>
 
-              {/* Share with Red Cross */}
+              {/* Send to Red Cross */}
               <Button
                 className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl py-3 font-medium"
                 onClick={() => {
