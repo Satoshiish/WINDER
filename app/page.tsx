@@ -91,6 +91,10 @@ export default function WeatherApp() {
   const [forecastModalOpen, setForecastModalOpen] = useState(false)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   const [windModalOpen, setWindModalOpen] = useState(false)
+  const [emergencyContactsModalOpen, setEmergencyContactsModalOpen] = useState(false)
+  const [locationSharingModalOpen, setLocationSharingModalOpen] = useState(false)
+  const [weatherHistoryModalOpen, setWeatherHistoryModalOpen] = useState(false)
+
   const [notifications, setNotifications] = useState<
     Array<{
       id: string
@@ -2963,6 +2967,111 @@ export default function WeatherApp() {
             </div>
         </div>
       </div>
+
+      {/* Emergency Contacts Modal */}
+      {emergencyContactsModalOpen && (
+        <Dialog open={emergencyContactsModalOpen} onOpenChange={setEmergencyContactsModalOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
+                  <Phone className="w-6 h-6 text-white" />
+                </div>
+                Emergency Contacts
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+              <p className="text-slate-300">Here you can view and manage your emergency contacts.</p>
+              <Button
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium"
+                onClick={() => window.open("tel:911", "_self")}
+              >
+                <Phone className="w-5 h-5 mr-2" /> Call 911
+              </Button>
+              <Button
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-3 font-medium"
+                onClick={() => window.open("tel:143", "_self")}
+              >
+                <Phone className="w-5 h-5 mr-2" /> Call Red Cross (143)
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Location Sharing Modal */}
+      {locationSharingModalOpen && (
+        <Dialog open={locationSharingModalOpen} onOpenChange={setLocationSharingModalOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[70vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                  <MapPin className="w-6 h-6 text-white" />
+                </div>
+                Share Location
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="flex-1 p-6 space-y-4">
+              <p className="text-slate-300">Quickly share your live location with contacts.</p>
+              <Button
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-3 font-medium"
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                      const url = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`
+                      navigator.clipboard.writeText(url)
+                      alert("Location copied to clipboard! Share it with your contacts.")
+                    })
+                  } else {
+                    alert("Geolocation is not supported by your browser.")
+                  }
+                }}
+              >
+                Copy My Location
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Weather History Modal */}
+      {weatherHistoryModalOpen && (
+        <Dialog open={weatherHistoryModalOpen} onOpenChange={setWeatherHistoryModalOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-2xl w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-md">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                Weather History
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+              {weatherHistory && weatherHistory.length > 0 ? (
+                weatherHistory.map((entry, idx) => (
+                  <div key={idx} className="bg-slate-700/40 border border-slate-600 rounded-xl p-4 hover:bg-slate-700/60 transition">
+                    <p className="text-white font-medium">{entry.date}</p>
+                    <p className="text-slate-300 text-sm">{entry.summary}</p>
+                    <p className="text-slate-400 text-xs">Temp: {entry.temperature}°C</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-slate-400 py-10">
+                  <Clock className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+                  No weather history available.
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
 
       {/* Weather Map Modal */}
       {weatherMapModalOpen && (
