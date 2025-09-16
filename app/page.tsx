@@ -3504,10 +3504,12 @@ export default function WeatherApp() {
             flex flex-col overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50 sticky top-0 bg-slate-900/80 backdrop-blur-md z-10">
+            <DialogHeader className="flex-shrink-0 p-6 sticky top-0 z-10 
+              bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+              border-b border-slate-700/40 backdrop-blur-sm">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
                 <div className="w-12 h-12 bg-gradient-to-tr from-yellow-500 to-yellow-400 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Bell className="w-6 h-6 text-white animate-pulse" />
+                  <Bell className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-white">Weather Alerts & Warnings</span>
               </DialogTitle>
