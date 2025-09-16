@@ -2572,11 +2572,19 @@ export default function WeatherApp() {
                 </button>
                 <button
                   className="flex flex-col items-center justify-center py-2 px-1 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                  onClick={() => setFirstAidModalOpen(true)}
+                >
+                  <Heart className="h-5 w-5 mb-1" />
+                  <span className="text-xs font-medium">First Aid Guide</span>
+                </button>
+                <button
+                  className="flex flex-col items-center justify-center py-2 px-1 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
                   onClick={() => setEmergencyModalOpen(true)}
                 >
                   <Phone className="h-5 w-5 mb-1" />
                   <span className="text-xs font-medium">SOS</span>
                 </button>
+                
               </div>
             </div>
 
