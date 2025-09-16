@@ -3454,7 +3454,7 @@ export default function WeatherApp() {
       {emergencyModalOpen && (
         <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
           <DialogContent
-            className="w-[92vw] sm:w-[40vw] max-w-2xl 
+            className="w-[95vw] xs:w-[92vw] sm:w-[70vw] lg:w-[40vw] max-w-2xl 
             bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
             border border-slate-700/60 text-white rounded-3xl shadow-2xl 
             p-0 overflow-hidden animate-fadeInScale"
