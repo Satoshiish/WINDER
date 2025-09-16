@@ -3085,10 +3085,11 @@ export default function WeatherApp() {
         </div>
       </div>
 
-      {/* Emergency Contacts Modal */}
+      {/* First Aid Modal */}
       {firstAidModalOpen && (
         <Dialog open={firstAidModalOpen} onOpenChange={setFirstAidModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
@@ -3098,46 +3099,71 @@ export default function WeatherApp() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-              <p className="text-slate-300 mb-4">Quick reference for common emergency situations. Always call emergency services for serious injuries.</p>
-              
-              <div className="space-y-3">
-                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-600/30">
+            {/* Scrollable Body */}
+            <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
+              <p className="text-slate-300 leading-relaxed">
+                Quick reference for common emergency situations. Always call emergency
+                services for serious injuries.
+              </p>
+
+              {/* Sections */}
+              <div className="space-y-4">
+                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
                   <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                    <AlertTriangle className="w-5 h-5 text-yellow-400" />
                     Cuts & Bleeding
                   </h3>
-                  <p className="text-sm text-slate-300">1. Apply direct pressure with clean cloth<br/>2. Elevate the wound above heart level<br/>3. Keep pressure until bleeding stops</p>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    1. Apply direct pressure with clean cloth<br />
+                    2. Elevate the wound above heart level<br />
+                    3. Keep pressure until bleeding stops
+                  </p>
                 </div>
 
-                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-600/30">
+                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
                   <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-red-400" />
+                    <Heart className="w-5 h-5 text-red-400" />
                     CPR Basics
                   </h3>
-                  <p className="text-sm text-slate-300">1. Check responsiveness and breathing<br/>2. Call 911 immediately<br/>3. 30 chest compressions, 2 rescue breaths<br/>4. Repeat until help arrives</p>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    1. Check responsiveness and breathing<br />
+                    2. Call 911 immediately<br />
+                    3. 30 chest compressions, 2 rescue breaths<br />
+                    4. Repeat until help arrives
+                  </p>
                 </div>
 
-                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-600/30">
+                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
                   <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-blue-400" />
+                    <Zap className="w-5 h-5 text-blue-400" />
                     Burns
                   </h3>
-                  <p className="text-sm text-slate-300">1. Cool with running water for 10-20 minutes<br/>2. Remove jewelry/clothing from area<br/>3. Cover with sterile gauze<br/>4. Do not use ice or butter</p>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    1. Cool with running water for 10-20 minutes<br />
+                    2. Remove jewelry/clothing from area<br />
+                    3. Cover with sterile gauze<br />
+                    4. Do not use ice or butter
+                  </p>
                 </div>
 
-                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-600/30">
+                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
                   <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-orange-400" />
+                    <AlertTriangle className="w-5 h-5 text-orange-400" />
                     Choking
                   </h3>
-                  <p className="text-sm text-slate-300">1. Encourage coughing if conscious<br/>2. 5 back blows between shoulder blades<br/>3. 5 abdominal thrusts (Heimlich)<br/>4. Repeat until object is expelled</p>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    1. Encourage coughing if conscious<br />
+                    2. 5 back blows between shoulder blades<br />
+                    3. 5 abdominal thrusts (Heimlich)<br />
+                    4. Repeat until object is expelled
+                  </p>
                 </div>
               </div>
 
+              {/* Emergency Call Button */}
               <Button
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium mt-4"
-                onClick={() => window.open("tel:911", "_self")}
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium mt-6 shadow-md transition"
+                onClick={() => window.open('tel:911', '_self')}
               >
                 <Phone className="w-5 h-5 mr-2" /> Call Emergency Services (911)
               </Button>
