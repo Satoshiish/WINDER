@@ -3088,7 +3088,9 @@ export default function WeatherApp() {
       {/* First Aid Modal */}
       {firstAidModalOpen && (
         <Dialog open={firstAidModalOpen} onOpenChange={setFirstAidModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <DialogContent
+            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale"
+          >
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
