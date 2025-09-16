@@ -2513,10 +2513,11 @@ export default function WeatherApp() {
         {isMounted && (
           <>
             {/* Mobile Bottom Navigation */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-800/95 backdrop-blur-md border-t border-slate-700/50">
-              <div className="grid grid-cols-5 gap-1 p-2">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-t border-slate-700/50">
+              <div className="grid grid-cols-6 gap-1 p-2">
+                {/* Home */}
                 <button
-                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
                     activeView === "dashboard"
                       ? "bg-blue-500/20 text-blue-400"
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
@@ -2524,10 +2525,12 @@ export default function WeatherApp() {
                   onClick={() => setActiveView("dashboard")}
                 >
                   <Sun className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">Home</span>
+                  <span className="text-[11px] font-medium">Home</span>
                 </button>
+
+                {/* Search */}
                 <button
-                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
                     mobileSearchOpen
                       ? "bg-blue-500/20 text-blue-400"
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
@@ -2535,10 +2538,12 @@ export default function WeatherApp() {
                   onClick={() => setMobileSearchOpen(true)}
                 >
                   <Search className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">Search</span>
+                  <span className="text-[11px] font-medium">Search</span>
                 </button>
+
+                {/* Map */}
                 <button
-                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
                     activeView === "map"
                       ? "bg-blue-500/20 text-blue-400"
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
@@ -2549,10 +2554,12 @@ export default function WeatherApp() {
                   }}
                 >
                   <MapPin className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">Map</span>
+                  <span className="text-[11px] font-medium">Map</span>
                 </button>
+
+                {/* Alerts */}
                 <button
-                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 relative ${
+                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 relative ${
                     activeView === "alerts"
                       ? "bg-blue-500/20 text-blue-400"
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
@@ -2563,28 +2570,32 @@ export default function WeatherApp() {
                   }}
                 >
                   <Bell className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">Alerts</span>
+                  <span className="text-[11px] font-medium">Alerts</span>
+
                   {alerts.length > 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white font-bold">{alerts.length}</span>
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-[10px] text-white font-bold">{alerts.length}</span>
                     </div>
                   )}
                 </button>
+
+                {/* First Aid */}
                 <button
-                  className="flex flex-col items-center justify-center py-2 px-1 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                  className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
                   onClick={() => setFirstAidModalOpen(true)}
                 >
                   <Heart className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">First Aid Guide</span>
+                  <span className="text-[11px] font-medium">First Aid</span>
                 </button>
+
+                {/* SOS */}
                 <button
-                  className="flex flex-col items-center justify-center py-2 px-1 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                  className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
                   onClick={() => setEmergencyModalOpen(true)}
                 >
                   <Phone className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">SOS</span>
+                  <span className="text-[11px] font-medium">SOS</span>
                 </button>
-                
               </div>
             </div>
 
