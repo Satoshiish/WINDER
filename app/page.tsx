@@ -3555,13 +3555,22 @@ export default function WeatherApp() {
       {/* Settings Modal */}
       {settingsModalOpen && (
         <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 border border-white/10 text-white max-w-lg w-[92vw] max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            
+          <DialogContent
+            className="w-[92vw] max-w-2xl max-h-[85vh] 
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl 
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-white/10 sticky top-0 bg-gradient-to-r from-indigo-900/95 via-slate-900/95 to-indigo-950/95 backdrop-blur-md z-10">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold text-white">
-                <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-6 h-6 text-white animate-spin-slow"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -3576,17 +3585,18 @@ export default function WeatherApp() {
                     />
                   </svg>
                 </div>
-                Settings
+                <span className="text-white">Settings</span>
               </DialogTitle>
             </DialogHeader>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto scroll-smooth py-6 px-5 sm:px-6 space-y-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto py-6 px-5 sm:px-6 space-y-8 
+              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+
               {/* Temperature Unit */}
-              <div className="space-y-4 pb-6 border-b border-white/10">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-indigo-200">
-                  <div className="w-1 h-5 bg-indigo-400 rounded-full"></div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Temperature Unit
                 </h3>
                 <div className="flex space-x-3">
@@ -3595,10 +3605,10 @@ export default function WeatherApp() {
                       key={unit}
                       size="lg"
                       onClick={() => setTemperatureUnit(unit)}
-                      className={`flex-1 h-12 rounded-xl font-medium transition-all ${
+                      className={`flex-1 h-12 rounded-2xl font-medium transition-all ${
                         temperatureUnit === unit
-                          ? "bg-indigo-500 hover:bg-indigo-600 text-white shadow-md"
-                          : "bg-white/5 hover:bg-white/10 text-indigo-200 border border-white/10"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                          : "bg-slate-800/70 hover:bg-slate-700/70 text-slate-300 border border-slate-700/60"
                       }`}
                     >
                       {unit === "celsius" ? "Celsius (°C)" : "Fahrenheit (°F)"}
@@ -3608,9 +3618,9 @@ export default function WeatherApp() {
               </div>
 
               {/* Wind Speed Unit */}
-              <div className="space-y-4 pb-6 border-b border-white/10">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-indigo-200">
-                  <div className="w-1 h-5 bg-indigo-400 rounded-full"></div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Wind Speed Unit
                 </h3>
                 <div className="flex space-x-3">
@@ -3619,10 +3629,10 @@ export default function WeatherApp() {
                       key={unit}
                       size="lg"
                       onClick={() => setWindSpeedUnit(unit)}
-                      className={`flex-1 h-12 rounded-xl font-medium transition-all ${
+                      className={`flex-1 h-12 rounded-2xl font-medium transition-all ${
                         windSpeedUnit === unit
-                          ? "bg-indigo-500 hover:bg-indigo-600 text-white shadow-md"
-                          : "bg-white/5 hover:bg-white/10 text-indigo-200 border border-white/10"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                          : "bg-slate-800/70 hover:bg-slate-700/70 text-slate-300 border border-slate-700/60"
                       }`}
                     >
                       {unit === "kmh" ? "km/h" : unit === "mph" ? "mph" : "m/s"}
@@ -3632,20 +3642,20 @@ export default function WeatherApp() {
               </div>
 
               {/* Location Services */}
-              <div className="space-y-4 pb-6 border-b border-white/10">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-indigo-200">
-                  <div className="w-1 h-5 bg-indigo-400 rounded-full"></div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Location Services
                 </h3>
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                  <span className="text-indigo-200">Use your location for local weather</span>
+                <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Use your location for local weather</span>
                   <Button
                     size="sm"
                     onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
                       locationServicesEnabled
-                        ? "bg-indigo-500 hover:bg-indigo-600 text-white shadow-md"
-                        : "bg-white/10 hover:bg-white/20 text-indigo-200 border border-white/10"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                        : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
                     }`}
                   >
                     {locationServicesEnabled ? "Enabled" : "Disabled"}
@@ -3654,20 +3664,20 @@ export default function WeatherApp() {
               </div>
 
               {/* Notifications */}
-              <div className="space-y-4 pb-6 border-b border-white/10">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-indigo-200">
-                  <div className="w-1 h-5 bg-indigo-400 rounded-full"></div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Notifications
                 </h3>
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                  <span className="text-indigo-200">Enable weather alerts and updates</span>
+                <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Enable weather alerts and updates</span>
                   <Button
                     size="sm"
                     onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
                       notificationsEnabled
-                        ? "bg-indigo-500 hover:bg-indigo-600 text-white shadow-md"
-                        : "bg-white/10 hover:bg-white/20 text-indigo-200 border border-white/10"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                        : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
                     }`}
                   >
                     {notificationsEnabled ? "Enabled" : "Disabled"}
@@ -3677,12 +3687,12 @@ export default function WeatherApp() {
 
               {/* Push Notifications */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center gap-2 text-indigo-200">
-                  <div className="w-1 h-5 bg-indigo-400 rounded-full"></div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Push Notifications
                 </h3>
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                  <span className="text-indigo-200">Enable push notifications for alerts</span>
+                <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Enable push notifications for alerts</span>
                   <Button
                     size="sm"
                     onClick={() => {
@@ -3693,10 +3703,10 @@ export default function WeatherApp() {
                       }
                     }}
                     disabled={!notificationsEnabled}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
                       pushNotificationsEnabled
-                        ? "bg-indigo-500 hover:bg-indigo-600 text-white shadow-md"
-                        : "bg-white/10 hover:bg-white/20 text-indigo-200 border border-white/10"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                        : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
                     } ${!notificationsEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {pushNotificationsEnabled ? "Enabled" : "Disabled"}
