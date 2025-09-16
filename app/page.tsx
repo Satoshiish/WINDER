@@ -3454,65 +3454,65 @@ export default function WeatherApp() {
       {emergencyModalOpen && (
         <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
           <DialogContent
-            className="w-[95vw] xs:w-[92vw] sm:w-[70vw] lg:w-[40vw] max-w-2xl 
-            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
-            border border-slate-700/60 text-white rounded-3xl shadow-2xl 
+            className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-2xl 
+            mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+            border border-slate-700/60 text-white rounded-2xl sm:rounded-3xl shadow-2xl 
             p-0 overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
-                <div className="w-12 h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Phone className="w-6 h-6 text-white animate-pulse" />
+            <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                  <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                 </div>
                 <span>Emergency Services</span>
               </DialogTitle>
             </DialogHeader>
 
             {/* Buttons */}
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <Button
-                className="w-full py-4 justify-start rounded-2xl 
+                className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl 
                 bg-gradient-to-r from-red-600 to-red-500 
                 hover:from-red-500 hover:to-red-400 
                 border border-red-400/40 text-white 
-                text-lg font-semibold shadow-lg transition-all"
+                text-base sm:text-lg font-semibold shadow-lg transition-all"
                 onClick={() => {
                   window.open("tel:911", "_self")
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-5 w-5 mr-3" />
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 Call 911 – NDRRMC Emergency
               </Button>
 
               <Button
-                className="w-full py-4 justify-start rounded-2xl 
+                className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl 
                 bg-gradient-to-r from-blue-600 to-blue-500 
                 hover:from-blue-500 hover:to-blue-400 
                 border border-blue-400/40 text-white 
-                text-lg font-semibold shadow-lg transition-all"
+                text-base sm:text-lg font-semibold shadow-lg transition-all"
                 onClick={() => {
                   window.open("tel:143", "_self")
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-5 w-5 mr-3" />
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 Call 143 – Red Cross
               </Button>
 
               <Button
-                className="w-full py-4 justify-start rounded-2xl 
+                className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl 
                 bg-gradient-to-r from-orange-600 to-orange-500 
                 hover:from-orange-500 hover:to-orange-400 
                 border border-orange-400/40 text-white 
-                text-lg font-semibold shadow-lg transition-all"
+                text-base sm:text-lg font-semibold shadow-lg transition-all"
                 onClick={() => {
                   window.open("tel:117", "_self")
                   setEmergencyModalOpen(false)
                 }}
               >
-                <Phone className="h-5 w-5 mr-3" />
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 Call 117 – Philippine Coast Guard
               </Button>
             </div>
