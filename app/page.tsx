@@ -37,6 +37,21 @@ interface WeatherData {
   icon?: string
 }
 
+interface WeatherHistoryEntry {
+  id: string
+  date: string
+  time: string
+  temperature: number
+  condition: string
+  description: string
+  location: string
+  humidity: number
+  windSpeed: number
+  feelsLike: number
+  icon?: string
+  timestamp: number
+}
+
 interface Alert {
   id: string
   type: string
@@ -94,6 +109,9 @@ export default function WeatherApp() {
   const [emergencyContactsModalOpen, setEmergencyContactsModalOpen] = useState(false)
   const [locationSharingModalOpen, setLocationSharingModalOpen] = useState(false)
   const [weatherHistoryModalOpen, setWeatherHistoryModalOpen] = useState(false)
+  const [weatherHistory, setWeatherHistory] = useState<WeatherHistoryEntry[]>([])
+  const [historyFilter, setHistoryFilter] = useState<"all" | "today" | "week" | "month">("all")
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   const [notifications, setNotifications] = useState<
     Array<{
@@ -2299,7 +2317,7 @@ export default function WeatherApp() {
       setLoading(true)
       console.log("[v0] Fetching weather data for coordinates:", { lat, lon })
 
-      const currentResponse = await fetch(`/api/weather/current?lat=${lat}&lon=${lon}`)
+      const currentResponse = await fetch(`/api/weather/current?lat=${lat}&lon=${lat}`)
       if (!currentResponse.ok) {
         throw new Error("Failed to fetch current weather")
       }
@@ -2351,6 +2369,105 @@ export default function WeatherApp() {
         return "outline"
     }
   }
+
+  const saveWeatherToHistory = useCallback((weatherData: WeatherData) => {
+    if (!weatherData) return
+
+    const now = new Date()
+    const historyEntry: WeatherHistoryEntry = {
+      id: `${now.getTime()}-${Math.random().toString(36).substr(2, 9)}`,
+      date: now.toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      time: now.toLocaleTimeString("en-PH", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      temperature: weatherData.temperature,
+      condition: weatherData.condition,
+      description: weatherData.description,
+      location: weatherData.location,
+      humidity: weatherData.humidity,
+      windSpeed: weatherData.windSpeed,
+      feelsLike: weatherData.feelsLike,
+      icon: weatherData.icon,
+      timestamp: now.getTime(),
+    }
+
+    setWeatherHistory((prev) => {
+      // Remove duplicates within 10 minutes and same location
+      const filtered = prev.filter(
+        (entry) =>
+          !(Math.abs(entry.timestamp - historyEntry.timestamp) < 600000 && entry.location === historyEntry.location),
+      )
+
+      // Keep only last 100 entries to prevent excessive storage
+      const updated = [historyEntry, ...filtered].slice(0, 100)
+
+      // Save to localStorage
+      try {
+        localStorage.setItem("winder-weather-history", JSON.stringify(updated))
+      } catch (error) {
+        console.error("[v0] Error saving weather history:", error)
+      }
+
+      return updated
+    })
+  }, [])
+
+  const loadWeatherHistory = useCallback(() => {
+    try {
+      const saved = localStorage.getItem("winder-weather-history")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          setWeatherHistory(parsed)
+        }
+      }
+    } catch (error) {
+      console.error("[v0] Error loading weather history:", error)
+    }
+  }, [])
+
+  const getFilteredHistory = useCallback(() => {
+    const now = Date.now()
+    const oneDay = 24 * 60 * 60 * 1000
+    const oneWeek = 7 * oneDay
+    const oneMonth = 30 * oneDay
+
+    switch (historyFilter) {
+      case "today":
+        return weatherHistory.filter((entry) => now - entry.timestamp < oneDay)
+      case "week":
+        return weatherHistory.filter((entry) => now - entry.timestamp < oneWeek)
+      case "month":
+        return weatherHistory.filter((entry) => now - entry.timestamp < oneMonth)
+      default:
+        return weatherHistory
+    }
+  }, [weatherHistory, historyFilter])
+
+  const clearWeatherHistory = useCallback(() => {
+    setWeatherHistory([])
+    try {
+      localStorage.removeItem("winder-weather-history")
+      addNotification("History Cleared", "Weather history has been cleared", "info")
+    } catch (error) {
+      console.error("[v0] Error clearing weather history:", error)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadWeatherHistory()
+  }, [loadWeatherHistory])
+
+  useEffect(() => {
+    if (currentWeather) {
+      saveWeatherToHistory(currentWeather)
+    }
+  }, [currentWeather, saveWeatherToHistory])
 
   return (
     <div className="min-h-screen dark-dashboard text-white">
@@ -2843,128 +2960,127 @@ export default function WeatherApp() {
                 </div>
               </div>
             )}
-
           </div>
         </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 pt-20 lg:pt-0 pb-20 lg:pb-0">
           {/* Dashboard View */}
-            <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden min-w-0">
-              {/* Current Weather */}
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-6 border border-slate-600/30 backdrop-blur-sm">
-                {loading ? (
-                  <div className="flex items-center justify-center h-48">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
-                  </div>
-                ) : locationError ? (
-                  <div className="text-center text-slate-400">
-                    <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                    {locationError}
-                  </div>
-                ) : currentWeather ? (
-                  <>
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
-                        <p className="text-sm text-slate-300">
-                          {formatDate(new Date())} • {currentWeather.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center">
-                        {getMainWeatherIcon(currentWeather.condition, currentWeather.icon)}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-5xl font-bold">
-                          {convertTemperature(currentWeather.temperature).toFixed(1)}
-                          {getTemperatureUnit()}
-                        </h3>
-                        <p className="text-sm text-slate-300">
-                          Feels like {convertTemperature(currentWeather.feelsLike).toFixed(1)}
-                          {getTemperatureUnit()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-slate-300">Humidity: {currentWeather.humidity}%</p>
-                        <p className="text-sm text-slate-300">
-                          Wind Speed: {convertWindSpeed(currentWeather.windSpeed).toFixed(1)}
-                          {getWindSpeedUnit()}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center text-slate-400">
-                    <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                    No weather data available.
-                  </div>
-                )}
-              </div>
-
-              {/* Forecast */}
-              {forecast.length > 0 && (
-                <div className="space-y-3">
-                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Weather Forecast
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {forecast.slice(1, 5).map((day) => (
-                      <div
-                        key={day.date}
-                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
-                      >
-                        <p className="text-sm font-medium">{formatDate(day.date)}</p>
-                        <div className="flex items-center justify-between my-2">
-                          <div className="flex items-center">{getWeatherIcon(day.condition, day.icon)}</div>
-                          <div className="text-right">
-                            <p className="text-sm text-slate-300">
-                              {convertTemperature(day.temperature.max).toFixed(1)}
-                              {getTemperatureUnit()}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                              {convertTemperature(day.temperature.min).toFixed(1)}
-                              {getTemperatureUnit()}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-400">{day.description}</p>
-                      </div>
-                    ))}
-                  </div>
+          <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden min-w-0">
+            {/* Current Weather */}
+            <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-6 border border-slate-600/30 backdrop-blur-sm">
+              {loading ? (
+                <div className="flex items-center justify-center h-48">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
                 </div>
-              )}
-
-              {/* Risk Predictions */}
-              {riskPredictions.length > 0 && (
-                <div className="space-y-3">
-                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Risk Predictions
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {riskPredictions.map((risk) => (
-                      <div
-                        key={risk.category}
-                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-semibold">{risk.category}</h3>
-                          <div className="flex items-center">
-                            {getTrendIcon(risk.trend)}
-                            <span className={`text-sm ml-1 ${getRiskColor(risk.risk)}`}>{risk.risk}%</span>
-                          </div>
-                        </div>
-                        <p className="text-sm text-slate-300">{risk.description}</p>
-                      </div>
-                    ))}
+              ) : locationError ? (
+                <div className="text-center text-slate-400">
+                  <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                  {locationError}
+                </div>
+              ) : currentWeather ? (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
+                      <p className="text-sm text-slate-300">
+                        {formatDate(new Date())} • {currentWeather.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      {getMainWeatherIcon(currentWeather.condition, currentWeather.icon)}
+                    </div>
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-5xl font-bold">
+                        {convertTemperature(currentWeather.temperature).toFixed(1)}
+                        {getTemperatureUnit()}
+                      </h3>
+                      <p className="text-sm text-slate-300">
+                        Feels like {convertTemperature(currentWeather.feelsLike).toFixed(1)}
+                        {getTemperatureUnit()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-slate-300">Humidity: {currentWeather.humidity}%</p>
+                      <p className="text-sm text-slate-300">
+                        Wind Speed: {convertWindSpeed(currentWeather.windSpeed).toFixed(1)}
+                        {getWindSpeedUnit()}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-slate-400">
+                  <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                  No weather data available.
                 </div>
               )}
             </div>
+
+            {/* Forecast */}
+            {forecast.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                  Weather Forecast
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {forecast.slice(1, 5).map((day) => (
+                    <div
+                      key={day.date}
+                      className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                    >
+                      <p className="text-sm font-medium">{formatDate(day.date)}</p>
+                      <div className="flex items-center justify-between my-2">
+                        <div className="flex items-center">{getWeatherIcon(day.condition, day.icon)}</div>
+                        <div className="text-right">
+                          <p className="text-sm text-slate-300">
+                            {convertTemperature(day.temperature.max).toFixed(1)}
+                            {getTemperatureUnit()}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {convertTemperature(day.temperature.min).toFixed(1)}
+                            {getTemperatureUnit()}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400">{day.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Risk Predictions */}
+            {riskPredictions.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                  Risk Predictions
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {riskPredictions.map((risk) => (
+                    <div
+                      key={risk.category}
+                      className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold">{risk.category}</h3>
+                        <div className="flex items-center">
+                          {getTrendIcon(risk.trend)}
+                          <span className={`text-sm ml-1 ${getRiskColor(risk.risk)}`}>{risk.risk}%</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-300">{risk.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -2972,7 +3088,6 @@ export default function WeatherApp() {
       {emergencyContactsModalOpen && (
         <Dialog open={emergencyContactsModalOpen} onOpenChange={setEmergencyContactsModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
@@ -3004,10 +3119,11 @@ export default function WeatherApp() {
       {/* Location Sharing Modal */}
       {locationSharingModalOpen && (
         <Dialog open={locationSharingModalOpen} onOpenChange={setLocationSharingModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
+          <DialogContent
+            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
             border border-slate-700 text-white max-w-lg w-[92vw] max-h-[75vh] rounded-2xl shadow-2xl 
-            flex flex-col overflow-hidden">
-            
+            flex flex-col overflow-hidden"
+          >
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
@@ -3090,30 +3206,112 @@ export default function WeatherApp() {
       {/* Weather History Modal */}
       {weatherHistoryModalOpen && (
         <Dialog open={weatherHistoryModalOpen} onOpenChange={setWeatherHistoryModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-2xl w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-4xl w-[95vw] max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-md">
-                  <Clock className="w-6 h-6 text-white" />
+              <DialogTitle className="flex items-center justify-between text-xl sm:text-2xl font-semibold">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-white">Weather History</h2>
+                    <p className="text-slate-400 text-sm font-normal">{getFilteredHistory().length} records found</p>
+                  </div>
                 </div>
-                Weather History
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={historyFilter}
+                    onChange={(e) => setHistoryFilter(e.target.value as any)}
+                    className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                  </select>
+
+                  {weatherHistory.length > 0 && (
+                    <Button
+                      onClick={clearWeatherHistory}
+                      variant="outline"
+                      size="sm"
+                      className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white bg-transparent"
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </div>
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
-              {weatherHistory && weatherHistory.length > 0 ? (
-                weatherHistory.map((entry, idx) => (
-                  <div key={idx} className="bg-slate-700/40 border border-slate-600 rounded-xl p-4 hover:bg-slate-700/60 transition">
-                    <p className="text-white font-medium">{entry.date}</p>
-                    <p className="text-slate-300 text-sm">{entry.summary}</p>
-                    <p className="text-slate-400 text-xs">Temp: {entry.temperature}°C</p>
-                  </div>
-                ))
+            <div className="flex-1 p-6 overflow-y-auto">
+              {getFilteredHistory().length > 0 ? (
+                <div className="space-y-3">
+                  {getFilteredHistory().map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="bg-gradient-to-r from-slate-700/40 to-slate-800/40 border border-slate-600 rounded-xl p-4 hover:from-slate-700/60 hover:to-slate-800/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0">{getWeatherIcon(entry.condition, entry.icon)}</div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-white font-semibold text-lg">
+                                {Math.round(convertTemperature(entry.temperature))}
+                                {getTemperatureUnit()}
+                              </h3>
+                              <span className="text-slate-300 text-sm">{entry.condition}</span>
+                            </div>
+
+                            <p className="text-slate-400 text-sm mb-2">{entry.description}</p>
+
+                            <div className="flex items-center gap-4 text-xs text-slate-500">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {entry.location}
+                              </span>
+                              <span>💧 {entry.humidity}%</span>
+                              <span>
+                                💨 {Math.round(convertWindSpeed(entry.windSpeed))} {getWindSpeedUnit()}
+                              </span>
+                              <span>
+                                🌡️ Feels like {Math.round(convertTemperature(entry.feelsLike))}
+                                {getTemperatureUnit()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-right text-slate-400 text-sm flex-shrink-0">
+                          <div className="font-medium">{entry.date}</div>
+                          <div className="text-xs">{entry.time}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <div className="text-center text-slate-400 py-10">
-                  <Clock className="w-10 h-10 mx-auto mb-3 text-slate-600" />
-                  No weather history available.
+                <div className="text-center text-slate-400 py-16">
+                  <Clock className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                  <h3 className="text-lg font-medium mb-2">No weather history available</h3>
+                  <p className="text-sm">
+                    {historyFilter === "all"
+                      ? "Weather data will appear here as you use the app"
+                      : `No weather data found for the selected time period`}
+                  </p>
+                  {historyFilter !== "all" && (
+                    <Button
+                      onClick={() => setHistoryFilter("all")}
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700"
+                    >
+                      View All History
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -3121,13 +3319,10 @@ export default function WeatherApp() {
         </Dialog>
       )}
 
-
       {/* Weather Map Modal */}
       {weatherMapModalOpen && (
         <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
-          <DialogContent
-            className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          >
+          <DialogContent className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
@@ -3152,64 +3347,61 @@ export default function WeatherApp() {
 
       {/* Emergency Modal */}
       {emergencyModalOpen && (
-      <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-        <DialogContent className="w-[92vw] sm:w-[40vw] max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl p-0 overflow-hidden">
-          
-          {/* Header */}
-          <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-            <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-              <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
-                <Phone className="w-6 h-6 text-white" />
-              </div>
-              Emergency Services
-            </DialogTitle>
-          </DialogHeader>
+        <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
+          <DialogContent className="w-[92vw] sm:w-[40vw] max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl p-0 overflow-hidden">
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
+                <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
+                  <Phone className="w-6 h-6 text-white" />
+                </div>
+                Emergency Services
+              </DialogTitle>
+            </DialogHeader>
 
-          {/* Buttons */}
-          <div className="p-6 space-y-4">
-            <Button
-              className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 border border-red-400/40 text-white text-lg font-medium shadow-md transition-all"
-              onClick={() => {
-                window.open("tel:911", "_self")
-                setEmergencyModalOpen(false)
-              }}
-            >
-              <Phone className="h-5 w-5 mr-3" />
-              Call 911 – NDRRMC Emergency
-            </Button>
+            {/* Buttons */}
+            <div className="p-6 space-y-4">
+              <Button
+                className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 border border-red-400/40 text-white text-lg font-medium shadow-md transition-all"
+                onClick={() => {
+                  window.open("tel:911", "_self")
+                  setEmergencyModalOpen(false)
+                }}
+              >
+                <Phone className="h-5 w-5 mr-3" />
+                Call 911 – NDRRMC Emergency
+              </Button>
 
-            <Button
-              className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 border border-blue-400/40 text-white text-lg font-medium shadow-md transition-all"
-              onClick={() => {
-                window.open("tel:143", "_self")
-                setEmergencyModalOpen(false)
-              }}
-            >
-              <Phone className="h-5 w-5 mr-3" />
-              Call 143 – Red Cross
-            </Button>
+              <Button
+                className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 border border-blue-400/40 text-white text-lg font-medium shadow-md transition-all"
+                onClick={() => {
+                  window.open("tel:143", "_self")
+                  setEmergencyModalOpen(false)
+                }}
+              >
+                <Phone className="h-5 w-5 mr-3" />
+                Call 143 – Red Cross
+              </Button>
 
-            <Button
-              className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 border border-orange-400/40 text-white text-lg font-medium shadow-md transition-all"
-              onClick={() => {
-                window.open("tel:117", "_self")
-                setEmergencyModalOpen(false)
-              }}
-            >
-              <Phone className="h-5 w-5 mr-3" />
-              Call 117 – Philippine Coast Guard
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <Button
+                className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 border border-orange-400/40 text-white text-lg font-medium shadow-md transition-all"
+                onClick={() => {
+                  window.open("tel:117", "_self")
+                  setEmergencyModalOpen(false)
+                }}
+              >
+                <Phone className="h-5 w-5 mr-3" />
+                Call 117 – Philippine Coast Guard
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
-
 
       {/* Alerts Modal */}
       {alertsModalOpen && (
         <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-2xl w-[92vw] sm:w-[40vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
@@ -3230,9 +3422,7 @@ export default function WeatherApp() {
                       className="bg-gradient-to-br from-red-600/10 via-red-500/10 to-red-600/10 border border-red-500/30 rounded-xl p-5 shadow-md hover:shadow-lg transition-all"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-semibold text-lg text-white leading-snug">
-                          {alert.title}
-                        </span>
+                        <span className="font-semibold text-lg text-white leading-snug">{alert.title}</span>
                         <Badge
                           variant={getSeverityColor(alert.severity)}
                           className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
@@ -3241,14 +3431,11 @@ export default function WeatherApp() {
                         </Badge>
                       </div>
 
-                      <p className="text-slate-300 mb-4 leading-relaxed">
-                        {alert.description}
-                      </p>
+                      <p className="text-slate-300 mb-4 leading-relaxed">{alert.description}</p>
 
                       <div className="text-sm text-slate-400 space-y-2">
                         <p>
-                          <span className="font-medium text-slate-300">Areas:</span>{" "}
-                          {alert.areas.join(", ")}
+                          <span className="font-medium text-slate-300">Areas:</span> {alert.areas.join(", ")}
                         </p>
                         <p>
                           <span className="font-medium text-slate-300">Valid until:</span>{" "}
@@ -3273,17 +3460,11 @@ export default function WeatherApp() {
       {settingsModalOpen && (
         <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -3304,7 +3485,6 @@ export default function WeatherApp() {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto scrollbar-hide py-6 px-5 sm:px-6 space-y-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-
               {/* Temperature Unit */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
@@ -3429,7 +3609,6 @@ export default function WeatherApp() {
           </DialogContent>
         </Dialog>
       )}
-      
     </div>
   )
 }
