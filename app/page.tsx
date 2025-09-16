@@ -3178,29 +3178,30 @@ export default function WeatherApp() {
       {locationSharingModalOpen && (
         <Dialog open={locationSharingModalOpen} onOpenChange={setLocationSharingModalOpen}>
           <DialogContent
-            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
-            border border-slate-700 text-white max-w-lg w-[92vw] max-h-[75vh] rounded-2xl shadow-2xl 
-            flex flex-col overflow-hidden"
+            className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+            border border-slate-700/60 text-white max-w-lg w-[92vw] max-h-[75vh] rounded-3xl shadow-2xl 
+            flex flex-col overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                  <MapPin className="w-6 h-6 text-white" />
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <MapPin className="w-6 h-6 text-white animate-bounce" />
                 </div>
                 Share Location
               </DialogTitle>
             </DialogHeader>
 
             {/* Body */}
-            <div className="flex-1 p-6 space-y-5">
-              <p className="text-slate-300">
+            <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
+              <p className="text-slate-300 leading-relaxed">
                 Quickly share your live location with emergency services or copy it to your clipboard.
               </p>
 
               {/* Copy Location */}
               <Button
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-3 font-medium"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 
+                text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
                 onClick={() => {
                   if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((pos) => {
@@ -3218,14 +3219,15 @@ export default function WeatherApp() {
 
               {/* Divider */}
               <div className="flex items-center gap-2 my-2">
-                <div className="flex-1 h-px bg-slate-700"></div>
+                <div className="flex-1 h-px bg-slate-700/50"></div>
                 <span className="text-slate-500 text-xs uppercase tracking-wide">Send To</span>
-                <div className="flex-1 h-px bg-slate-700"></div>
+                <div className="flex-1 h-px bg-slate-700/50"></div>
               </div>
 
               {/* Send to 911 */}
               <Button
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium"
+                className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 
+                text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
                 onClick={() => {
                   if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((pos) => {
@@ -3242,7 +3244,8 @@ export default function WeatherApp() {
 
               {/* Send to Red Cross */}
               <Button
-                className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl py-3 font-medium"
+                className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 
+                text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
                 onClick={() => {
                   if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((pos) => {
@@ -3264,16 +3267,23 @@ export default function WeatherApp() {
       {/* Weather History Modal */}
       {weatherHistoryModalOpen && (
         <Dialog open={weatherHistoryModalOpen} onOpenChange={setWeatherHistoryModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-4xl w-[95vw] max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-              <DialogTitle className="flex items-center justify-between text-xl sm:text-2xl font-semibold">
+          <DialogContent
+            className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+            border border-slate-700/60 text-white max-w-4xl w-[95vw] max-h-[85vh] rounded-3xl shadow-2xl 
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center justify-between text-xl sm:text-2xl font-bold">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Clock className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Clock className="w-6 h-6 text-white animate-pulse" />
                   </div>
                   <div>
                     <h2 className="text-white">Weather History</h2>
-                    <p className="text-slate-400 text-sm font-normal">{getFilteredHistory().length} records found</p>
+                    <p className="text-slate-400 text-sm font-normal">
+                      {getFilteredHistory().length} records found
+                    </p>
                   </div>
                 </div>
 
@@ -3281,7 +3291,8 @@ export default function WeatherApp() {
                   <select
                     value={historyFilter}
                     onChange={(e) => setHistoryFilter(e.target.value as any)}
-                    className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white 
+                    focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner"
                   >
                     <option value="all">All Time</option>
                     <option value="today">Today</option>
@@ -3294,7 +3305,8 @@ export default function WeatherApp() {
                       onClick={clearWeatherHistory}
                       variant="outline"
                       size="sm"
-                      className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white bg-transparent"
+                      className="border-red-600 text-red-400 hover:bg-gradient-to-r hover:from-red-600 hover:to-red-500 
+                      hover:text-white transition rounded-lg px-4 py-2"
                     >
                       Clear All
                     </Button>
@@ -3303,13 +3315,17 @@ export default function WeatherApp() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-6 overflow-y-auto">
+            {/* Body */}
+            <div className="flex-1 p-6 overflow-y-auto scrollbar-hide">
               {getFilteredHistory().length > 0 ? (
                 <div className="space-y-3">
                   {getFilteredHistory().map((entry) => (
                     <div
                       key={entry.id}
-                      className="bg-gradient-to-r from-slate-700/40 to-slate-800/40 border border-slate-600 rounded-xl p-4 hover:from-slate-700/60 hover:to-slate-800/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                      className="bg-gradient-to-r from-slate-800/40 to-slate-900/40 
+                      border border-slate-700/50 rounded-2xl p-5 
+                      hover:from-slate-800/70 hover:to-slate-900/70 
+                      transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-4">
@@ -3326,7 +3342,7 @@ export default function WeatherApp() {
 
                             <p className="text-slate-400 text-sm mb-2">{entry.description}</p>
 
-                            <div className="flex items-center gap-4 text-xs text-slate-500">
+                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 {entry.location}
@@ -3353,7 +3369,7 @@ export default function WeatherApp() {
                 </div>
               ) : (
                 <div className="text-center text-slate-400 py-16">
-                  <Clock className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                  <Clock className="w-16 h-16 mx-auto mb-4 text-slate-600 animate-pulse" />
                   <h3 className="text-lg font-medium mb-2">No weather history available</h3>
                   <p className="text-sm">
                     {historyFilter === "all"
@@ -3365,7 +3381,7 @@ export default function WeatherApp() {
                       onClick={() => setHistoryFilter("all")}
                       variant="outline"
                       size="sm"
-                      className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700"
+                      className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700 rounded-lg"
                     >
                       View All History
                     </Button>
@@ -3380,14 +3396,19 @@ export default function WeatherApp() {
       {/* Weather Map Modal */}
       {weatherMapModalOpen && (
         <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
-          <DialogContent className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <DialogContent
+            className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none 
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl 
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-md">
-                  <MapPin className="w-6 h-6 text-white" />
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <MapPin className="w-6 h-6 text-white animate-bounce" />
                 </div>
-                Weather Map
+                <span className="text-white">Weather Map</span>
               </DialogTitle>
             </DialogHeader>
 
@@ -3395,7 +3416,7 @@ export default function WeatherApp() {
             <div className="flex-1 p-4 sm:p-6">
               <iframe
                 src={getWeatherMapUrl()}
-                className="w-full h-full rounded-xl border border-slate-600 shadow-inner"
+                className="w-full h-full rounded-2xl border border-slate-700 shadow-inner hover:shadow-lg transition-all duration-300"
                 title="Weather Map"
               />
             </div>
@@ -3406,21 +3427,30 @@ export default function WeatherApp() {
       {/* Emergency Modal */}
       {emergencyModalOpen && (
         <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
-          <DialogContent className="w-[92vw] sm:w-[40vw] max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl p-0 overflow-hidden">
+          <DialogContent
+            className="w-[92vw] sm:w-[40vw] max-w-2xl 
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl 
+            p-0 overflow-hidden animate-fadeInScale"
+          >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-                <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
-                  <Phone className="w-6 h-6 text-white" />
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Phone className="w-6 h-6 text-white animate-pulse" />
                 </div>
-                Emergency Services
+                <span>Emergency Services</span>
               </DialogTitle>
             </DialogHeader>
 
             {/* Buttons */}
             <div className="p-6 space-y-4">
               <Button
-                className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 border border-red-400/40 text-white text-lg font-medium shadow-md transition-all"
+                className="w-full py-4 justify-start rounded-2xl 
+                bg-gradient-to-r from-red-600 to-red-500 
+                hover:from-red-500 hover:to-red-400 
+                border border-red-400/40 text-white 
+                text-lg font-semibold shadow-lg transition-all"
                 onClick={() => {
                   window.open("tel:911", "_self")
                   setEmergencyModalOpen(false)
@@ -3431,7 +3461,11 @@ export default function WeatherApp() {
               </Button>
 
               <Button
-                className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 border border-blue-400/40 text-white text-lg font-medium shadow-md transition-all"
+                className="w-full py-4 justify-start rounded-2xl 
+                bg-gradient-to-r from-blue-600 to-blue-500 
+                hover:from-blue-500 hover:to-blue-400 
+                border border-blue-400/40 text-white 
+                text-lg font-semibold shadow-lg transition-all"
                 onClick={() => {
                   window.open("tel:143", "_self")
                   setEmergencyModalOpen(false)
@@ -3442,7 +3476,11 @@ export default function WeatherApp() {
               </Button>
 
               <Button
-                className="w-full py-4 justify-start rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 border border-orange-400/40 text-white text-lg font-medium shadow-md transition-all"
+                className="w-full py-4 justify-start rounded-2xl 
+                bg-gradient-to-r from-orange-600 to-orange-500 
+                hover:from-orange-500 hover:to-orange-400 
+                border border-orange-400/40 text-white 
+                text-lg font-semibold shadow-lg transition-all"
                 onClick={() => {
                   window.open("tel:117", "_self")
                   setEmergencyModalOpen(false)
@@ -3461,7 +3499,7 @@ export default function WeatherApp() {
         <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-2xl w-[92vw] sm:w-[40vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center shadow-md">
                   <Bell className="w-6 h-6 text-white" />
@@ -3519,7 +3557,7 @@ export default function WeatherApp() {
         <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
