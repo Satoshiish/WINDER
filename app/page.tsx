@@ -3518,41 +3518,50 @@ export default function WeatherApp() {
               [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {alerts.length > 0 ? (
                 <div className="space-y-5">
-                  {alerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
-                      border border-slate-700/60 rounded-2xl p-5 shadow-md 
-                      hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-semibold text-lg text-white leading-snug">
-                          {alert.title}
-                        </span>
-                        <Badge
-                          variant={getSeverityColor(alert.severity)}
-                          className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
-                        >
-                          {alert.severity}
-                        </Badge>
-                      </div>
+                  {alerts.map((alert) => {
+                    // Pick accent colors depending on severity
+                    const severityColors =
+                      alert.severity === "Severe"
+                        ? "from-red-700/40 via-red-600/30 to-red-700/40 border-red-600/40"
+                        : alert.severity === "Moderate"
+                        ? "from-yellow-600/40 via-yellow-500/30 to-yellow-600/40 border-yellow-500/40"
+                        : "from-blue-700/40 via-blue-600/30 to-blue-700/40 border-blue-600/40"
 
-                      <p className="text-slate-300 mb-4 leading-relaxed">
-                        {alert.description}
-                      </p>
+                    return (
+                      <div
+                        key={alert.id}
+                        className={`bg-gradient-to-br ${severityColors} 
+                        rounded-2xl p-5 shadow-md hover:shadow-lg transition-all duration-300`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-semibold text-lg text-white leading-snug">
+                            {alert.title}
+                          </span>
+                          <Badge
+                            variant={getSeverityColor(alert.severity)}
+                            className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
+                          >
+                            {alert.severity}
+                          </Badge>
+                        </div>
 
-                      <div className="text-sm text-slate-400 space-y-2">
-                        <p>
-                          <span className="font-medium text-slate-300">Areas:</span>{" "}
-                          {alert.areas.join(", ")}
+                        <p className="text-slate-200 mb-4 leading-relaxed">
+                          {alert.description}
                         </p>
-                        <p>
-                          <span className="font-medium text-slate-300">Valid until:</span>{" "}
-                          {formatDate(alert.validUntil)}
-                        </p>
+
+                        <div className="text-sm text-slate-400 space-y-2">
+                          <p>
+                            <span className="font-medium text-slate-300">Areas:</span>{" "}
+                            {alert.areas.join(", ")}
+                          </p>
+                          <p>
+                            <span className="font-medium text-slate-300">Valid until:</span>{" "}
+                            {formatDate(alert.validUntil)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-16">
