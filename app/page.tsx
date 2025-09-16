@@ -3557,7 +3557,7 @@ export default function WeatherApp() {
         <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md z-10">
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
