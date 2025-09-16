@@ -3089,7 +3089,9 @@ export default function WeatherApp() {
       {firstAidModalOpen && (
         <Dialog open={firstAidModalOpen} onOpenChange={setFirstAidModalOpen}>
           <DialogContent
-            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale"
+            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 
+            border border-slate-700 text-white max-w-lg w-[92vw] max-h-[75vh] rounded-2xl shadow-2xl 
+            flex flex-col overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
@@ -3101,8 +3103,8 @@ export default function WeatherApp() {
               </DialogTitle>
             </DialogHeader>
 
-            {/* Scrollable Body */}
-            <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
+            {/* Body (no scrollbar) */}
+            <div className="flex-1 p-6 space-y-5">
               <p className="text-slate-300 leading-relaxed">
                 Quick reference for common emergency situations. Always call emergency
                 services for serious injuries.
