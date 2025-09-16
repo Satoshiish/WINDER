@@ -3521,9 +3521,9 @@ export default function WeatherApp() {
                   {alerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className="bg-gradient-to-br from-red-600/10 via-red-500/10 to-red-600/10 
-                      border border-red-500/30 rounded-xl p-5 shadow-md hover:shadow-lg 
-                      transition-all duration-300"
+                      className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 
+                      border border-slate-700/60 rounded-2xl p-5 shadow-md 
+                      hover:shadow-lg transition-all duration-300"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="font-semibold text-lg text-white leading-snug">
