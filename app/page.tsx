@@ -21,6 +21,11 @@ import {
   Zap,
   Eye,
   Heart,
+  Wind,
+  Flame,
+  Activity,
+  Droplet,
+  FirstAid,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
 
@@ -3087,92 +3092,92 @@ export default function WeatherApp() {
 
       {/* First Aid Modal */}
       {firstAidModalOpen && (
-        <Dialog open={firstAidModalOpen} onOpenChange={setFirstAidModalOpen}>
-          <DialogContent
-            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale"
-          >
-            {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-                <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-md">
-                  <Heart className="w-6 h-6 text-white" />
-                </div>
-                First Aid Guide
-              </DialogTitle>
-            </DialogHeader>
+      <Dialog open={firstAidModalOpen} onOpenChange={setFirstAidModalOpen}>
+        <DialogContent
+          className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-700/50 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale"
+        >
+          {/* Header */}
+          <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+            <DialogTitle className="flex items-center gap-4 text-2xl font-bold">
+              <div className="w-12 h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <FirstAid className="w-7 h-7 text-white" />
+              </div>
+              First Aid Guide
+            </DialogTitle>
+          </DialogHeader>
 
-            {/* Scrollable Body */}
-            <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
-              <p className="text-slate-300 leading-relaxed">
-                Quick reference for common emergency situations. Always call emergency
-                services for serious injuries.
-              </p>
+          {/* Scrollable Body */}
+          <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
+            <p className="text-slate-300 leading-relaxed">
+              Quick reference for common emergency situations. Always call emergency
+              services for serious injuries.
+            </p>
 
-              {/* Sections */}
-              <div className="space-y-4">
-                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
-                  <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                    Cuts & Bleeding
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Apply direct pressure with clean cloth<br />
-                    2. Elevate the wound above heart level<br />
-                    3. Keep pressure until bleeding stops
-                  </p>
-                </div>
-
-                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
-                  <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-red-400" />
-                    CPR Basics
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Check responsiveness and breathing<br />
-                    2. Call 911 immediately<br />
-                    3. 30 chest compressions, 2 rescue breaths<br />
-                    4. Repeat until help arrives
-                  </p>
-                </div>
-
-                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
-                  <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-blue-400" />
-                    Burns
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Cool with running water for 10-20 minutes<br />
-                    2. Remove jewelry/clothing from area<br />
-                    3. Cover with sterile gauze<br />
-                    4. Do not use ice or butter
-                  </p>
-                </div>
-
-                <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600/30 shadow-sm">
-                  <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-orange-400" />
-                    Choking
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Encourage coughing if conscious<br />
-                    2. 5 back blows between shoulder blades<br />
-                    3. 5 abdominal thrusts (Heimlich)<br />
-                    4. Repeat until object is expelled
-                  </p>
-                </div>
+            {/* Sections */}
+            <div className="space-y-4">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-red-500/30 shadow hover:scale-[1.02] transition">
+                <h3 className="font-semibold text-lg text-red-400 mb-2 flex items-center gap-2">
+                  <Droplet className="w-5 h-5" />
+                  Cuts & Bleeding
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  1. Apply direct pressure with clean cloth<br />
+                  2. Elevate the wound above heart level<br />
+                  3. Keep pressure until bleeding stops
+                </p>
               </div>
 
-              {/* Emergency Call Button */}
-              <Button
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 font-medium mt-6 shadow-md transition"
-                onClick={() => window.open('tel:911', '_self')}
-              >
-                <Phone className="w-5 h-5 mr-2" /> Call Emergency Services (911)
-              </Button>
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-green-500/30 shadow hover:scale-[1.02] transition">
+                <h3 className="font-semibold text-lg text-green-400 mb-2 flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  CPR Basics
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  1. Check responsiveness and breathing<br />
+                  2. Call 911 immediately<br />
+                  3. 30 chest compressions, 2 rescue breaths<br />
+                  4. Repeat until help arrives
+                </p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-orange-500/30 shadow hover:scale-[1.02] transition">
+                <h3 className="font-semibold text-lg text-orange-400 mb-2 flex items-center gap-2">
+                  <Flame className="w-5 h-5" />
+                  Burns
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  1. Cool with running water for 10-20 minutes<br />
+                  2. Remove jewelry/clothing from area<br />
+                  3. Cover with sterile gauze<br />
+                  4. Do not use ice or butter
+                </p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-blue-500/30 shadow hover:scale-[1.02] transition">
+                <h3 className="font-semibold text-lg text-blue-400 mb-2 flex items-center gap-2">
+                  <Wind className="w-5 h-5" />
+                  Choking
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  1. Encourage coughing if conscious<br />
+                  2. 5 back blows between shoulder blades<br />
+                  3. 5 abdominal thrusts (Heimlich)<br />
+                  4. Repeat until object is expelled
+                </p>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
+            {/* Emergency Call Button */}
+            <Button
+              className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl py-3 font-semibold mt-6 shadow-lg transition transform hover:scale-[1.02]"
+              onClick={() => window.open('tel:911', '_self')}
+            >
+              <Phone className="w-5 h-5 mr-2" /> Call Emergency Services (911)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
 
       {/* Location Sharing Modal */}
       {locationSharingModalOpen && (
