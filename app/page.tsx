@@ -3497,28 +3497,38 @@ export default function WeatherApp() {
       {/* Alerts Modal */}
       {alertsModalOpen && (
         <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-2xl w-[92vw] sm:w-[40vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <DialogContent
+            className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
-                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center shadow-md">
-                  <Bell className="w-6 h-6 text-white" />
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50 sticky top-0 bg-slate-900/80 backdrop-blur-md z-10">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-yellow-500 to-yellow-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Bell className="w-6 h-6 text-white animate-pulse" />
                 </div>
-                Weather Alerts & Warnings
+                <span className="text-white">Weather Alerts & Warnings</span>
               </DialogTitle>
             </DialogHeader>
 
             {/* Alerts Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-5 py-6 px-4 sm:px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-5 py-6 px-4 sm:px-6 
+              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {alerts.length > 0 ? (
                 <div className="space-y-5">
                   {alerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className="bg-gradient-to-br from-red-600/10 via-red-500/10 to-red-600/10 border border-red-500/30 rounded-xl p-5 shadow-md hover:shadow-lg transition-all"
+                      className="bg-gradient-to-br from-red-600/10 via-red-500/10 to-red-600/10 
+                      border border-red-500/30 rounded-xl p-5 shadow-md hover:shadow-lg 
+                      transition-all duration-300"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-semibold text-lg text-white leading-snug">{alert.title}</span>
+                        <span className="font-semibold text-lg text-white leading-snug">
+                          {alert.title}
+                        </span>
                         <Badge
                           variant={getSeverityColor(alert.severity)}
                           className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
@@ -3527,11 +3537,14 @@ export default function WeatherApp() {
                         </Badge>
                       </div>
 
-                      <p className="text-slate-300 mb-4 leading-relaxed">{alert.description}</p>
+                      <p className="text-slate-300 mb-4 leading-relaxed">
+                        {alert.description}
+                      </p>
 
                       <div className="text-sm text-slate-400 space-y-2">
                         <p>
-                          <span className="font-medium text-slate-300">Areas:</span> {alert.areas.join(", ")}
+                          <span className="font-medium text-slate-300">Areas:</span>{" "}
+                          {alert.areas.join(", ")}
                         </p>
                         <p>
                           <span className="font-medium text-slate-300">Valid until:</span>{" "}
@@ -3595,7 +3608,7 @@ export default function WeatherApp() {
 
               {/* Temperature Unit */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Temperature Unit
                 </h3>
@@ -3619,7 +3632,7 @@ export default function WeatherApp() {
 
               {/* Wind Speed Unit */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Wind Speed Unit
                 </h3>
@@ -3643,7 +3656,7 @@ export default function WeatherApp() {
 
               {/* Location Services */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Location Services
                 </h3>
@@ -3665,7 +3678,7 @@ export default function WeatherApp() {
 
               {/* Notifications */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Notifications
                 </h3>
@@ -3687,7 +3700,7 @@ export default function WeatherApp() {
 
               {/* Push Notifications */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-indigo-300">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
                   Push Notifications
                 </h3>
