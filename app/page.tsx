@@ -2581,8 +2581,15 @@ export default function WeatherApp() {
 
                 {/* First Aid */}
                 <button
-                  className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
-                  onClick={() => setFirstAidModalOpen(true)}
+                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
+                    activeView === "firstAid"
+                      ? "bg-red-500/20 text-red-400"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                  }`}
+                  onClick={() => {
+                    setActiveView("firstAid")
+                    setFirstAidModalOpen(true)
+                  }}
                 >
                   <Heart className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">First Aid</span>
