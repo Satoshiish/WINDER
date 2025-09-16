@@ -3498,7 +3498,7 @@ export default function WeatherApp() {
       {alertsModalOpen && (
         <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
           <DialogContent
-            className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none
+            className="max-w-2xl w-[92vw] sm:w-[40vw] max-h-[80vh]
             bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
             border border-slate-700/60 text-white rounded-3xl shadow-2xl
             flex flex-col overflow-hidden animate-fadeInScale"
