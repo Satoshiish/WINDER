@@ -3555,9 +3555,9 @@ export default function WeatherApp() {
       {/* Settings Modal */}
       {settingsModalOpen && (
         <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white max-w-lg w-[92vw] max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-slate-900/90 backdrop-blur-md z-10">
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700 sticky top-0 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md z-10">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-semibold">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3580,9 +3580,10 @@ export default function WeatherApp() {
             </DialogHeader>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide py-6 px-5 sm:px-6 space-y-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex-1 overflow-y-auto scroll-smooth py-6 px-5 sm:px-6 space-y-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              
               {/* Temperature Unit */}
-              <div className="space-y-4">
+              <div className="space-y-4 pb-6 border-b border-slate-700/60">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
                   Temperature Unit
@@ -3606,7 +3607,7 @@ export default function WeatherApp() {
               </div>
 
               {/* Wind Speed Unit */}
-              <div className="space-y-4">
+              <div className="space-y-4 pb-6 border-b border-slate-700/60">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
                   Wind Speed Unit
@@ -3630,7 +3631,7 @@ export default function WeatherApp() {
               </div>
 
               {/* Location Services */}
-              <div className="space-y-4">
+              <div className="space-y-4 pb-6 border-b border-slate-700/60">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
                   Location Services
@@ -3652,7 +3653,7 @@ export default function WeatherApp() {
               </div>
 
               {/* Notifications */}
-              <div className="space-y-4">
+              <div className="space-y-4 pb-6 border-b border-slate-700/60">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-400 rounded-full"></div>
                   Notifications
