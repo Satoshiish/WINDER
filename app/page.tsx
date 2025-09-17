@@ -27,6 +27,8 @@ import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
+import { SearchSkeleton, LocationSkeleton, WeatherCardSkeleton } from "@/components/skeletons/weather-skeleton"
+
 interface WeatherData {
   temperature: number
   condition: string
@@ -2666,7 +2668,7 @@ export default function WeatherApp() {
                   disabled={searchLoading || !searchLocation.trim()}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
                 >
-                  {searchLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+                  {searchLoading ? <SearchSkeleton /> : "Search"}
                 </Button>
 
                 {/* Search Suggestions */}
