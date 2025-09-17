@@ -136,8 +136,15 @@
   }
 
   /* 🌌 Dark theme dashboard */
-  .dark-dashboard {
+    .dark-dashboard {
+    background: var(--background);
+    color: var(--foreground);
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .dark .dark-dashboard {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: var(--foreground);
   }
 
   /* 🪟 Glassmorphism card */
