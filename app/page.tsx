@@ -2549,7 +2549,6 @@ export default function WeatherApp() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => {
-                    setActiveView("map")
                     setWeatherMapModalOpen(true)
                   }}
                 >
@@ -2565,7 +2564,6 @@ export default function WeatherApp() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => {
-                    setActiveView("alerts")
                     setAlertsModalOpen(true)
                   }}
                 >
@@ -2587,7 +2585,6 @@ export default function WeatherApp() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => {
-                    setActiveView("firstAid")
                     setFirstAidModalOpen(true)
                   }}
                 >
@@ -2778,7 +2775,6 @@ export default function WeatherApp() {
                     : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                 }`}
                 onClick={() => {
-                  setActiveView("map")
                   setWeatherMapModalOpen(true)
                 }}
                 title="Weather Map"
@@ -2792,7 +2788,6 @@ export default function WeatherApp() {
                     : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                 }`}
                 onClick={() => {
-                  setActiveView("alerts")
                   setAlertsModalOpen(true)
                 }}
                 title="Weather Alerts"
