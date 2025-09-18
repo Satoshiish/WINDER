@@ -3364,7 +3364,7 @@ export default function WeatherApp() {
                             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
-                                {entry.location}
+                                {entry.locationName || entry.location}
                               </span>
                               <span>💧 {entry.humidity}%</span>
                               <span>
