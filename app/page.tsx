@@ -2660,8 +2660,8 @@ export default function WeatherApp() {
                   value={searchLocation}
                   onChange={(e) => handleSearchInputChange(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
-                  className={`w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 backdrop-blur-sm ${
-                    searchLoading ? "opacity-50" : "opacity-100"
+                  className={`w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 backdrop-blur-sm ${
+                    searchLoading ? "text-white/50" : "text-white"
                   }`}
                 />
                 <Button
