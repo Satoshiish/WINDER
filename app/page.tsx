@@ -2832,8 +2832,11 @@ export default function WeatherApp() {
                     value={searchLocation}
                     onChange={(e) => handleSearchInputChange(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
-                    className="w-full px-4 py-3 text-base bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+                    className={`w-full px-4 py-3 text-base bg-slate-700/50 border border-slate-600/50 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 ${
+                      searchLoading ? "text-white/50 placeholder-white/40" : "text-white placeholder-slate-400"
+                    }`}
                   />
+
                   <Button
                     onClick={() => handleLocationSearch(searchLocation)}
                     disabled={searchLoading || !searchLocation.trim()}
