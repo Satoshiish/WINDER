@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   Phone,
   MapPin,
-  Loader2,
   TrendingUp,
   TrendingDown,
   Minus,
@@ -2698,10 +2697,7 @@ export default function WeatherApp() {
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-1.5 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
               >
                 {currentLocationLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Getting Location...
-                  </>
+                  <LocationSkeleton />
                 ) : (
                   <>
                     <MapPin className="h-4 w-4 mr-2" />
@@ -2841,7 +2837,7 @@ export default function WeatherApp() {
                     disabled={searchLoading || !searchLocation.trim()}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
                   >
-                    {searchLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+                    {searchLoading ? <SearchSkeleton /> : "Search"}
                   </Button>
 
                   {/* Search Suggestions */}
@@ -2870,10 +2866,7 @@ export default function WeatherApp() {
                   className="w-full mt-2 sm:mt-3 md:mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
                 >
                   {currentLocationLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Getting Location...
-                    </>
+                    <LocationSkeleton />
                   ) : (
                     <>
                       <MapPin className="h-4 w-4 mr-2" />
@@ -2994,9 +2987,7 @@ export default function WeatherApp() {
             {/* Current Weather */}
             <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-6 border border-slate-600/30 backdrop-blur-sm">
               {loading ? (
-                <div className="flex items-center justify-center h-48">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
-                </div>
+                <WeatherCardSkeleton />
               ) : locationError ? (
                 <div className="text-center text-slate-400">
                   <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
@@ -3329,7 +3320,7 @@ export default function WeatherApp() {
                       variant="outline"
                       size="sm"
                       className="border-red-600 text-red-400 hover:bg-gradient-to-r hover:from-red-600 hover:to-red-500 
-                      hover:text-white transition rounded-lg px-4 py-2"
+                      hover:text-white transition rounded-lg px-4 py-2 bg-transparent"
                     >
                       Clear All
                     </Button>
