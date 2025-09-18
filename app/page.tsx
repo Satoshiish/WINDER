@@ -2828,7 +2828,7 @@ export default function WeatherApp() {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search Philippine cities..."
+                    placeholder="Search for cities..."
                     value={searchLocation}
                     onChange={(e) => handleSearchInputChange(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
