@@ -2656,11 +2656,13 @@ export default function WeatherApp() {
               <div className="relative mb-6">
                 <input
                   type="text"
-                  placeholder="Search Philippine cities..."
+                  placeholder="Search for cities..."
                   value={searchLocation}
                   onChange={(e) => handleSearchInputChange(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
-                  className="w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                  className={`w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 backdrop-blur-sm ${
+                    searchLoading ? "opacity-50" : "opacity-100"
+                  }`}
                 />
                 <Button
                   onClick={() => handleLocationSearch(searchLocation)}
