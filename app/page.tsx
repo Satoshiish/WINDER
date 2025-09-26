@@ -26,7 +26,13 @@ import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-import { SearchSkeleton, LocationSkeleton, WeatherCardSkeleton } from "@/components/skeletons/weather-skeleton"
+import {
+  SearchSkeleton,
+  LocationSkeleton,
+  WeatherCardSkeleton,
+  ForecastSkeleton,
+  RiskPredictionSkeleton,
+} from "@/components/skeletons/weather-skeleton"
 
 interface WeatherData {
   temperature: number
@@ -297,17 +303,15 @@ export default function WeatherApp() {
   }, [])
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedSearches = localStorage.getItem("winder-recent-searches")
-      if (savedSearches) {
-        try {
-          const parsed = JSON.parse(savedSearches)
-          if (Array.isArray(parsed)) {
-            setRecentSearches(parsed.slice(0, 10)) // Limit to 10 searches
-          }
-        } catch (error) {
-          console.error("[v0] Error loading search history:", error)
+    const savedSearches = localStorage.getItem("winder-recent-searches")
+    if (savedSearches) {
+      try {
+        const parsed = JSON.parse(savedSearches)
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed.slice(0, 10)) // Limit to 10 searches
         }
+      } catch (error) {
+        console.error("[v0] Error loading search history:", error)
       }
     }
   }, [])
@@ -1112,7 +1116,7 @@ export default function WeatherApp() {
       .sort((a, b) => a.key.length - b.key.length)
     if (containsMatches.length > 0) return containsMatches[0].value
 
-    return null
+    return null // Return null if no match found
   }
 
   const getAllLocations = (): string[] => {
@@ -2172,8 +2176,8 @@ export default function WeatherApp() {
     }
   }, [riskPredictions, currentWeather])
 
-  const handleLocationSearch = async (location?: string) => {
-    const searchTerm = location || searchLocation
+  const handleLocationSearch = async (locationName: string) => {
+    const searchTerm = locationName || searchLocation
 
     if (!searchTerm || typeof searchTerm !== "string" || !searchTerm.trim()) {
       addNotification("Invalid Search", "Please enter a valid location name", "error")
@@ -2182,7 +2186,9 @@ export default function WeatherApp() {
 
     const trimmedLocation = searchTerm.trim()
     setSearchLoading(true)
-    setSearchWeather(null) // Clear previous search results
+    // </CHANGE> Clear previous search weather data to prevent showing stale data during loading
+    setSearchWeather(null)
+    setSearchError("")
 
     console.log("[v0] Searching for location:", trimmedLocation)
 
@@ -2319,7 +2325,7 @@ export default function WeatherApp() {
       setLoading(true)
       console.log("[v0] Fetching weather data for coordinates:", { lat, lon })
 
-      const currentResponse = await fetch(`/api/weather/current?lat=${lat}&lon=${lat}`)
+      const currentResponse = await fetch(`/api/weather/current?lat=${lat}&lon=${lon}`)
       if (!currentResponse.ok) {
         throw new Error("Failed to fetch current weather")
       }
@@ -2988,49 +2994,56 @@ export default function WeatherApp() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 pt-20 lg:pt-0 pb-20 lg:pb-0">
           {/* Dashboard View */}
-          <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden min-w-0">
+          <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden">
             {/* Current Weather */}
             <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-6 border border-slate-600/30 backdrop-blur-sm">
-              {loading ? (
+              {loading || searchLoading ? (
                 <WeatherCardSkeleton />
               ) : locationError ? (
                 <div className="text-center text-slate-400">
                   <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
                   {locationError}
                 </div>
-              ) : currentWeather ? (
+              ) : searchWeather || currentWeather ? (
                 <>
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
-                      <p className="text-sm text-slate-300">
-                        {formatDate(new Date())} • {currentWeather.description}
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      {getMainWeatherIcon(currentWeather.condition, currentWeather.icon)}
-                    </div>
-                  </div>
+                  {(() => {
+                    const displayWeather = searchWeather || currentWeather
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
+                            <p className="text-sm text-slate-300">
+                              {formatDate(new Date())} • {displayWeather.description}
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            {getMainWeatherIcon(displayWeather.condition, displayWeather.icon)}
+                          </div>
+                        </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-5xl font-bold">
-                        {convertTemperature(currentWeather.temperature).toFixed(1)}
-                        {getTemperatureUnit()}
-                      </h3>
-                      <p className="text-sm text-slate-300">
-                        Feels like {convertTemperature(currentWeather.feelsLike).toFixed(1)}
-                        {getTemperatureUnit()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-300">Humidity: {currentWeather.humidity}%</p>
-                      <p className="text-sm text-slate-300">
-                        Wind Speed: {convertWindSpeed(currentWeather.windSpeed).toFixed(1)}
-                        {getWindSpeedUnit()}
-                      </p>
-                    </div>
-                  </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-5xl font-bold">
+                              {convertTemperature(displayWeather.temperature).toFixed(1)}
+                              {getTemperatureUnit()}
+                            </h3>
+                            <p className="text-sm text-slate-300">
+                              Feels like {convertTemperature(displayWeather.feelsLike).toFixed(1)}
+                              {getTemperatureUnit()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-slate-300">Humidity: {displayWeather.humidity}%</p>
+                            <p className="text-sm text-slate-300">
+                              Wind Speed: {convertWindSpeed(displayWeather.windSpeed).toFixed(1)}
+                              {getWindSpeedUnit()}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </>
               ) : (
                 <div className="text-center text-slate-400">
@@ -3041,7 +3054,15 @@ export default function WeatherApp() {
             </div>
 
             {/* Forecast */}
-            {forecast.length > 0 && (
+            {loading || searchLoading ? (
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                  Weather Forecast
+                </h2>
+                <ForecastSkeleton />
+              </div>
+            ) : forecast.length > 0 ? (
               <div className="space-y-3">
                 <h2 className="text-base font-semibold text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
@@ -3072,10 +3093,18 @@ export default function WeatherApp() {
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Risk Predictions */}
-            {riskPredictions.length > 0 && (
+            {loading || searchLoading ? (
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                  Risk Predictions
+                </h2>
+                <RiskPredictionSkeleton />
+              </div>
+            ) : riskPredictions.length > 0 ? (
               <div className="space-y-3">
                 <h2 className="text-base font-semibold text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
@@ -3099,7 +3128,7 @@ export default function WeatherApp() {
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -3107,9 +3136,7 @@ export default function WeatherApp() {
       {/* First Aid Modal */}
       {firstAidModalOpen && (
         <Dialog open={firstAidModalOpen} onOpenChange={setFirstAidModalOpen}>
-          <DialogContent
-            className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-700/60 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale"
-          >
+          <DialogContent className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-700/60 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale">
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
               <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
@@ -3123,8 +3150,7 @@ export default function WeatherApp() {
             {/* Scrollable Body */}
             <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
               <p className="text-slate-300 leading-relaxed">
-                Quick reference for common emergency situations. Always call emergency
-                services for serious injuries.
+                Quick reference for common emergency situations. Always call emergency services for serious injuries.
               </p>
 
               {/* Sections */}
@@ -3135,8 +3161,10 @@ export default function WeatherApp() {
                     Cuts & Bleeding
                   </h3>
                   <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Apply direct pressure with clean cloth<br />
-                    2. Elevate the wound above heart level<br />
+                    1. Apply direct pressure with clean cloth
+                    <br />
+                    2. Elevate the wound above heart level
+                    <br />
                     3. Keep pressure until bleeding stops
                   </p>
                 </div>
@@ -3147,9 +3175,12 @@ export default function WeatherApp() {
                     CPR Basics
                   </h3>
                   <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Check responsiveness and breathing<br />
-                    2. Call 911 immediately<br />
-                    3. 30 chest compressions, 2 rescue breaths<br />
+                    1. Check responsiveness and breathing
+                    <br />
+                    2. Call 911 immediately
+                    <br />
+                    3. 30 chest compressions, 2 rescue breaths
+                    <br />
                     4. Repeat until help arrives
                   </p>
                 </div>
@@ -3160,9 +3191,12 @@ export default function WeatherApp() {
                     Burns
                   </h3>
                   <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Cool with running water for 10-20 minutes<br />
-                    2. Remove jewelry/clothing from area<br />
-                    3. Cover with sterile gauze<br />
+                    1. Cool with running water for 10-20 minutes
+                    <br />
+                    2. Remove jewelry/clothing from area
+                    <br />
+                    3. Cover with sterile gauze
+                    <br />
                     4. Do not use ice or butter
                   </p>
                 </div>
@@ -3173,9 +3207,12 @@ export default function WeatherApp() {
                     Choking
                   </h3>
                   <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Encourage coughing if conscious<br />
-                    2. 5 back blows between shoulder blades<br />
-                    3. 5 abdominal thrusts (Heimlich)<br />
+                    1. Encourage coughing if conscious
+                    <br />
+                    2. 5 back blows between shoulder blades
+                    <br />
+                    3. 5 abdominal thrusts (Heimlich)
+                    <br />
                     4. Repeat until object is expelled
                   </p>
                 </div>
@@ -3184,7 +3221,7 @@ export default function WeatherApp() {
               {/* Emergency Call Button */}
               <Button
                 className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl py-3 font-semibold mt-6 shadow-lg transition hover:scale-[1.02]"
-                onClick={() => window.open('tel:911', '_self')}
+                onClick={() => window.open("tel:911", "_self")}
               >
                 <Phone className="w-5 h-5 mr-2" /> Call Emergency Services (911)
               </Button>
@@ -3300,9 +3337,7 @@ export default function WeatherApp() {
                   </div>
                   <div>
                     <h2 className="text-white">Weather History</h2>
-                    <p className="text-slate-400 text-sm font-normal">
-                      {getFilteredHistory().length} records found
-                    </p>
+                    <p className="text-slate-400 text-sm font-normal">{getFilteredHistory().length} records found</p>
                   </div>
                 </div>
 
@@ -3533,8 +3568,10 @@ export default function WeatherApp() {
             </DialogHeader>
 
             {/* Alerts Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide space-y-5 py-6 px-4 sm:px-6 
-              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div
+              className="flex-1 overflow-y-auto scrollbar-hide space-y-5 py-6 px-4 sm:px-6 
+              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               {alerts.length > 0 ? (
                 <div className="space-y-5">
                   {alerts.map((alert) => {
@@ -3543,8 +3580,8 @@ export default function WeatherApp() {
                       alert.severity === "Severe"
                         ? "from-red-700/40 via-red-600/30 to-red-700/40 border-red-600/40"
                         : alert.severity === "Moderate"
-                        ? "from-yellow-600/40 via-yellow-500/30 to-yellow-600/40 border-yellow-500/40"
-                        : "from-blue-700/40 via-blue-600/30 to-blue-700/40 border-blue-600/40"
+                          ? "from-yellow-600/40 via-yellow-500/30 to-yellow-600/40 border-yellow-500/40"
+                          : "from-blue-700/40 via-blue-600/30 to-blue-700/40 border-blue-600/40"
 
                     return (
                       <div
@@ -3553,9 +3590,7 @@ export default function WeatherApp() {
                         rounded-2xl p-5 shadow-md hover:shadow-lg transition-all duration-300`}
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <span className="font-semibold text-lg text-white leading-snug">
-                            {alert.title}
-                          </span>
+                          <span className="font-semibold text-lg text-white leading-snug">{alert.title}</span>
                           <Badge
                             variant={getSeverityColor(alert.severity)}
                             className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
@@ -3564,14 +3599,11 @@ export default function WeatherApp() {
                           </Badge>
                         </div>
 
-                        <p className="text-slate-200 mb-4 leading-relaxed">
-                          {alert.description}
-                        </p>
+                        <p className="text-slate-200 mb-4 leading-relaxed">{alert.description}</p>
 
                         <div className="text-sm text-slate-400 space-y-2">
                           <p>
-                            <span className="font-medium text-slate-300">Areas:</span>{" "}
-                            {alert.areas.join(", ")}
+                            <span className="font-medium text-slate-300">Areas:</span> {alert.areas.join(", ")}
                           </p>
                           <p>
                             <span className="font-medium text-slate-300">Valid until:</span>{" "}
@@ -3616,7 +3648,7 @@ export default function WeatherApp() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
                     />
                     <path
                       strokeLinecap="round"
@@ -3631,9 +3663,10 @@ export default function WeatherApp() {
             </DialogHeader>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto py-6 px-5 sm:px-6 space-y-8 
-              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-
+            <div
+              className="flex-1 overflow-y-auto py-6 px-5 sm:px-6 space-y-8 
+              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               {/* Temperature Unit */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
