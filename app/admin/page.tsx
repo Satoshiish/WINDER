@@ -47,7 +47,7 @@ import {
   User,
   Cloud,
 } from "lucide-react"
-import { getEmergencyStats } from "@/lib/emergency-storage"
+import { getEmergencyStats } from "@/lib/emergency-db"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/lib/admin-users-storage"
 import { useToast } from "@/hooks/use-toast"
 
@@ -93,8 +93,8 @@ export default function AdminDashboard() {
   }, [])
 
   useEffect(() => {
-    const updateStats = () => {
-      const stats = getEmergencyStats()
+    const updateStats = async () => {
+      const stats = await getEmergencyStats()
       setEmergencyStats(stats)
     }
 
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
     // Poll for updates every 3 seconds
     const interval = setInterval(updateStats, 3000)
 
-    // Listen for storage events
+    // Listen for storage events (keeping for backward compatibility)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "winder-emergency-reports" || e.key === null) {
         updateStats()

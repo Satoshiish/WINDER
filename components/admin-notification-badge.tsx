@@ -2,22 +2,22 @@
 
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { loadEmergencyReports } from "@/lib/emergency-storage"
+import { loadEmergencyReports } from "@/lib/emergency-db"
 
 export function AdminNotificationBadge() {
   const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
-    const updateCount = () => {
-      const reports = loadEmergencyReports()
-      const pending = reports.filter((r) => r.status === "pending").length
+    const updateCount = async () => {
+      const reports = await loadEmergencyReports()
+      const pending = reports.filter((r) => r.status === "pending" && !r.deletedAt).length
       setPendingCount(pending)
     }
 
     // Initial load
     updateCount()
 
-    // Listen for storage changes
+    // Listen for storage changes (keeping for backward compatibility)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "winder-emergency-reports" || e.key === null) {
         updateCount()

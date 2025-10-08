@@ -25,6 +25,13 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react"
+import { 
+  loadLocationShares, 
+  deleteLocationShare, 
+  undoDeleteLocationShare,
+  getLocationShareStats,
+  type LocationShare 
+} from "@/lib/location-db"
 
 export default function LocationManagement() {
   const { user } = useAuth()

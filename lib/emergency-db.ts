@@ -1,0 +1,231 @@
+import { supabase } from "./supabase-client"
+
+export interface EmergencyReport {
+  id: string
+  userId: string
+  userName: string
+  contactNumber: string
+  emergencyType: string
+  priority: "critical" | "high" | "medium" | "low"
+  peopleCount: number
+  address: string
+  location: {
+    lat: number
+    lng: number
+  }
+  additionalInfo?: string
+  status: "pending" | "in-progress" | "resolved" | "cancelled"
+  assignedTo?: string
+  responseTime?: string
+  notes: Array<{
+    id: number
+    author: string
+    content: string
+    timestamp: string
+  }>
+  deletedAt?: string
+  timestamp: string
+  updatedAt: string
+}
+
+export interface EmergencyStats {
+  total: number
+  pending: number
+  inProgress: number
+  resolved: number
+  critical: number
+  high: number
+  medium: number
+  low: number
+}
+
+export async function loadEmergencyReports(): Promise<EmergencyReport[]> {
+  try {
+    const { data, error } = await supabase
+      .from("emergency_reports")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error loading emergency reports:", error)
+      return []
+    }
+
+    return (data || []).map((report) => ({
+      id: report.id.toString(),
+      userId: report.user_id?.toString() || "",
+      userName: report.user_name,
+      contactNumber: report.contact_number,
+      emergencyType: report.emergency_type,
+      priority: report.priority,
+      peopleCount: report.people_count,
+      address: report.address,
+      location: {
+        lat: Number.parseFloat(report.location_lat),
+        lng: Number.parseFloat(report.location_lng),
+      },
+      additionalInfo: report.additional_info,
+      status: report.status,
+      assignedTo: report.assigned_to,
+      responseTime: report.response_time,
+      notes: report.notes || [],
+      deletedAt: report.deleted_at,
+      timestamp: report.created_at,
+      updatedAt: report.updated_at,
+    }))
+  } catch (error) {
+    console.error("Error loading emergency reports:", error)
+    return []
+  }
+}
+
+export async function saveEmergencyReport(
+  report: Omit<EmergencyReport, "id" | "timestamp" | "updatedAt">,
+): Promise<{ success: boolean; id?: string }> {
+  try {
+    const { data, error } = await supabase
+      .from("emergency_reports")
+      .insert([
+        {
+          user_id: report.userId ? Number.parseInt(report.userId) : null,
+          user_name: report.userName,
+          contact_number: report.contactNumber,
+          emergency_type: report.emergencyType,
+          priority: report.priority,
+          people_count: report.peopleCount,
+          address: report.address,
+          location_lat: report.location.lat,
+          location_lng: report.location.lng,
+          additional_info: report.additionalInfo,
+          status: report.status,
+          assigned_to: report.assignedTo,
+          response_time: report.responseTime,
+          notes: report.notes,
+          deleted_at: report.deletedAt,
+        },
+      ])
+      .select()
+
+    if (error) {
+      console.error("Error saving emergency report:", error)
+      return { success: false }
+    }
+
+    return { success: true, id: data[0].id.toString() }
+  } catch (error) {
+    console.error("Error saving emergency report:", error)
+    return { success: false }
+  }
+}
+
+export async function updateEmergencyReport(id: string, updates: Partial<EmergencyReport>): Promise<boolean> {
+  try {
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    }
+
+    if (updates.userName !== undefined) updateData.user_name = updates.userName
+    if (updates.contactNumber !== undefined) updateData.contact_number = updates.contactNumber
+    if (updates.emergencyType !== undefined) updateData.emergency_type = updates.emergencyType
+    if (updates.priority !== undefined) updateData.priority = updates.priority
+    if (updates.peopleCount !== undefined) updateData.people_count = updates.peopleCount
+    if (updates.address !== undefined) updateData.address = updates.address
+    if (updates.location?.lat !== undefined) updateData.location_lat = updates.location.lat
+    if (updates.location?.lng !== undefined) updateData.location_lng = updates.location.lng
+    if (updates.additionalInfo !== undefined) updateData.additional_info = updates.additionalInfo
+    if (updates.status !== undefined) updateData.status = updates.status
+    if (updates.assignedTo !== undefined) updateData.assigned_to = updates.assignedTo
+    if (updates.responseTime !== undefined) updateData.response_time = updates.responseTime
+    if (updates.notes !== undefined) updateData.notes = updates.notes
+    if (updates.deletedAt !== undefined) updateData.deleted_at = updates.deletedAt
+
+    const { error } = await supabase.from("emergency_reports").update(updateData).eq("id", Number.parseInt(id))
+
+    if (error) {
+      console.error("Error updating emergency report:", error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error updating emergency report:", error)
+    return false
+  }
+}
+
+export async function deleteEmergencyReport(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("emergency_reports")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", Number.parseInt(id))
+
+    if (error) {
+      console.error("Error deleting emergency report:", error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error deleting emergency report:", error)
+    return false
+  }
+}
+
+export async function undoDeleteEmergencyReport(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("emergency_reports")
+      .update({ deleted_at: null })
+      .eq("id", Number.parseInt(id))
+
+    if (error) {
+      console.error("Error undoing delete emergency report:", error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error undoing delete emergency report:", error)
+    return false
+  }
+}
+
+export async function getEmergencyStats(): Promise<EmergencyStats> {
+  const reports = await loadEmergencyReports()
+  const activeReports = reports.filter((r) => !r.deletedAt)
+
+  return {
+    total: activeReports.length,
+    pending: activeReports.filter((r) => r.status === "pending").length,
+    inProgress: activeReports.filter((r) => r.status === "in-progress").length,
+    resolved: activeReports.filter((r) => r.status === "resolved").length,
+    critical: activeReports.filter((r) => r.priority === "critical").length,
+    high: activeReports.filter((r) => r.priority === "high").length,
+    medium: activeReports.filter((r) => r.priority === "medium").length,
+    low: activeReports.filter((r) => r.priority === "low").length,
+  }
+}
+
+export async function cleanupOldReports(): Promise<number> {
+  try {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const { data, error } = await supabase
+      .from("emergency_reports")
+      .delete()
+      .lt("created_at", thirtyDaysAgo.toISOString())
+      .select()
+
+    if (error) {
+      console.error("Error cleaning up old reports:", error)
+      return 0
+    }
+
+    return data?.length || 0
+  } catch (error) {
+    console.error("Error cleaning up old reports:", error)
+    return 0
+  }
+}

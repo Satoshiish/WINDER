@@ -46,7 +46,7 @@ import { useRouter } from "next/navigation" // Import useRouter
 import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
 // import { useUser } from "@clerk/nextjs" // Import useUser
 import { useLocationSharing } from "@/contexts/location-sharing-context"
-import { addEmergencyReport, type EmergencyReport } from "@/lib/emergency-storage"
+import { saveEmergencyReport } from "@/lib/emergency-db"
 
 interface WeatherData {
   temperature: number
@@ -2558,7 +2558,7 @@ export default function WeatherApp() {
     )
   }
 
-  const handleEmergencyReport = (emergencyType: string, description: string) => {
+  const handleEmergencyReport = async (emergencyType: string, description: string) => {
     if (!navigator.geolocation) {
       // Always show emergency-related toasts regardless of notification settings
       toast({
@@ -2589,7 +2589,7 @@ export default function WeatherApp() {
     })
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords
         const locationName = reverseGeocode(latitude, longitude)
 
@@ -2611,8 +2611,7 @@ export default function WeatherApp() {
           priority = "high"
         }
 
-        const emergencyReportData: EmergencyReport = {
-          id: `emr_${Date.now()}`,
+        const emergencyReportData = {
           userId: user?.id || "anonymous",
           userName: emergencyFormData.senderName,
           userEmail: user?.email || "anonymous@example.com",
@@ -2622,38 +2621,53 @@ export default function WeatherApp() {
           contactNumber: emergencyFormData.senderPhone,
           peopleCount: emergencyFormData.peopleCount,
           additionalInfo: description,
-          timestamp: new Date().toISOString(),
-          status: "pending",
+          status: "pending" as const,
           priority,
-          assignedTo: null,
-          responseTime: null,
+          assignedTo: undefined,
+          responseTime: undefined,
           notes: [],
-          deviceInfo,
-          accuracy: position.coords.accuracy || 10,
+          deviceInfo, // Add device info
+          accuracy: position.coords.accuracy || 10, // Add accuracy
         }
 
         try {
-          addEmergencyReport(emergencyReportData)
-          console.log("[v0] Emergency report stored successfully:", emergencyReportData.id)
+          const result = await saveEmergencyReport(emergencyReportData)
+          if (result.success) {
+            console.log("[v0] Emergency report saved to database successfully:", result.id)
+
+            // Show detailed success toast - always visible for emergency reports
+            const emergencyTypeFormatted = emergencyType.charAt(0).toUpperCase() + emergencyType.slice(1)
+            toast({
+              title: "✅ Emergency Report Sent",
+              description: `${emergencyTypeFormatted} emergency reported at ${locationName}. Report ID: ${result.id?.slice(-6)}. Emergency services have been notified.`,
+              variant: "default",
+              duration: 8000,
+            })
+
+            setEmergencyFormData({
+              senderName: "",
+              senderPhone: "",
+              emergencyType: "",
+              description: "",
+              peopleCount: 1,
+            })
+            setShowEmergencyForm(false)
+            setLocationSharingModalOpen(false)
+
+            // Also share location with admin
+            handleShareLocationWithAdmin("emergency")
+          } else {
+            throw new Error("Failed to save emergency report")
+          }
         } catch (error) {
           console.error("[v0] Error storing emergency report:", error)
+          toast({
+            title: "Error",
+            description: "Failed to send emergency report. Please try again.",
+            variant: "destructive",
+            duration: 5000,
+          })
         }
-
-        // Show detailed success toast - always visible for emergency reports
-        const emergencyTypeFormatted = emergencyType.charAt(0).toUpperCase() + emergencyType.slice(1)
-        toast({
-          title: "✅ Emergency Report Sent",
-          description: `${emergencyTypeFormatted} emergency reported at ${locationName}. Report ID: ${emergencyReportData.id.slice(-6)}. Emergency services have been notified.`,
-          variant: "default",
-          duration: 8000,
-        })
-
-        setEmergencyFormData({ senderName: "", senderPhone: "", emergencyType: "", description: "", peopleCount: 1 })
-        setShowEmergencyForm(false)
-        setLocationSharingModalOpen(false)
-
-        // Also share location with admin
-        handleShareLocationWithAdmin("emergency")
       },
       (error) => {
         console.error("[v0] Geolocation error:", error)

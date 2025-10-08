@@ -43,12 +43,12 @@ import {
 } from "lucide-react"
 import {
   loadEmergencyReports,
-  saveEmergencyReports,
-  getEmergencyStats,
+  updateEmergencyReport,
   deleteEmergencyReport,
   undoDeleteEmergencyReport,
+  cleanupOldReports,
   type EmergencyReport,
-} from "@/lib/emergency-storage"
+} from "@/lib/emergency-db"
 
 const emergencyTypes = [
   { value: "medical", label: "Medical", icon: "🏥", color: "bg-red-500" },
@@ -89,15 +89,14 @@ export default function EmergencyManagement() {
   const [hasNewReports, setHasNewReports] = useState(false)
   const [showDeleted, setShowDeleted] = useState(false)
 
-  const loadStoredReports = () => {
-    const reports = loadEmergencyReports()
+  const loadStoredReports = async () => {
+    const reports = await loadEmergencyReports()
     console.log("[v0] Loading stored emergency reports:", reports.length, "reports found")
 
     if (reports.length > lastReportCount && lastReportCount > 0) {
       const newCount = reports.length - lastReportCount
       setHasNewReports(true)
 
-      // Show toast notification for new reports
       toast({
         title: "🚨 New Emergency Report!",
         description: `${newCount} new emergency ${newCount === 1 ? "report" : "reports"} received. Click to view.`,
@@ -105,16 +104,11 @@ export default function EmergencyManagement() {
         duration: 10000,
       })
 
-      // Play notification sound if available
       if (typeof Audio !== "undefined") {
         try {
           const audio = new Audio("/notification.mp3")
-          audio.play().catch(() => {
-            // Ignore if audio fails to play
-          })
-        } catch (error) {
-          // Ignore audio errors
-        }
+          audio.play().catch(() => {})
+        } catch (error) {}
       }
     }
 
@@ -133,19 +127,17 @@ export default function EmergencyManagement() {
       }
     }
 
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "winder-emergency-reports" || e.key === null) {
-        console.log("[v0] Storage changed, reloading reports...")
-        loadStoredReports()
-      }
-    }
+    // Storage event listener is no longer needed for local storage, but might be useful for other contexts.
+    // For database operations, we rely on polling or push notifications (if implemented).
+    // const handleStorageChange = (e: StorageEvent) => { ... }
 
+    // Custom event listener for manual refreshes or external triggers
     const handleCustomStorageEvent = () => {
       console.log("[v0] Custom storage event received, reloading reports...")
       loadStoredReports()
     }
 
-    window.addEventListener("storage", handleStorageChange)
+    // window.addEventListener("storage", handleStorageChange) // Removed
     document.addEventListener("visibilitychange", handleVisibilityChange)
     window.addEventListener("emergency-reports-updated", handleCustomStorageEvent)
 
@@ -154,7 +146,7 @@ export default function EmergencyManagement() {
     }, 2000)
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange)
+      // window.removeEventListener("storage", handleStorageChange) // Removed
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("emergency-reports-updated", handleCustomStorageEvent)
       clearInterval(interval)
@@ -281,79 +273,67 @@ export default function EmergencyManagement() {
     })
   }
 
-  const handleStatusChange = (requestId: string, newStatus: string) => {
-    const updatedRequests = emergencyRequests.map((request) => {
-      if (request.id === requestId) {
-        const updatedRequest = { ...request, status: newStatus as EmergencyReport["status"] }
-        if (newStatus === "in-progress" && !request.responseTime) {
-          updatedRequest.responseTime = new Date().toISOString()
-        }
-        return updatedRequest
-      }
-      return request
+  const handleStatusChange = async (requestId: string, newStatus: string) => {
+    const success = await updateEmergencyReport(requestId, {
+      status: newStatus as EmergencyReport["status"],
+      responseTime: newStatus === "in-progress" ? new Date().toISOString() : undefined,
     })
 
-    setEmergencyRequests(updatedRequests)
-    saveEmergencyReports(updatedRequests)
-
-    toast({
-      title: "Status Updated",
-      description: `Emergency status changed to ${newStatus}`,
-      duration: 3000,
-    })
+    if (success) {
+      await loadStoredReports()
+      toast({
+        title: "Status Updated",
+        description: `Emergency status changed to ${newStatus}`,
+        duration: 3000,
+      })
+    }
   }
 
-  const handleAssignTeam = (requestId: string, team: string) => {
-    const updatedRequests = emergencyRequests.map((request) =>
-      request.id === requestId
-        ? {
-            ...request,
-            assignedTo: team,
-            status: request.status === "pending" ? ("in-progress" as const) : request.status,
-            responseTime: request.responseTime || new Date().toISOString(),
-          }
-        : request,
-    )
-
-    setEmergencyRequests(updatedRequests)
-    saveEmergencyReports(updatedRequests)
-
-    toast({
-      title: "Team Assigned",
-      description: `${team} has been assigned to this emergency`,
-      duration: 3000,
+  const handleAssignTeam = async (requestId: string, team: string) => {
+    const report = emergencyRequests.find((r) => r.id === requestId)
+    const success = await updateEmergencyReport(requestId, {
+      assignedTo: team,
+      status: report?.status === "pending" ? "in-progress" : report?.status,
+      responseTime: report?.responseTime || new Date().toISOString(),
     })
+
+    if (success) {
+      await loadStoredReports()
+      toast({
+        title: "Team Assigned",
+        description: `${team} has been assigned to this emergency`,
+        duration: 3000,
+      })
+    }
   }
 
-  const handleAddNote = (requestId: string, note: string) => {
+  const handleAddNote = async (requestId: string, note: string) => {
     if (!note.trim()) return
 
-    const updatedRequests = emergencyRequests.map((request) =>
-      request.id === requestId
-        ? {
-            ...request,
-            notes: [
-              ...request.notes,
-              {
-                id: Date.now(),
-                author: user?.name || "Admin",
-                content: note,
-                timestamp: new Date().toISOString(),
-              },
-            ],
-          }
-        : request,
-    )
+    const report = emergencyRequests.find((r) => r.id === requestId)
+    if (!report) return
 
-    setEmergencyRequests(updatedRequests)
-    saveEmergencyReports(updatedRequests)
-    setNewNote("")
-
-    toast({
-      title: "Note Added",
-      description: "Response note has been added to the report",
-      duration: 2000,
+    const success = await updateEmergencyReport(requestId, {
+      notes: [
+        ...report.notes,
+        {
+          id: Date.now(),
+          author: user?.name || "Admin",
+          content: note,
+          timestamp: new Date().toISOString(),
+        },
+      ],
     })
+
+    if (success) {
+      await loadStoredReports()
+      setNewNote("")
+      toast({
+        title: "Note Added",
+        description: "Response note has been added to the report",
+        duration: 2000,
+      })
+    }
   }
 
   const handleExportData = () => {
@@ -373,12 +353,10 @@ export default function EmergencyManagement() {
     })
   }
 
-  const handleCleanupOldReports = () => {
-    const stats = getEmergencyStats()
+  const handleCleanupOldReports = async () => {
     const beforeCount = emergencyRequests.length
-    loadStoredReports() // This will trigger automatic cleanup
-    const afterCount = emergencyRequests.length
-    const cleaned = beforeCount - afterCount
+    const cleaned = await cleanupOldReports()
+    await loadStoredReports()
 
     if (cleaned > 0) {
       toast({
@@ -395,27 +373,29 @@ export default function EmergencyManagement() {
     }
   }
 
-  const handleDeleteReport = (reportId: string) => {
-    deleteEmergencyReport(reportId)
-    loadStoredReports()
-
-    toast({
-      title: "Report Marked for Deletion",
-      description: "Report will be permanently deleted in 24 hours. You can undo this action.",
-      variant: "destructive",
-      duration: 5000,
-    })
+  const handleDeleteReport = async (reportId: string) => {
+    const success = await deleteEmergencyReport(reportId)
+    if (success) {
+      await loadStoredReports()
+      toast({
+        title: "Report Marked for Deletion",
+        description: "Report will be permanently deleted in 24 hours. You can undo this action.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
   }
 
-  const handleUndoDelete = (reportId: string) => {
-    undoDeleteEmergencyReport(reportId)
-    loadStoredReports()
-
-    toast({
-      title: "Deletion Cancelled",
-      description: "Emergency report has been restored",
-      duration: 3000,
-    })
+  const handleUndoDelete = async (reportId: string) => {
+    const success = await undoDeleteEmergencyReport(reportId)
+    if (success) {
+      await loadStoredReports()
+      toast({
+        title: "Deletion Cancelled",
+        description: "Emergency report has been restored",
+        duration: 3000,
+      })
+    }
   }
 
   const getTimeUntilDeletion = (deletedAt: Date | string) => {
@@ -759,7 +739,7 @@ export default function EmergencyManagement() {
                                   Manage
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-slate-700/60 text-white">
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-950 to-slate-950 border-slate-700/60 text-white">
                                 <DialogHeader>
                                   <DialogTitle className="text-white">Emergency Request Details</DialogTitle>
                                 </DialogHeader>
@@ -950,7 +930,7 @@ export default function EmergencyManagement() {
                                     Delete
                                   </Button>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-slate-700/60 text-white">
+                                <AlertDialogContent className="bg-gradient-to-br from-slate-950 via-slate-950 to-slate-950 border-slate-700/60 text-white">
                                   <AlertDialogHeader>
                                     <AlertDialogTitle className="text-white">Delete Emergency Report?</AlertDialogTitle>
                                     <AlertDialogDescription className="text-slate-300">
