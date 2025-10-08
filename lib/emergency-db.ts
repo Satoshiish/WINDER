@@ -83,35 +83,22 @@ export async function saveEmergencyReport(
   report: Omit<EmergencyReport, "id" | "timestamp" | "updatedAt">,
 ): Promise<{ success: boolean; id?: string }> {
   try {
-    const { data, error } = await supabase
-      .from("emergency_reports")
-      .insert([
-        {
-          user_id: report.userId ? Number.parseInt(report.userId) : null,
-          user_name: report.userName,
-          contact_number: report.contactNumber,
-          emergency_type: report.emergencyType,
-          priority: report.priority,
-          people_count: report.peopleCount,
-          address: report.address,
-          location_lat: report.location.lat,
-          location_lng: report.location.lng,
-          additional_info: report.additionalInfo,
-          status: report.status,
-          assigned_to: report.assignedTo,
-          response_time: report.responseTime,
-          notes: report.notes,
-          deleted_at: report.deletedAt,
-        },
-      ])
-      .select()
+    const response = await fetch("/api/emergency", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(report),
+    })
 
-    if (error) {
-      console.error("Error saving emergency report:", error)
+    const result = await response.json()
+
+    if (!response.ok || !result.success) {
+      console.error("Error saving emergency report:", result.error)
       return { success: false }
     }
 
-    return { success: true, id: data[0].id.toString() }
+    return { success: true, id: result.id }
   } catch (error) {
     console.error("Error saving emergency report:", error)
     return { success: false }
