@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { verifyAdminCredentials } from "@/lib/admin-users-storage"
+import { supabase } from "@/lib/supabase-client"
 
 interface User {
   id: string
@@ -32,11 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
-      // This would check for existing auth token/session
-      // For now, just simulate loading
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Check localStorage for demo purposes
+      setLoading(true)
+      // Check if user data exists in localStorage (simple session persistence)
       const storedUser = localStorage.getItem("weather-app-user")
       if (storedUser) {
         setUser(JSON.parse(storedUser))
@@ -52,25 +49,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Query the users table directly
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('is_active', true)
+        .single()
 
-      const adminUser = verifyAdminCredentials(email, password)
-      if (adminUser) {
-        const user: User = {
-          id: adminUser.id,
-          email: adminUser.email,
-          name: adminUser.name,
-          role: "admin",
+      if (error || !users) {
+        console.error("Login error:", error?.message || "User not found")
+        return false
+      }
+
+      // Check password (in production, you should use proper hashing)
+      if (users.password === password) {
+        const userData: User = {
+          id: users.id.toString(),
+          email: users.email,
+          name: users.full_name,
+          role: users.role as "user" | "admin" | "emergency_responder"
         }
 
-        setUser(user)
-        localStorage.setItem("weather-app-user", JSON.stringify(user))
-        console.log(`[v0] Admin user logged in: ${email}`)
+        setUser(userData)
+        localStorage.setItem("weather-app-user", JSON.stringify(userData))
+        console.log(`User logged in: ${email}`)
         return true
       }
 
-      console.log(`[v0] Login failed for: ${email}`)
+      console.log(`Login failed for: ${email}`)
       return false
     } catch (error) {
       console.error("Login failed:", error)
