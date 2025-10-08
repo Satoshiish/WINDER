@@ -29,8 +29,8 @@ const nextConfig = {
               base-uri 'self';
               form-action 'self';
               frame-ancestors 'none';
-              upgrade-insecure-requests;
               connect-src 'self' https://api.open-meteo.com https://openweathermap.org https://*.openweathermap.org https://bfxjidnfgrconxvdvjmh.supabase.co https://*.supabase.co wss://bfxjidnfgrconxvdvjmh.supabase.co;
+              upgrade-insecure-requests;
             `.replace(/\s{2,}/g, ' ').trim()
           }
         ],
