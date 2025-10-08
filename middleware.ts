@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
   // CSP for weather app
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.open-meteo.com https://openweathermap.org https://*.openweathermap.org; font-src 'self' data:; frame-src https://openweathermap.org https://*.openweathermap.org;",
+    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.open-meteo.com https://openweathermap.org https://*.openweathermap.org https://bfxjidnfgrconxvdvjmh.supabase.co https://*.supabase.co wss://bfxjidnfgrconxvdvjmh.supabase.co; font-src 'self' data:; frame-src https://openweathermap.org https://*.openweathermap.org;",
   )
 
   // Rate limiting headers (basic implementation)
