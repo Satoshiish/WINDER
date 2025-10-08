@@ -53,15 +53,6 @@ export const metadata: Metadata = {
     title: "WINDER+ - Weather, Index (Heat), Natural Disasters & Emergency Response",
     description: "Stay prepared, stay safe. Emergency weather alerts and rescue requests for the Philippines.",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#6366f1" },
-    { media: "(prefers-color-scheme: dark)", color: "#818cf8" },
-  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -76,6 +67,16 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
   },
+}
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#6366f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#818cf8" },
+  ],
 }
 
 export default function RootLayout({
