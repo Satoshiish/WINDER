@@ -29,7 +29,7 @@ const nextConfig = {
               "base-uri 'self'; " +
               "form-action 'self'; " +
               "frame-ancestors 'none'; " +
-              "connect-src 'self' https://api.open-meteo.com https://openweathermap.org https://*.openweathermap.org https://bfxjidnfgrconxvdvjmh.supabase.co https://*.supabase.co wss://bfxjidnfgrconxvdvjmh.supabase.co; " +
+              "connect-src 'self' https://api.open-meteo.com https://openweathermap.org https://*.openweathermap.org https://nominatim.openstreetmap.org https://bfxjidnfgrconxvdvjmh.supabase.co https://*.supabase.co wss://bfxjidnfgrconxvdvjmh.supabase.co; " +
               "upgrade-insecure-requests;"
           }
         ],

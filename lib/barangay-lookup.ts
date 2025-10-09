@@ -133,7 +133,11 @@ export async function getBarangayFromCoordinates(lat: number, lng: number): Prom
 }
 
 // Format barangay name with proper capitalization
-export function formatBarangay(barangay: string): string {
+export function formatBarangay(barangay: string | undefined | null): string {
+  if (!barangay || typeof barangay !== "string") {
+    return "Unknown Barangay"
+  }
+
   if (barangay === "Unknown Barangay") {
     return barangay
   }
