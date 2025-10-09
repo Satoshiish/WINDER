@@ -138,6 +138,7 @@ export default function WeatherApp() {
   const [weatherHistoryModalOpen, setWeatherHistoryModalOpen] = useState(false)
   const [weatherHistory, setWeatherHistory] = useState<WeatherHistoryEntry[]>([])
   const [historyFilter, setHistoryFilter] = useState<"all" | "today" | "week" | "month">("all")
+  const [locationFilter, setLocationFilter] = useState<string>("all")
   const [historyLoading, setHistoryLoading] = useState(false)
 
   const [notifications, setNotifications] = useState<
@@ -2266,6 +2267,8 @@ export default function WeatherApp() {
       )
 
       updateRecentSearches(properLocationName)
+
+      saveWeatherToHistory(searchWeatherData)
     } catch (error) {
       console.error("[v0] Location search failed:", error)
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch weather data"
@@ -2463,23 +2466,48 @@ export default function WeatherApp() {
     }
   }, [])
 
+  const getUniqueLocations = useCallback(() => {
+    const locations = new Set<string>()
+    weatherHistory.forEach((entry) => {
+      const location = entry.locationName || entry.location
+      if (location) {
+        locations.add(location)
+      }
+    })
+    return Array.from(locations).sort()
+  }, [weatherHistory])
+
   const getFilteredHistory = useCallback(() => {
     const now = Date.now()
     const oneDay = 24 * 60 * 60 * 1000
     const oneWeek = 7 * oneDay
     const oneMonth = 30 * oneDay
 
+    let filtered = weatherHistory
+
     switch (historyFilter) {
       case "today":
-        return weatherHistory.filter((entry) => now - entry.timestamp < oneDay)
+        filtered = filtered.filter((entry) => now - entry.timestamp < oneDay)
+        break
       case "week":
-        return weatherHistory.filter((entry) => now - entry.timestamp < oneWeek)
+        filtered = filtered.filter((entry) => now - entry.timestamp < oneWeek)
+        break
       case "month":
-        return weatherHistory.filter((entry) => now - entry.timestamp < oneMonth)
+        filtered = filtered.filter((entry) => now - entry.timestamp < oneMonth)
+        break
       default:
-        return weatherHistory
+        break
     }
-  }, [weatherHistory, historyFilter])
+
+    if (locationFilter !== "all") {
+      filtered = filtered.filter((entry) => {
+        const location = entry.locationName || entry.location
+        return location === locationFilter
+      })
+    }
+
+    return filtered
+  }, [weatherHistory, historyFilter, locationFilter])
 
   const clearWeatherHistory = useCallback(() => {
     setWeatherHistory([])
@@ -4441,31 +4469,19 @@ export default function WeatherApp() {
           >
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xl sm:text-2xl font-bold">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                    <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+              <DialogTitle className="flex flex-col gap-4 text-xl sm:text-2xl font-bold">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                      <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+                    </div>
+                    <div>
+                      <h2 className="text-white text-lg sm:text-xl">Weather History</h2>
+                      <p className="text-slate-400 text-xs sm:text-sm font-normal">
+                        {getFilteredHistory().length} records found
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-white text-lg sm:text-xl">Weather History</h2>
-                    <p className="text-slate-400 text-xs sm:text-sm font-normal">
-                      {getFilteredHistory().length} records found
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <select
-                    value={historyFilter}
-                    onChange={(e) => setHistoryFilter(e.target.value as any)}
-                    className="flex-1 sm:flex-none bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white
-                    focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner"
-                  >
-                    <option value="all">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                  </select>
 
                   {weatherHistory.length > 0 && (
                     <Button
@@ -4478,6 +4494,40 @@ export default function WeatherApp() {
                       Clear All
                     </Button>
                   )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-400 mb-1 block">Time Period</label>
+                    <select
+                      value={historyFilter}
+                      onChange={(e) => setHistoryFilter(e.target.value as any)}
+                      className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm
+                      focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner"
+                    >
+                      <option value="all">All Time</option>
+                      <option value="today">Today</option>
+                      <option value="week">This Week</option>
+                      <option value="month">This Month</option>
+                    </select>
+                  </div>
+
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-400 mb-1 block">Location</label>
+                    <select
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                      className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm
+                      focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner"
+                    >
+                      <option value="all">All Locations</option>
+                      {getUniqueLocations().map((location) => (
+                        <option key={location} value={location}>
+                          {location}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </DialogTitle>
             </DialogHeader>
@@ -4539,18 +4589,21 @@ export default function WeatherApp() {
                   <Clock className="w-16 h-16 mx-auto mb-4 text-slate-600 animate-pulse" />
                   <h3 className="text-lg font-medium mb-2">No weather history available</h3>
                   <p className="text-sm">
-                    {historyFilter === "all"
+                    {historyFilter === "all" && locationFilter === "all"
                       ? "Weather data will appear here as you use the app"
-                      : `No weather data found for the selected time period`}
+                      : `No weather data found for the selected filters`}
                   </p>
-                  {historyFilter !== "all" && (
+                  {(historyFilter !== "all" || locationFilter !== "all") && (
                     <Button
-                      onClick={() => setHistoryFilter("all")}
+                      onClick={() => {
+                        setHistoryFilter("all")
+                        setLocationFilter("all")
+                      }}
                       variant="outline"
                       size="sm"
                       className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700 rounded-lg"
                     >
-                      View All History
+                      Clear Filters
                     </Button>
                   )}
                 </div>
