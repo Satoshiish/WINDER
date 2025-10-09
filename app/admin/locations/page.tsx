@@ -40,9 +40,36 @@ export default function LocationManagement() {
   const [selectedLocation, setSelectedLocation] = useState<LocationShare | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showDeleted, setShowDeleted] = useState(false)
+  const [barangayData, setBarangayData] = useState<Record<string, string>>({})
 
   useEffect(() => {
     setFilteredShares(sharedLocations)
+  }, [sharedLocations])
+
+  useEffect(() => {
+    const fetchBarangayData = async () => {
+      const newBarangayData: Record<string, string> = {}
+
+      for (const share of sharedLocations) {
+        if (!barangayData[share.id]) {
+          try {
+            const barangay = await getBarangayFromCoordinates(share.location.lat, share.location.lng)
+            newBarangayData[share.id] = barangay
+          } catch (error) {
+            console.error(`Failed to fetch barangay for location ${share.id}:`, error)
+            newBarangayData[share.id] = "Unknown Barangay"
+          }
+        }
+      }
+
+      if (Object.keys(newBarangayData).length > 0) {
+        setBarangayData((prev) => ({ ...prev, ...newBarangayData }))
+      }
+    }
+
+    if (sharedLocations.length > 0) {
+      fetchBarangayData()
+    }
   }, [sharedLocations])
 
   useEffect(() => {
@@ -425,7 +452,7 @@ export default function LocationManagement() {
                           <div>
                             <p className="text-slate-400">Barangay:</p>
                             <p className="font-medium text-white">
-                              {formatBarangay(getBarangayFromCoordinates(share.location.lat, share.location.lng))}
+                              {formatBarangay(barangayData[share.id] || "Loading...")}
                             </p>
                           </div>
                           <div className="min-w-0">
