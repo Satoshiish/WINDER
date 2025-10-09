@@ -49,6 +49,8 @@ import {
   cleanupOldReports,
   type EmergencyReport,
 } from "@/lib/emergency-db"
+import { formatAddress } from "@/lib/format-address"
+import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 
 const emergencyTypes = [
   { value: "medical", label: "Medical", icon: "🏥", color: "bg-red-500" },
@@ -699,7 +701,13 @@ export default function EmergencyManagement() {
                           </div>
                           <div>
                             <p className="text-slate-400">Location:</p>
-                            <p className="font-medium text-white truncate">{request.address}</p>
+                            <p className="font-medium text-white truncate">{formatAddress(request.address)}</p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400">Barangay:</p>
+                            <p className="font-medium text-white">
+                              {formatBarangay(getBarangayFromCoordinates(request.location.lat, request.location.lng))}
+                            </p>
                           </div>
                           <div>
                             <p className="text-slate-400">Contact:</p>
@@ -812,7 +820,7 @@ export default function EmergencyManagement() {
                                           <strong>People Count:</strong> {selectedRequest.peopleCount}
                                         </p>
                                         <p className="text-white">
-                                          <strong>Location:</strong> {selectedRequest.address}
+                                          <strong>Location:</strong> {formatAddress(selectedRequest.address)}
                                         </p>
                                         {selectedRequest.additionalInfo && (
                                           <div>

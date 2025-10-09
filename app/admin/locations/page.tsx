@@ -25,23 +25,19 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react"
-import { 
-  loadLocationShares, 
-  deleteLocationShare, 
-  undoDeleteLocationShare,
-  getLocationShareStats,
-  type LocationShare 
-} from "@/lib/location-db"
+import type { LocationShare } from "@/lib/location-db"
+import { formatAddress } from "@/lib/format-address"
+import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 
 export default function LocationManagement() {
   const { user } = useAuth()
   const router = useRouter()
   const { sharedLocations, revokeLocation, undoRevokeLocation } = useLocationSharing()
-  const [filteredShares, setFilteredShares] = useState(sharedLocations)
+  const [filteredShares, setFilteredShares] = useState<LocationShare[]>(sharedLocations)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
-  const [selectedLocation, setSelectedLocation] = useState<(typeof sharedLocations)[0] | null>(null)
+  const [selectedLocation, setSelectedLocation] = useState<LocationShare | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showDeleted, setShowDeleted] = useState(false)
 
@@ -418,7 +414,7 @@ export default function LocationManagement() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs sm:text-sm">
                           <div className="min-w-0">
                             <p className="text-slate-400">Location:</p>
-                            <p className="font-medium text-white truncate">{share.address}</p>
+                            <p className="font-medium text-white truncate">{formatAddress(share.address)}</p>
                           </div>
                           <div className="min-w-0">
                             <p className="text-slate-400">Coordinates:</p>
@@ -427,8 +423,10 @@ export default function LocationManagement() {
                             </p>
                           </div>
                           <div>
-                            <p className="text-slate-400">Accuracy:</p>
-                            <p className="font-medium text-white">{share.accuracy}m</p>
+                            <p className="text-slate-400">Barangay:</p>
+                            <p className="font-medium text-white">
+                              {formatBarangay(getBarangayFromCoordinates(share.location.lat, share.location.lng))}
+                            </p>
                           </div>
                           <div className="min-w-0">
                             <p className="text-slate-400">Device:</p>
@@ -472,7 +470,9 @@ export default function LocationManagement() {
                                     </div>
                                     <div>
                                       <p className="text-sm text-slate-400">Full Address</p>
-                                      <p className="font-medium text-white">{selectedLocation.address}</p>
+                                      <p className="font-medium text-white">
+                                        {formatAddress(selectedLocation.address)}
+                                      </p>
                                     </div>
                                     <div>
                                       <p className="text-sm text-slate-400">Precise Coordinates</p>
