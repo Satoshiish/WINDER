@@ -50,6 +50,7 @@ import {
   type EmergencyReport,
 } from "@/lib/emergency-db"
 import { formatAddress } from "@/lib/format-address"
+import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 
 const emergencyTypes = [
   { value: "medical", label: "Medical", icon: "🏥", color: "bg-red-500" },
@@ -78,6 +79,7 @@ export default function EmergencyManagement() {
   const { toast } = useToast()
   const [emergencyRequests, setEmergencyRequests] = useState<EmergencyReport[]>([])
   const [filteredRequests, setFilteredRequests] = useState<EmergencyReport[]>([])
+  const [barangayData, setBarangayData] = useState<Record<string, string>>({})
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
@@ -116,6 +118,26 @@ export default function EmergencyManagement() {
     setLastReportCount(reports.length)
     setEmergencyRequests(reports)
     setFilteredRequests(reports)
+
+    const barangayPromises = reports.map(async (report) => {
+      try {
+        const barangay = await getBarangayFromCoordinates(report.location.lat, report.location.lng)
+        return { id: report.id, barangay: formatBarangay(barangay) }
+      } catch (error) {
+        console.error("[v0] Error fetching barangay for report", report.id, error)
+        return { id: report.id, barangay: "Unknown Barangay" }
+      }
+    })
+
+    const barangayResults = await Promise.all(barangayPromises)
+    const barangayMap = barangayResults.reduce(
+      (acc, { id, barangay }) => {
+        acc[id] = barangay
+        return acc
+      },
+      {} as Record<string, string>,
+    )
+    setBarangayData(barangayMap)
   }
 
   useEffect(() => {
@@ -701,6 +723,10 @@ export default function EmergencyManagement() {
                           <div>
                             <p className="text-slate-400">Location:</p>
                             <p className="font-medium text-white truncate">{formatAddress(request.address)}</p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400">Barangay:</p>
+                            <p className="font-medium text-white">{barangayData[request.id] || "Loading..."}</p>
                           </div>
                           <div>
                             <p className="text-slate-400">Contact:</p>
