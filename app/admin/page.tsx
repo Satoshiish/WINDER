@@ -50,6 +50,8 @@ import {
 import { getEmergencyStats } from "@/lib/emergency-db"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/lib/admin-users-storage"
 import { useToast } from "@/hooks/use-toast"
+import { formatAddress } from "@/lib/format-address"
+import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
@@ -458,7 +460,7 @@ export default function AdminDashboard() {
                             <div>
                               <p className="font-medium text-white">{share.userName}</p>
                               <p className="text-sm text-slate-300">
-                                {share.shareType} location share - {share.address}
+                                {share.shareType} location share - {formatAddress(share.address)}
                               </p>
                             </div>
                           </div>
@@ -521,7 +523,9 @@ export default function AdminDashboard() {
                             <div className={`w-4 h-4 rounded-full flex-shrink-0 ${getStatusColor(share.status)}`} />
                             <div className="min-w-0">
                               <p className="font-medium text-white">{share.userName}</p>
-                              <p className="text-sm text-slate-300 truncate">{share.address}</p>
+                              <p className="text-sm text-slate-300 truncate">
+                                {formatBarangay(getBarangayFromCoordinates(share.location.lat, share.location.lng))}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 sm:justify-end">
