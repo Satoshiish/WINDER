@@ -87,14 +87,20 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
   }
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-      {/* Header */}
-      <div className="space-y-4">
+    <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden">
+      {/* Header Section */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-white flex items-center gap-2">
+          <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+          Community Updates
+        </h2>
+        
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-            Community Updates
-          </h2>
+          <LocationFilter
+            selectedLocation={selectedLocation}
+            onLocationChange={setSelectedLocation}
+            availableLocations={availableLocations}
+          />
           <Button
             onClick={() => setIsModalOpen(true)}
             className="gap-2 bg-blue-500 hover:bg-blue-600 text-white h-8 px-3 text-sm"
@@ -103,13 +109,6 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
             Post
           </Button>
         </div>
-
-        {/* Location Filter */}
-        <LocationFilter
-          selectedLocation={selectedLocation}
-          onLocationChange={setSelectedLocation}
-          availableLocations={availableLocations}
-        />
       </div>
 
       {/* Feed Content */}
@@ -118,7 +117,7 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg border border-slate-600/30">
+        <div className="text-center py-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl border border-slate-600/30 backdrop-blur-sm">
           <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
           <p className="text-slate-400">No posts in this area yet. Be the first to share!</p>
         </div>
