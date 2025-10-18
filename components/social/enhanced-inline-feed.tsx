@@ -97,7 +97,7 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Header with Weather Context */}
+      {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-white flex items-center gap-2">
@@ -112,6 +112,13 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
             Post
           </Button>
         </div>
+
+        {/* Location Filter */}
+        <LocationFilter
+          selectedLocation={selectedLocation}
+          onLocationChange={setSelectedLocation}
+          availableLocations={availableLocations}
+        />
       </div>
 
       {/* Feed Content */}
