@@ -3515,6 +3515,351 @@ export default function WeatherApp() {
         </div>
       </div>
 
+      {/* Weather Map Modal */}
+      {weatherMapModalOpen && (
+        <Dialog open={weatherMapModalOpen} onOpenChange={setWeatherMapModalOpen}>
+          <DialogContent
+            className="w-[90vw] h-[65vh] lg:w-[75vw] lg:h-[85vh] !max-w-none
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <MapPin className="w-6 h-6 text-white animate-bounce" />
+                </div>
+                <span className="text-white">Weather Map</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Map Content */}
+            <div className="flex-1 p-4 sm:p-6">
+              <iframe
+                src={getWeatherMapUrl()}
+                className="w-full h-full rounded-2xl border border-slate-700 shadow-inner hover:shadow-lg transition-all duration-300"
+                title="Weather Map"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Emergency Modal */}
+      {emergencyModalOpen && (
+        <Dialog open={emergencyModalOpen} onOpenChange={setEmergencyModalOpen}>
+          <DialogContent
+            className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-2xl
+            mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-2xl sm:rounded-3xl shadow-2xl
+            p-0 overflow-hidden animate-fadeInScale"
+          >
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                  <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+                </div>
+                <span>Emergency Services</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Buttons */}
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <Button
+                className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl
+                bg-gradient-to-r from-red-600 to-red-500
+                hover:from-red-500 hover:to-red-400
+                border border-red-400/40 text-white
+                text-base sm:text-lg font-semibold shadow-lg transition-all"
+                onClick={() => {
+                  window.open("tel:911", "_self")
+                  setEmergencyModalOpen(false)
+                }}
+              >
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                Call 911 – NDRRMC Emergency
+              </Button>
+
+              <Button
+                className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl
+                bg-gradient-to-r from-blue-600 to-blue-500
+                hover:from-blue-500 hover:to-blue-400
+                border border-blue-400/40 text-white
+                text-base sm:text-lg font-semibold shadow-lg transition-all"
+                onClick={() => {
+                  window.open("tel:143", "_self")
+                  setEmergencyModalOpen(false)
+                }}
+              >
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                Call 143 – Red Cross
+              </Button>
+
+              <Button
+                className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl
+                bg-gradient-to-r from-orange-600 to-orange-500
+                hover:from-orange-500 hover:to-orange-400
+                border border-orange-400/40 text-white
+                text-base sm:text-lg font-semibold shadow-lg transition-all"
+                onClick={() => {
+                  window.open("tel:117", "_self")
+                  setEmergencyModalOpen(false)
+                }}
+              >
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                Call 117 – Philippine Coast Guard
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Alerts Modal */}
+      {alertsModalOpen && (
+        <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
+          <DialogContent
+            className="w-[92vw] sm:w-[40vw] max-h-[80vh]
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-yellow-500 to-yellow-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Bell className="w-6 h-6 text-white animate-pulse" />
+                </div>
+                <span className="text-white">Weather Alerts & Warnings</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Alerts Content */}
+            <div
+              className="flex-1 overflow-y-auto scrollbar-hide space-y-5 py-6 px-4 sm:px-6
+              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
+              {alerts.length > 0 ? (
+                <div className="space-y-5">
+                  {alerts.map((alert) => {
+                    // Pick accent colors depending on severity
+                    const severityColors =
+                      alert.severity === "Severe"
+                        ? "from-red-700/40 via-red-600/30 to-red-700/40 border-red-600/40"
+                        : alert.severity === "Moderate"
+                          ? "from-yellow-600/40 via-yellow-500/30 to-yellow-600/40 border-yellow-500/40"
+                          : "from-blue-700/40 via-blue-600/30 to-blue-700/40 border-blue-600/40"
+
+                    return (
+                      <div
+                        key={alert.id}
+                        className={`bg-gradient-to-br ${severityColors}
+                        rounded-2xl p-5 shadow-md hover:shadow-lg transition-all duration-300`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-semibold text-lg text-white leading-snug">{alert.title}</span>
+                          <Badge
+                            variant={getSeverityColor(alert.severity)}
+                            className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
+                          >
+                            {alert.severity}
+                          </Badge>
+                        </div>
+
+                        <p className="text-slate-200 mb-4 leading-relaxed">{alert.description}</p>
+
+                        <div className="text-sm text-slate-400 space-y-2">
+                          <p>
+                            <span className="font-medium text-slate-300">Areas:</span> {alert.areas.join(", ")}
+                          </p>
+                          <p>
+                            <span className="font-medium text-slate-300">Valid until:</span>{" "}
+                            {formatDate(alert.validUntil)}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <Bell className="h-14 w-14 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400 text-lg">No active weather alerts</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Settings Modal */}
+      {settingsModalOpen && (
+        <Dialog open={settingsModalOpen} onOpenChange={setSettingsModalOpen}>
+          <DialogContent
+            className="w-[92vw] max-w-2xl max-h-[85vh]
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl
+            flex flex-col overflow-hidden animate-fadeInScale"
+          >
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-6 h-6 text-white animate-spin-slow"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <span className="text-white">Settings</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Scrollable Content */}
+            <div
+              className="flex-1 overflow-y-auto py-6 px-5 sm:px-6 space-y-8
+              [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
+              {/* Temperature Unit */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
+                  Temperature Unit
+                </h3>
+                <div className="flex space-x-3">
+                  {["celsius", "fahrenheit"].map((unit) => (
+                    <Button
+                      key={unit}
+                      size="lg"
+                      onClick={() => setTemperatureUnit(unit)}
+                      className={`flex-1 h-12 rounded-2xl font-medium transition-all ${
+                        temperatureUnit === unit
+                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                          : "bg-slate-800/70 hover:bg-slate-700/70 text-slate-300 border border-slate-700/60"
+                      }`}
+                    >
+                      {unit === "celsius" ? "Celsius (°C)" : "Fahrenheit (°F)"}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Wind Speed Unit */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
+                  Wind Speed Unit
+                </h3>
+                <div className="flex space-x-3">
+                  {["kmh", "mph", "ms"].map((unit) => (
+                    <Button
+                      key={unit}
+                      size="lg"
+                      onClick={() => setWindSpeedUnit(unit)}
+                      className={`flex-1 h-12 rounded-2xl font-medium transition-all ${
+                        windSpeedUnit === unit
+                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                          : "bg-slate-800/70 hover:bg-slate-700/70 text-slate-300 border border-slate-700/60"
+                      }`}
+                    >
+                      {unit === "kmh" ? "km/h" : unit === "mph" ? "mph" : "m/s"}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Location Services */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
+                  Location Services
+                </h3>
+                <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Use your location for local weather</span>
+                  <Button
+                    size="sm"
+                    onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                      locationServicesEnabled
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                        : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
+                    }`}
+                  >
+                    {locationServicesEnabled ? "Enabled" : "Disabled"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Notifications */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
+                  Notifications
+                </h3>
+                <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Enable weather alerts and updates</span>
+                  <Button
+                    size="sm"
+                    onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                      notificationsEnabled
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                        : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
+                    }`}
+                  >
+                    {notificationsEnabled ? "Enabled" : "Disabled"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Push Notifications */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
+                  <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
+                  Push Notifications
+                </h3>
+                <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-slate-300">Enable push notifications for alerts</span>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (!pushNotificationsEnabled) {
+                        requestPushNotificationPermission()
+                      } else {
+                        setPushNotificationsEnabled(false)
+                      }
+                    }}
+                    disabled={!notificationsEnabled}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                      pushNotificationsEnabled
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg"
+                        : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
+                    } ${!notificationsEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {pushNotificationsEnabled ? "Enabled" : "Disabled"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* First Aid Modal */}
       {firstAidModalOpen && (
         <Dialog
