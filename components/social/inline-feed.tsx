@@ -65,14 +65,38 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
   const handleCreatePost = async (content: string, options: any) => {
     if (!user) return
 
-    setIsCreating(true)
-    const result = await createSocialPost(Number.parseInt(user.id), user.name, user.email, content, options)
+    console.log('Creating post with user:', user)
+    console.log('Content:', content)
+    console.log('Options:', options)
 
-    if (result.success && result.post) {
-      setPosts([result.post, ...posts])
-      setIsModalOpen(false)
+    setIsCreating(true)
+    
+    try {
+      // Convert user.id to number if it's a string
+      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id
+      
+      console.log('Parsed user ID:', userId)
+      
+      const result = await createSocialPost(userId, user.name, user.email, content, options)
+
+      console.log('Create post result:', result)
+
+      if (result.success && result.post) {
+        console.log('Post created successfully, adding to state')
+        setPosts([result.post, ...posts])
+        setIsModalOpen(false)
+        
+        // Clear the form by resetting state in the modal
+        // This will happen when the modal re-renders with isModalOpen=false
+      } else {
+        console.error('Failed to create post:', result.error)
+        // You might want to show an error toast here
+      }
+    } catch (error) {
+      console.error('Error in handleCreatePost:', error)
+    } finally {
+      setIsCreating(false)
     }
-    setIsCreating(false)
   }
 
   const handleLike = async (postId: number) => {
