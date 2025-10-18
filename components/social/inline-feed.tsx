@@ -5,23 +5,17 @@ import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { EnhancedPostCard } from "@/components/social/enhanced-post-card"
 import { CreatePostModal } from "@/components/social/create-post-modal"
-import { WeatherContextCard } from "@/components/social/weather-context-card"
 import { LocationFilter } from "@/components/social/location-filter"
-import { getSocialFeed, createSocialPost, likePost, unlikePost } from "@/lib/social-db"
+import { getSocialFeed, createSocialPost } from "@/lib/social-db"
 import { Plus, AlertCircle } from "lucide-react"
 
 interface Post {
   id: number
-  user_name: string
-  user_email: string
   content: string
   image_url?: string
   location_name?: string
-  likes_count: number
   comments_count: number
-  shares_count: number
   created_at: string
-  user_liked?: boolean
   weather_condition?: string
   weather_temperature?: number
   weather_risk_level?: "low" | "medium" | "high"
@@ -63,55 +57,22 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
   }
 
   const handleCreatePost = async (content: string, options: any) => {
-    if (!user) return
-
-    console.log('Creating post with user:', user)
-    console.log('Content:', content)
-    console.log('Options:', options)
-
     setIsCreating(true)
-    
-    try {
-      // Convert user.id to number if it's a string
-      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id
-      
-      console.log('Parsed user ID:', userId)
-      
-      const result = await createSocialPost(userId, user.name, user.email, content, options)
 
-      console.log('Create post result:', result)
+    try {
+      const result = await createSocialPost(content, options)
 
       if (result.success && result.post) {
-        console.log('Post created successfully, adding to state')
         setPosts([result.post, ...posts])
         setIsModalOpen(false)
-        
-        // Clear the form by resetting state in the modal
-        // This will happen when the modal re-renders with isModalOpen=false
       } else {
-        console.error('Failed to create post:', result.error)
-        // You might want to show an error toast here
+        console.error("Failed to create post:", result.error)
       }
     } catch (error) {
-      console.error('Error in handleCreatePost:', error)
+      console.error("Error in handleCreatePost:", error)
     } finally {
       setIsCreating(false)
     }
-  }
-
-  const handleLike = async (postId: number) => {
-    if (!user) return
-
-    const post = posts.find((p) => p.id === postId)
-    if (!post) return
-
-    if (post.user_liked) {
-      await unlikePost(postId, Number.parseInt(user.id))
-    } else {
-      await likePost(postId, Number.parseInt(user.id))
-    }
-
-    loadFeed()
   }
 
   const handleReport = async (postId: number) => {
@@ -126,7 +87,7 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
           <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
           Community Updates
         </h2>
-        
+
         <div className="flex items-center justify-between">
           <LocationFilter
             selectedLocation={selectedLocation}
@@ -159,8 +120,6 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
             <EnhancedPostCard
               key={post.id}
               id={post.id}
-              userName={post.user_name}
-              userEmail={post.user_email}
               content={post.content}
               location={post.location_name || "Unknown Location"}
               weather={
@@ -173,14 +132,9 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
                   : undefined
               }
               imageUrl={post.image_url}
-              likesCount={post.likes_count}
               commentsCount={post.comments_count}
-              sharesCount={post.shares_count}
               createdAt={post.created_at}
-              userLiked={post.user_liked}
-              onLike={handleLike}
               onComment={() => {}}
-              onShare={() => {}}
               onReport={handleReport}
               onMore={() => {}}
             />
@@ -193,7 +147,6 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreatePost}
-        userName={user?.name || "User"}
         isLoading={isCreating}
       />
     </div>

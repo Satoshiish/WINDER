@@ -6,21 +6,16 @@ import { Button } from "@/components/ui/button"
 import { EnhancedPostCard } from "@/components/social/enhanced-post-card"
 import { CreatePostModal } from "@/components/social/create-post-modal"
 import { LocationFilter } from "@/components/social/location-filter"
-import { getSocialFeed, createSocialPost, likePost, unlikePost } from "@/lib/social-db"
+import { getSocialFeed, createSocialPost } from "@/lib/social-db"
 import { Plus, AlertCircle } from "lucide-react"
 
 interface Post {
   id: number
-  user_name: string
-  user_email: string
   content: string
   image_url?: string
   location_name?: string
-  likes_count: number
   comments_count: number
-  shares_count: number
   created_at: string
-  user_liked?: boolean
   weather_condition?: string
   weather_temperature?: number
   weather_risk_level?: "low" | "medium" | "high"
@@ -54,10 +49,8 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
   }
 
   const handleCreatePost = async (content: string, options: any) => {
-    if (!user) return
-
     setIsCreating(true)
-    const result = await createSocialPost(Number.parseInt(user.id), user.name, user.email, content, options)
+    const result = await createSocialPost(content, options)
 
     if (result.success && result.post) {
       setPosts([result.post, ...posts])
@@ -66,23 +59,7 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
     setIsCreating(false)
   }
 
-  const handleLike = async (postId: number) => {
-    if (!user) return
-
-    const post = posts.find((p) => p.id === postId)
-    if (!post) return
-
-    if (post.user_liked) {
-      await unlikePost(postId, Number.parseInt(user.id))
-    } else {
-      await likePost(postId, Number.parseInt(user.id))
-    }
-
-    loadFeed()
-  }
-
   const handleReport = async (postId: number) => {
-    // TODO: Implement report functionality
     console.log("Report post:", postId)
   }
 
@@ -94,7 +71,7 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
           <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
           Community Updates
         </h2>
-        
+
         <div className="flex items-center justify-between">
           <LocationFilter
             selectedLocation={selectedLocation}
@@ -127,8 +104,6 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
             <EnhancedPostCard
               key={post.id}
               id={post.id}
-              userName={post.user_name}
-              userEmail={post.user_email}
               content={post.content}
               location={post.location_name || "Unknown Location"}
               weather={
@@ -141,14 +116,9 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
                   : undefined
               }
               imageUrl={post.image_url}
-              likesCount={post.likes_count}
               commentsCount={post.comments_count}
-              sharesCount={post.shares_count}
               createdAt={post.created_at}
-              userLiked={post.user_liked}
-              onLike={handleLike}
               onComment={() => {}}
-              onShare={() => {}}
               onReport={handleReport}
               onMore={() => {}}
             />
@@ -161,7 +131,6 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreatePost}
-        userName={user?.name || "User"}
         isLoading={isCreating}
       />
     </div>
