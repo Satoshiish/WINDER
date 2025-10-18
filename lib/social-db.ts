@@ -10,6 +10,7 @@ export interface SocialPost {
   likes_count: number
   comments_count: number
   status: "active" | "deleted"
+  post_type: "post" | "donation"
   created_at: string
   updated_at: string
 }
@@ -24,14 +25,16 @@ export interface SocialComment {
 }
 
 // Get all posts for feed
-export async function getSocialFeed(limit = 20, offset = 0): Promise<SocialPost[]> {
+export async function getSocialFeed(limit = 20, offset = 0, postType?: "post" | "donation"): Promise<SocialPost[]> {
   try {
-    const { data, error } = await supabase
-      .from("social_posts")
-      .select("*")
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1)
+    let query = supabase.from("social_posts").select("*").eq("status", "active")
+
+    // Filter by post_type if provided
+    if (postType) {
+      query = query.eq("post_type", postType)
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1)
 
     if (error) {
       console.error("Error fetching social feed:", error)
@@ -52,6 +55,7 @@ export async function createSocialPost(
     location_name?: string
     latitude?: number
     longitude?: number
+    post_type?: "post" | "donation"
   },
 ): Promise<{ success: boolean; post?: SocialPost; error?: string }> {
   try {
@@ -74,6 +78,7 @@ export async function createSocialPost(
       likes_count: 0,
       comments_count: 0,
       status: "active",
+      post_type: options?.post_type || "post",
       created_at: now,
       updated_at: now,
     }

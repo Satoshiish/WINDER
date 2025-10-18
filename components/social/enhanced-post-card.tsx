@@ -10,6 +10,7 @@ interface EnhancedPostCardProps {
   id: number
   content: string
   location?: string
+  postType?: "post" | "donation"
   weather?: {
     condition: string
     temperature: number
@@ -27,6 +28,7 @@ export function EnhancedPostCard({
   id,
   content,
   location,
+  postType = "post",
   weather,
   imageUrl,
   commentsCount,
@@ -55,6 +57,25 @@ export function EnhancedPostCard({
     }
   }
 
+  const getPostTypeBadge = () => {
+    if (postType === "donation") {
+      return {
+        bg: "bg-green-500/20",
+        border: "border-green-500/30",
+        text: "text-green-300",
+        label: "Donation",
+      }
+    }
+    return {
+      bg: "bg-blue-500/20",
+      border: "border-blue-500/30",
+      text: "text-blue-300",
+      label: "Post",
+    }
+  }
+
+  const badge = getPostTypeBadge()
+
   return (
     <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg border border-slate-600/30 backdrop-blur-sm overflow-hidden hover:border-slate-500/50 transition-all">
       {/* Header */}
@@ -67,6 +88,9 @@ export function EnhancedPostCard({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-white">Anonymous</span>
+                <span className={`text-xs px-2 py-1 rounded border ${badge.bg} ${badge.border} ${badge.text}`}>
+                  {badge.label}
+                </span>
               </div>
               <span className="text-xs text-slate-400">
                 {formatDistanceToNow(parseTimestamp(createdAt), { addSuffix: true })}
