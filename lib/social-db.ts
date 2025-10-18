@@ -99,6 +99,7 @@ export async function getUserPosts(userId: number, limit = 20): Promise<SocialPo
 }
 
 // Create a new post
+// Create a new post
 export async function createSocialPost(
   userId: number,
   userName: string,
@@ -113,6 +114,14 @@ export async function createSocialPost(
   },
 ): Promise<{ success: boolean; post?: SocialPost; error?: string }> {
   try {
+    console.log('Supabase create post called with:', {
+      userId,
+      userName,
+      userEmail,
+      content,
+      options
+    })
+
     const { data, error } = await supabase
       .from("social_posts")
       .insert([
@@ -132,9 +141,11 @@ export async function createSocialPost(
       .select()
       .single()
 
+    console.log('Supabase response:', { data, error })
+
     if (error) {
       console.error("Error creating social post:", error)
-      return { success: false, error: "Failed to create post" }
+      return { success: false, error: error.message || "Failed to create post" }
     }
 
     return { success: true, post: data }
