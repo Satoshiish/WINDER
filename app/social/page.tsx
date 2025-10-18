@@ -44,9 +44,13 @@ export default function SocialPage() {
   }
 
   const handleCreatePost = async (content: string, options: any) => {
-  if (!user) return
+  if (!user) {
+    console.error('No user found')
+    return
+  }
 
-  console.log('Creating post with user:', user)
+  console.log('=== START CREATE POST DEBUG ===')
+  console.log('User object:', user)
   console.log('Content:', content)
   console.log('Options:', options)
 
@@ -56,24 +60,34 @@ export default function SocialPage() {
     // Convert user.id to number if it's a string
     const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id
     
-    console.log('Parsed user ID:', userId)
-    
+    console.log('Parsed user ID:', userId, 'Type:', typeof userId)
+    console.log('User name:', user.name)
+    console.log('User email:', user.email)
+
+    // Check if we have all required data
+    if (!userId || !user.name || !user.email) {
+      console.error('Missing required user data:', { userId, name: user.name, email: user.email })
+      return
+    }
+
+    console.log('Calling createSocialPost...')
     const result = await createSocialPost(userId, user.name, user.email, content, options)
 
     console.log('Create post result:', result)
 
     if (result.success && result.post) {
-      console.log('Post created successfully, adding to state')
+      console.log('✅ Post created successfully:', result.post)
       setPosts([result.post, ...posts])
       setIsModalOpen(false)
     } else {
-      console.error('Failed to create post:', result.error)
+      console.error('❌ Failed to create post:', result.error)
       // You might want to show an error toast here
     }
   } catch (error) {
-    console.error('Error in handleCreatePost:', error)
+    console.error('💥 Error in handleCreatePost:', error)
   } finally {
     setIsCreating(false)
+    console.log('=== END CREATE POST DEBUG ===')
   }
 }
 

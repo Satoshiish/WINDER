@@ -100,6 +100,7 @@ export async function getUserPosts(userId: number, limit = 20): Promise<SocialPo
 
 // Create a new post
 // Create a new post
+// Create a new post
 export async function createSocialPost(
   userId: number,
   userName: string,
@@ -114,7 +115,7 @@ export async function createSocialPost(
   },
 ): Promise<{ success: boolean; post?: SocialPost; error?: string }> {
   try {
-    console.log('Supabase create post called with:', {
+    console.log('🎯 Supabase create post called with:', {
       userId,
       userName,
       userEmail,
@@ -122,36 +123,52 @@ export async function createSocialPost(
       options
     })
 
+    // Validate required fields
+    if (!userId || !userName || !userEmail || !content) {
+      console.error('❌ Missing required fields:', { userId, userName, userEmail, content })
+      return { success: false, error: 'Missing required fields' }
+    }
+
+    const postData = {
+      user_id: userId,
+      user_name: userName,
+      user_email: userEmail,
+      content,
+      image_url: options?.image_url || null,
+      privacy_level: options?.privacy_level || "public",
+      location_name: options?.location_name || null,
+      latitude: options?.latitude || null,
+      longitude: options?.longitude || null,
+      likes_count: 0,
+      comments_count: 0,
+      shares_count: 0,
+      is_pinned: false,
+      status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    console.log('📤 Inserting post data:', postData)
+
     const { data, error } = await supabase
       .from("social_posts")
-      .insert([
-        {
-          user_id: userId,
-          user_name: userName,
-          user_email: userEmail,
-          content,
-          image_url: options?.image_url,
-          privacy_level: options?.privacy_level || "public",
-          location_name: options?.location_name,
-          latitude: options?.latitude,
-          longitude: options?.longitude,
-          status: "active",
-        },
-      ])
+      .insert([postData])
       .select()
       .single()
 
-    console.log('Supabase response:', { data, error })
+    console.log('📥 Supabase response:', { data, error })
 
     if (error) {
-      console.error("Error creating social post:", error)
+      console.error("❌ Supabase error creating social post:", error)
+      console.error("Error details:", error.details, error.hint, error.message)
       return { success: false, error: error.message || "Failed to create post" }
     }
 
+    console.log('✅ Post created successfully:', data)
     return { success: true, post: data }
   } catch (error) {
-    console.error("Error creating social post:", error)
-    return { success: false, error: "An error occurred" }
+    console.error("💥 Unexpected error creating social post:", error)
+    return { success: false, error: "An unexpected error occurred" }
   }
 }
 
