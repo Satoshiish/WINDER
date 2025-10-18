@@ -112,13 +112,6 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
             Post
           </Button>
         </div>
-
-        {/* Location Filter */}
-        <LocationFilter
-          selectedLocation={selectedLocation}
-          onLocationChange={setSelectedLocation}
-          availableLocations={availableLocations}
-        />
       </div>
 
       {/* Feed Content */}
