@@ -27,7 +27,7 @@ import {
   Shield,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
-import { InlineFeed } from "@/components/social/enhanced-inline-feed"
+import { InlineFeed } from "@/components/social/inline-feed"
 
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
