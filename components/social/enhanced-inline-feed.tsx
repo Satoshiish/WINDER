@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { EnhancedPostCard } from "@/components/social/enhanced-post-card"
 import { CreatePostModal } from "@/components/social/create-post-modal"
-import { WeatherContextCard } from "@/components/social/weather-context-card"
 import { LocationFilter } from "@/components/social/location-filter"
 import { getSocialFeed, createSocialPost, likePost, unlikePost } from "@/lib/social-db"
 import { Plus, AlertCircle } from "lucide-react"
@@ -38,14 +37,6 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState("All Areas")
-  const [currentWeather, setCurrentWeather] = useState({
-    location: "Current Location",
-    temperature: 28,
-    condition: "Partly Cloudy",
-    humidity: 75,
-    windSpeed: 15,
-    riskLevel: "medium" as const,
-  })
 
   const availableLocations = ["All Areas", "Manila", "Quezon City", "Makati", "Pasig", "Caloocan"]
 
@@ -96,7 +87,7 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
   }
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -127,12 +118,12 @@ export function EnhancedInlineFeed({ onClose }: EnhancedInlineFeedProps) {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg border border-slate-600/30 mx-4 sm:mx-0">
+        <div className="text-center py-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg border border-slate-600/30">
           <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
           <p className="text-slate-400">No posts in this area yet. Be the first to share!</p>
         </div>
       ) : (
-        <div className="space-y-4 px-2 sm:px-0">
+        <div className="space-y-4">
           {posts.map((post) => (
             <EnhancedPostCard
               key={post.id}
