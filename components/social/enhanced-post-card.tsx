@@ -37,6 +37,12 @@ export function EnhancedPostCard({
 }: EnhancedPostCardProps) {
   const [commentCount, setCommentCount] = useState(commentsCount)
 
+  const parseTimestamp = (timestamp: string) => {
+    // If timestamp doesn't end with Z, add it to ensure UTC parsing
+    const normalizedTimestamp = timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`
+    return new Date(normalizedTimestamp)
+  }
+
   const getRiskColor = () => {
     if (!weather) return "text-slate-400"
     switch (weather.riskLevel) {
@@ -63,7 +69,7 @@ export function EnhancedPostCard({
                 <span className="font-semibold text-white">Anonymous</span>
               </div>
               <span className="text-xs text-slate-400">
-                {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+                {formatDistanceToNow(parseTimestamp(createdAt), { addSuffix: true })}
               </span>
             </div>
           </div>

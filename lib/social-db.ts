@@ -63,6 +63,8 @@ export async function createSocialPost(
       return { success: false, error: "Content is required" }
     }
 
+    const now = new Date().toISOString()
+
     const postData = {
       content: content.trim(),
       image_url: options?.image_url || null,
@@ -72,6 +74,8 @@ export async function createSocialPost(
       likes_count: 0,
       comments_count: 0,
       status: "active",
+      created_at: now,
+      updated_at: now,
     }
 
     console.log("[v0] Inserting anonymous post data:", postData)
