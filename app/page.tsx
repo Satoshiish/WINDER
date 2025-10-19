@@ -2185,9 +2185,6 @@ export default function WeatherApp() {
   useEffect(() => {
     if (notificationsEnabled && locationServicesEnabled) {
       startLiveMonitoring()
-
-      // Send initial notification
-      addNotification("Live Notifications Enabled", "You'll receive updates about weather changes in your area", "info")
     } else {
       stopLiveMonitoring()
     }
