@@ -14,6 +14,7 @@ interface Post {
   content: string
   image_url?: string
   location_name?: string
+  post_type?: "post" | "donation"
   comments_count: number
   created_at: string
   weather_condition?: string
@@ -122,6 +123,7 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
               id={post.id}
               content={post.content}
               location={post.location_name || "Unknown Location"}
+              postType={post.post_type || "post"}
               weather={
                 post.weather_condition
                   ? {

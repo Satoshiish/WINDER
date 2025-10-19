@@ -51,7 +51,7 @@ export function CommentsSection({
     if (!newComment.trim()) return
 
     setIsSubmitting(true)
-    const result = await addComment(postId, currentUserId, currentUserName, currentUserEmail, newComment)
+    const result = await addComment(postId, newComment)
 
     if (result.success && result.comment) {
       setComments([result.comment, ...comments])
