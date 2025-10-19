@@ -25,6 +25,8 @@ import {
   Lock,
   Users,
   Shield,
+  Car,
+  Flame,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
 import { InlineFeed } from "@/components/social/inline-feed"
@@ -947,7 +949,7 @@ export default function WeatherApp() {
       "Angeles City": { lat: 15.1449, lon: 120.5886 },
 
       Zambales: { lat: 15.3333, lon: 119.95 },
-      "Olongapo City": { lat: 14.8386, lon: 120.2842 },
+      "Olongapo City": { lat: 14.8365, lon: 120.2957 },
       Iba: { lat: 15.3276, lon: 119.9783 },
 
       Bataan: { lat: 14.676, lon: 120.54 },
@@ -1777,7 +1779,7 @@ export default function WeatherApp() {
       { name: "Las Piñas", lat: 14.4378, lon: 120.9942, radius: 0.1 },
       { name: "Muntinlupa", lat: 14.3832, lon: 121.0409, radius: 0.1 },
       { name: "Antipolo", lat: 14.5878, lon: 121.176, radius: 0.1 },
-      { name: "Olongapo City", lat: 14.8293, lon: 120.2824, radius: 0.25 },
+      { name: "Olongapo City", lat: 14.8365, lon: 120.2957, radius: 0.35 },
       { name: "Subic", lat: 14.8794, lon: 120.2728, radius: 0.15 },
       { name: "Castillejos", lat: 14.9667, lon: 120.2167, radius: 0.15 },
       { name: "San Antonio", lat: 14.9333, lon: 120.1167, radius: 0.15 },
@@ -4103,7 +4105,7 @@ export default function WeatherApp() {
         </Dialog>
       )}
 
-      {/* Emergency Report Modal */}
+      {/* Report Emergency Modal */}
       {locationSharingModalOpen && (
         <Dialog
           open={locationSharingModalOpen}
