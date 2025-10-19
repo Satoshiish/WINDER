@@ -4440,77 +4440,86 @@ export default function WeatherApp() {
           }}
         >
           <DialogContent
-            className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg
-            mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
-            border border-slate-700/60 text-white rounded-2xl sm:rounded-3xl shadow-2xl
+            className="w-[95vw] sm:w-[90vw] md:w-[70vw] lg:w-[50vw] max-w-2xl
+            mx-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-2xl shadow-2xl
             p-0 overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+            <DialogHeader className="flex-shrink-0 p-4 sm:p-5 md:p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg md:text-2xl font-bold">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white animate-pulse" />
                 </div>
                 <span>Quick Actions</span>
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-4 sm:p-6 space-y-3">
-              <p className="text-slate-300 leading-relaxed text-center">
+            <div className="flex-1 p-3 sm:p-4 md:p-6 space-y-1.5 sm:space-y-2 md:space-y-3 max-h-[60vh] sm:max-h-[70vh] overflow-y-auto scrollbar-hide">
+              <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base mb-3 sm:mb-4">
                 Access essential features and emergency services quickly.
               </p>
 
-              <div className="space-y-3">
+              <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
                 {/* First Aid Guide */}
-                <Button
-                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
-                  text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                <button
                   onClick={() => {
                     setIsQuickActionsFlow(true)
                     setFirstAidModalOpen(true)
                     setQuickActionsModalOpen(false)
                   }}
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-red-500/20
+                  flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
-                  <Heart className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-semibold">First Aid Guide</div>
-                    <div className="text-xs opacity-90">Emergency medical procedures</div>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
-                </Button>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">First Aid Guide</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">Emergency medical procedures</div>
+                  </div>
+                </button>
 
                 {/* Report Emergency */}
-                <Button
-                  className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
-                  text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                <button
                   onClick={() => {
                     setIsQuickActionsFlow(true)
                     setLocationSharingModalOpen(true)
                     setQuickActionsModalOpen(false)
                   }}
+                  className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-orange-500/20
+                  flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
-                  <AlertTriangle className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-semibold">Report Emergency</div>
-                    <div className="text-xs opacity-90">Alert emergency services</div>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                    <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
-                </Button>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">Report Emergency</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">Alert emergency services</div>
+                  </div>
+                </button>
 
                 {/* Weather History */}
-                <Button
-                  className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400
-                  text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                <button
                   onClick={() => {
                     setIsQuickActionsFlow(true)
                     setWeatherHistoryModalOpen(true)
                     setQuickActionsModalOpen(false)
                   }}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-green-500/20
+                  flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
-                  <Clock className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-semibold">Weather History</div>
-                    <div className="text-xs opacity-90">View past weather data</div>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
-                </Button>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">Weather History</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">View past weather data</div>
+                  </div>
+                </button>
 
                 {/* Admin Access */}
                 <button
@@ -4520,14 +4529,18 @@ export default function WeatherApp() {
                     setIsQuickActionsFlow(false)
                   }}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
-                  text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-blue-500/20
+                  flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
-                  <Lock className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-semibold">Admin Access</div>
-                    <div className="text-xs opacity-90">Administrative dashboard</div>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">Admin Access</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">Administrative dashboard</div>
                   </div>
                 </button>
+
                 {/* Volunteer Access */}
                 <button
                   onClick={() => {
@@ -4535,15 +4548,19 @@ export default function WeatherApp() {
                     setQuickActionsModalOpen(false)
                     setIsQuickActionsFlow(false)
                   }}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400
-                  text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-emerald-500/20
+                  flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
-                  <Users className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-semibold">Volunteer Access</div>
-                    <div className="text-xs opacity-90">Field updates and monitoring</div>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">Volunteer Access</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">Field updates and monitoring</div>
                   </div>
                 </button>
+
                 {/* Responder Access */}
                 <button
                   onClick={() => {
@@ -4551,13 +4568,16 @@ export default function WeatherApp() {
                     setQuickActionsModalOpen(false)
                     setIsQuickActionsFlow(false)
                   }}
-                  className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
-                  text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-red-500/20
+                  flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
-                  <Shield className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-semibold">Responder Access</div>
-                    <div className="text-xs opacity-90">Emergency response portal</div>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">Responder Access</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">Emergency response portal</div>
                   </div>
                 </button>
               </div>
