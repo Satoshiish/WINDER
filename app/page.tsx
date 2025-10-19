@@ -2865,39 +2865,38 @@ export default function WeatherApp() {
   return (
     <div className="min-h-screen dark-dashboard text-white">
       {/* Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm max-w-sm transition-all duration-500 transform ${
-              notification.isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  {notification.type === "warning" && <AlertTriangle className="h-5 w-5 text-orange-500" />}
-                  {notification.type === "error" && <AlertTriangle className="h-5 w-5 text-red-500" />}
-                  {notification.type === "info" && <Bell className="h-5 w-5 text-blue-500" />}
-                  {notification.type === "news" && <Bell className="h-5 w-5 text-green-500" />}
+      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+        {notifications
+          .filter((notification) => notification.title.includes("Location Found"))
+          .map((notification) => (
+            <div
+              key={notification.id}
+              className={`bg-black/80 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm max-w-sm transition-all duration-500 transform ${
+                notification.isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <Bell className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white">{notification.title}</p>
+                    <p className="text-xs text-slate-300 mt-1">{notification.message}</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {notification.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">{notification.title}</p>
-                  <p className="text-xs text-slate-300 mt-1">{notification.message}</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {notification.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </div>
+                <button
+                  onClick={() => dismissNotification(notification.id)}
+                  className="flex-shrink-0 ml-2 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                onClick={() => dismissNotification(notification.id)}
-                className="flex-shrink-0 ml-2 text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       {/* Main Layout */}
