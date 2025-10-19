@@ -51,7 +51,7 @@ import {
   FileText,
   MessageSquare,
 } from "lucide-react"
-import { getEmergencyStats } from "@/lib/emergency-db"
+import { getEmergencyStats, loadEmergencyReports, type EmergencyReport } from "@/lib/emergency-db"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/lib/admin-users-storage"
 import { useToast } from "@/hooks/use-toast"
 import { formatAddress } from "@/lib/format-address"
@@ -106,6 +106,8 @@ export default function AdminDashboard() {
   })
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [isAddingUser, setIsAddingUser] = useState(false)
+
+  const [emergencyReports, setEmergencyReports] = useState<EmergencyReport[]>([])
 
   const handleLogout = () => {
     logout()
@@ -372,15 +374,34 @@ export default function AdminDashboard() {
     }
   }
 
+  useEffect(() => {
+    const loadReports = async () => {
+      try {
+        const reports = await loadEmergencyReports()
+        setEmergencyReports(reports)
+      } catch (error) {
+        console.error("[v0] Error loading emergency reports:", error)
+      }
+    }
+
+    loadReports()
+
+    const interval = setInterval(loadReports, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <RouteGuard requireAuth requireRole="admin">
       <div className="min-h-screen bg-slate-950">
-        <div className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
+        <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
           <div className="container mx-auto px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Cloud className="w-7 h-7 text-white" />
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity blur-sm" />
+                  <div className="relative w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <Cloud className="w-7 h-7 text-white" />
+                  </div>
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-white">WINDER+ Admin</h1>
@@ -399,7 +420,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         <div className="container mx-auto px-6 lg:px-8 py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
@@ -457,10 +478,12 @@ export default function AdminDashboard() {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800/50 border-slate-800 hover:border-yellow-500/30 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <Clock className="w-5 h-5 text-yellow-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-yellow-500" />
+                      </div>
                       <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 capitalize">
                         Pending
                       </Badge>
@@ -470,10 +493,12 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800/50 border-slate-800 hover:border-red-500/30 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
+                      </div>
                       <Badge variant="outline" className="border-red-500/50 text-red-500 capitalize">
                         Critical
                       </Badge>
@@ -483,10 +508,12 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800/50 border-slate-800 hover:border-blue-500/30 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <Activity className="w-5 h-5 text-blue-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                        <Activity className="w-5 h-5 text-blue-500" />
+                      </div>
                       <Badge variant="outline" className="border-blue-500/50 text-blue-500 capitalize">
                         In Progress
                       </Badge>
@@ -496,10 +523,12 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800/50 border-slate-800 hover:border-green-500/30 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      </div>
                       <Badge variant="outline" className="border-green-500/50 text-green-500 capitalize">
                         Resolved
                       </Badge>
@@ -509,10 +538,12 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800/50 border-slate-800 hover:border-slate-600 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <TrendingUp className="w-5 h-5 text-slate-400" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-slate-500/10 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-slate-400" />
+                      </div>
                       <Badge variant="outline" className="border-slate-600 text-slate-400 capitalize">
                         Total
                       </Badge>
@@ -525,13 +556,13 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card
-                  className="bg-slate-900 border-slate-800 cursor-pointer hover:border-slate-700 transition-colors"
+                  className="bg-gradient-to-br from-slate-900 via-slate-800/50 to-slate-900 border-slate-800 hover:border-green-500/50 transition-all duration-300 cursor-pointer group"
                   onClick={() => router.push("/admin/locations")}
                 >
                   <CardContent className="p-8">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                           <MapPin className="w-6 h-6 text-green-500" />
                         </div>
                         <div>
@@ -539,19 +570,19 @@ export default function AdminDashboard() {
                           <p className="text-sm text-slate-400">Monitor shared locations</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-slate-600" />
+                      <ArrowRight className="w-5 h-5 text-slate-600 group-hover:text-green-500 transition-colors" />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card
-                  className="bg-slate-900 border-slate-800 cursor-pointer hover:border-slate-700 transition-colors"
+                  className="bg-gradient-to-br from-slate-900 via-slate-800/50 to-slate-900 border-slate-800 hover:border-red-500/50 transition-all duration-300 cursor-pointer group"
                   onClick={() => router.push("/admin/emergencies")}
                 >
                   <CardContent className="p-8">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center relative">
+                        <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center group-hover:bg-red-500/20 transition-colors relative">
                           <AlertTriangle className="w-6 h-6 text-red-500" />
                           {emergencyStats.pending > 0 && (
                             <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
@@ -564,7 +595,7 @@ export default function AdminDashboard() {
                           <p className="text-sm text-slate-400">Handle emergency requests</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-slate-600" />
+                      <ArrowRight className="w-5 h-5 text-slate-600 group-hover:text-red-500 transition-colors" />
                     </div>
                   </CardContent>
                 </Card>
@@ -575,21 +606,42 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white">Recent Activity</CardTitle>
                     <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                      {sharedLocations.length} Total
+                      {sharedLocations.length + emergencyReports.length} Total
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {sharedLocations.length === 0 ? (
+                  {sharedLocations.length === 0 && emergencyReports.length === 0 ? (
                     <div className="text-center py-12">
                       <Activity className="w-12 h-12 text-slate-700 mx-auto mb-3" />
                       <p className="text-slate-400">No recent activity</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {sharedLocations.slice(0, 5).map((share) => (
+                      {emergencyReports.slice(0, 3).map((report) => (
                         <div
-                          key={share.id}
+                          key={`report-${report.id}`}
+                          className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                            <div>
+                              <p className="font-medium text-white">{report.userName}</p>
+                              <p className="text-sm text-slate-400">{report.address}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="outline" className="border-red-500/50 text-red-500 capitalize mb-1">
+                              {report.emergencyType}
+                            </Badge>
+                            <p className="text-xs text-slate-500">{formatTimeAgo(new Date(report.timestamp))}</p>
+                          </div>
+                        </div>
+                      ))}
+
+                      {sharedLocations.slice(0, 2).map((share) => (
+                        <div
+                          key={`location-${share.id}`}
                           className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors"
                         >
                           <div className="flex items-center gap-3">
