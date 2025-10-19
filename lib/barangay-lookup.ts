@@ -12,7 +12,7 @@ interface BarangayBoundary {
 // Comprehensive barangay data for Luzon, Visayas, and Mindanao
 const fallbackBarangayData: BarangayBoundary[] = [
   // LUZON - Olongapo City Barangays
-  { name: "Sta Rita", city: "Olongapo City", lat: 14.8458, lng: 120.2914, radius: 1.5 },
+  { name: "Sta Rita", city: "Olongapo City", lat: 14.8436, lng: 120.3089, radius: 1.2 },
   { name: "Gordon Heights", city: "Olongapo City", lat: 14.8156, lng: 120.2689, radius: 1.2 },
   { name: "East Bajac-Bajac", city: "Olongapo City", lat: 14.8347, lng: 120.2892, radius: 1.0 },
   { name: "West Bajac-Bajac", city: "Olongapo City", lat: 14.8289, lng: 120.2756, radius: 1.0 },
@@ -22,7 +22,7 @@ const fallbackBarangayData: BarangayBoundary[] = [
   { name: "New Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.2978, radius: 1.5 },
   { name: "Old Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.3045, radius: 1.0 },
   { name: "Pag-asa", city: "Olongapo City", lat: 14.8534, lng: 120.3012, radius: 1.2 },
-  { name: "Kalaklan", city: "Olongapo City", lat: 14.8623, lng: 120.3089, radius: 1.5 },
+  { name: "Kalaklan", city: "Olongapo City", lat: 14.8623, lng: 120.3089, radius: 0.8 },
   { name: "Mabayuan", city: "Olongapo City", lat: 14.8712, lng: 120.3156, radius: 2.0 },
   { name: "New Kalalake", city: "Olongapo City", lat: 14.8401, lng: 120.2912, radius: 1.0 },
   { name: "Old Kalalake", city: "Olongapo City", lat: 14.8367, lng: 120.2867, radius: 0.8 },
@@ -163,17 +163,33 @@ function getBarangayFromLocalData(lat: number, lng: number): string {
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
   try {
-    // Use Nominatim API for reverse geocoding
+    // First, check local database for Olongapo City area (14.7-14.9 lat, 120.2-120.4 lng)
+    if (lat >= 14.7 && lat <= 14.9 && lng >= 120.2 && lng <= 120.4) {
+      console.log(`[v0] Coordinates in Olongapo City area, checking local database first`)
+      const localResult = getBarangayFromLocalData(lat, lng)
+      if (localResult !== "Unknown Barangay") {
+        console.log(`[v0] Found in local database: ${localResult}`)
+        return localResult
+      }
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
+
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
       {
         headers: {
           "User-Agent": "WeatherHub/1.0",
         },
+        signal: controller.signal,
       },
     )
 
+    clearTimeout(timeoutId)
+
     if (!response.ok) {
+      console.warn(`[v0] Nominatim API returned ${response.status}`)
       throw new Error("Geocoding API request failed")
     }
 
@@ -191,17 +207,21 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
       address.city || address.town || address.municipality || address.county || address.state_district || null
 
     if (barangay && city) {
+      console.log(`[v0] Reverse geocoded from API: ${barangay}, ${city}`)
       return `${barangay}, ${city}`
     } else if (barangay) {
+      console.log(`[v0] Reverse geocoded from API: ${barangay}`)
       return barangay
     } else if (city) {
+      console.log(`[v0] Reverse geocoded from API: ${city}`)
       return city
     }
 
     // If no barangay found in API, try local database
+    console.log(`[v0] No barangay from API, using local database`)
     return getBarangayFromLocalData(lat, lng)
   } catch (error) {
-    console.error("[v0] Reverse geocoding error:", error)
+    console.warn(`[v0] Reverse geocoding error: ${error instanceof Error ? error.message : String(error)}`)
     // Fallback to local database on error
     return getBarangayFromLocalData(lat, lng)
   }
