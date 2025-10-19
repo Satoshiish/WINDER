@@ -446,13 +446,6 @@ export default function AdminDashboard() {
                 )}
               </TabsTrigger>
               <TabsTrigger
-                value="moderation"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="hidden xs:inline">Moderation</span>
-              </TabsTrigger>
-              <TabsTrigger
                 value="settings"
                 className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
               >
