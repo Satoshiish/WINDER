@@ -4228,7 +4228,7 @@ export default function WeatherApp() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 p-4 sm:p-6 space-y-4">
+            <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[60vh] sm:max-h-[70vh]">
               {showEmergencyForm ? (
                 <div className="space-y-4">
                   <div className="text-center">
@@ -4319,23 +4319,23 @@ export default function WeatherApp() {
                 </div>
               ) : (
                 <>
-                  <p className="text-slate-300 leading-relaxed text-center">
+                  <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm">
                     Select the type of emergency to report. Your location will be automatically shared with emergency
                     services.
                   </p>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {/* Medical Emergency */}
                     <Button
                       className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
-                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
                       onClick={() =>
                         handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed")
                       }
                     >
-                      <Heart className="w-5 h-5" />
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
                       <div className="text-left">
-                        <div className="font-semibold">Medical Emergency</div>
+                        <div className="font-semibold text-xs sm:text-sm">Medical Emergency</div>
                         <div className="text-xs opacity-90">Injury, illness, or health crisis</div>
                       </div>
                     </Button>
@@ -4343,12 +4343,12 @@ export default function WeatherApp() {
                     {/* Fire Emergency */}
                     <Button
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
-                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
                       onClick={() => handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed")}
                     >
-                      <Flame className="w-5 h-5" />
+                      <Flame className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
                       <div className="text-left">
-                        <div className="font-semibold">Fire Emergency</div>
+                        <div className="font-semibold text-xs sm:text-sm">Fire Emergency</div>
                         <div className="text-xs opacity-90">Fire, smoke, or burning hazard</div>
                       </div>
                     </Button>
@@ -4356,12 +4356,12 @@ export default function WeatherApp() {
                     {/* Crime/Security */}
                     <Button
                       className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400
-                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
                       onClick={() => handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed")}
                     >
-                      <Shield className="w-5 h-5" />
+                      <Shield className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
                       <div className="text-left">
-                        <div className="font-semibold">Crime Emergency</div>
+                        <div className="font-semibold text-xs sm:text-sm">Crime Emergency</div>
                         <div className="text-xs opacity-90">Crime, threat, or safety concern</div>
                       </div>
                     </Button>
@@ -4369,7 +4369,7 @@ export default function WeatherApp() {
                     {/* Natural Disaster */}
                     <Button
                       className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
-                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
                       onClick={() =>
                         handleEmergencyTypeSelect(
                           "natural-disaster",
@@ -4377,9 +4377,9 @@ export default function WeatherApp() {
                         )
                       }
                     >
-                      <CloudRain className="w-5 h-5" />
+                      <CloudRain className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
                       <div className="text-left">
-                        <div className="font-semibold">Natural Disaster</div>
+                        <div className="font-semibold text-xs sm:text-sm">Natural Disaster</div>
                         <div className="text-xs opacity-90">Flood, typhoon, earthquake, landslide</div>
                       </div>
                     </Button>
@@ -4387,14 +4387,14 @@ export default function WeatherApp() {
                     {/* Accident */}
                     <Button
                       className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400
-                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
                       onClick={() =>
                         handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed")
                       }
                     >
-                      <Car className="w-5 h-5" />
+                      <Car className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
                       <div className="text-left">
-                        <div className="font-semibold">Traffic Accident</div>
+                        <div className="font-semibold text-xs sm:text-sm">Traffic Accident</div>
                         <div className="text-xs opacity-90">Vehicle collision or road incident</div>
                       </div>
                     </Button>
