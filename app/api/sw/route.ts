@@ -6,6 +6,7 @@ const CACHE_NAME = "winder-plus-v1"
 const urlsToCache = ["/", "/manifest.json", "/icon-192x192.png", "/icon-512x512.png"]
 
 let notificationQueue = []
+let lastNotificationTime = {}
 
 // Install event - cache resources
 self.addEventListener("install", (event) => {
@@ -43,6 +44,15 @@ self.addEventListener("push", (event) => {
     }
   }
 
+  const notificationId = notificationData.title + Date.now()
+  
+  if (lastNotificationTime[notificationData.title] && Date.now() - lastNotificationTime[notificationData.title] < 5000) {
+    console.log("[v0] Duplicate notification prevented:", notificationData.title)
+    return
+  }
+  
+  lastNotificationTime[notificationData.title] = Date.now()
+
   const options = {
     body: notificationData.body,
     icon: notificationData.icon,
@@ -50,7 +60,7 @@ self.addEventListener("push", (event) => {
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: Math.random().toString(36).substr(2, 9),
+      primaryKey: notificationId,
     },
     actions: [
       {
@@ -72,7 +82,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(notificationData.title, options)
       .catch(error => {
-        console.error("Failed to show notification:", error)
+        console.error("[v0] Failed to show notification:", error)
         // Queue notification for retry
         notificationQueue.push({title: notificationData.title, options})
       })
@@ -103,14 +113,15 @@ self.addEventListener("notificationclick", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "PUSH_NOTIFICATION") {
-    const { title, message, id, timestamp } = event.data
+    const { title, message, id, timestamp, severity, type } = event.data
 
-    // Prevent duplicate notifications within 3 seconds
     const now = Date.now()
-    if (timestamp && (now - timestamp) > 10000) {
-      console.log("Notification too old, skipping")
+    if (lastNotificationTime[title] && (now - lastNotificationTime[title]) < 5000) {
+      console.log("[v0] Duplicate notification prevented:", title)
       return
     }
+    
+    lastNotificationTime[title] = now
 
     const options = {
       body: message,
@@ -119,16 +130,16 @@ self.addEventListener("message", (event) => {
       vibrate: [100, 50, 100],
       tag: id || "weather-notification",
       renotify: true,
-      data: { id, timestamp: now },
+      data: { id, timestamp: now, severity, type },
       requireInteraction: false
     }
 
     self.registration.showNotification(title, options)
       .then(() => {
-        console.log("Notification shown successfully")
+        console.log("[v0] Notification shown successfully:", title)
       })
       .catch(error => {
-        console.error("Failed to show notification:", error)
+        console.error("[v0] Failed to show notification:", error)
         // Add to queue for retry
         notificationQueue.push({title, options})
       })

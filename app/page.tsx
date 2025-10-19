@@ -767,7 +767,7 @@ export default function WeatherApp() {
 
     const interval = setInterval(() => {
       const randomNews = weatherNews[Math.floor(Math.random() * weatherNews.length)]
-      addNotification(randomNews.title, randomNews.message, randomNews.type)
+      // addNotification(randomNews.title, randomNews.message, randomNews.type)
 
       if (pushNotificationsEnabled) {
         sendPushNotification(randomNews.title, randomNews.message)
@@ -940,14 +940,30 @@ export default function WeatherApp() {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "extreme":
+      case "Severe":
         return "destructive"
-      case "high":
+      case "High":
         return "destructive"
-      case "moderate":
+      case "Moderate":
         return "secondary"
       default:
         return "outline"
+    }
+  }
+
+  const getSeverityBadgeColor = (severity: string) => {
+    switch (severity?.toLowerCase()) {
+      case "extreme":
+      case "severe":
+        return "bg-red-600 text-white hover:bg-red-700"
+      case "high":
+        return "bg-orange-600 text-white hover:bg-orange-700"
+      case "moderate":
+        return "bg-yellow-600 text-white hover:bg-yellow-700"
+      case "low":
+        return "bg-green-600 text-white hover:bg-green-700"
+      default:
+        return "bg-slate-600 text-white hover:bg-slate-700"
     }
   }
 
@@ -2421,9 +2437,11 @@ export default function WeatherApp() {
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
-      case "high":
+      case "Severe":
         return "destructive"
-      case "moderate":
+      case "High":
+        return "destructive"
+      case "Moderate":
         return "secondary"
       default:
         return "outline"
@@ -3698,7 +3716,7 @@ export default function WeatherApp() {
       {alertsModalOpen && (
         <Dialog open={alertsModalOpen} onOpenChange={setAlertsModalOpen}>
           <DialogContent
-            className="w-[92vw] sm:w-[40vw] max-h-[80vh]
+            className="w-[92vw] sm:w-[75vw] lg:w-[65vw] max-h-[85vh]
             bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
             border border-slate-700/60 text-white rounded-3xl shadow-2xl
             flex flex-col overflow-hidden animate-fadeInScale"
@@ -3721,40 +3739,45 @@ export default function WeatherApp() {
               {alerts.length > 0 ? (
                 <div className="space-y-5">
                   {alerts.map((alert) => {
-                    // Pick accent colors depending on severity
                     const severityColors =
                       alert.severity === "Severe"
                         ? "from-red-700/40 via-red-600/30 to-red-700/40 border-red-600/40"
                         : alert.severity === "Moderate"
                           ? "from-yellow-600/40 via-yellow-500/30 to-yellow-600/40 border-yellow-500/40"
-                          : "from-blue-700/40 via-blue-600/30 to-blue-700/40 border-blue-600/40"
+                          : alert.severity === "High"
+                            ? "from-orange-600/40 via-orange-500/30 to-orange-600/40 border-orange-500/40"
+                            : "from-blue-700/40 via-blue-600/30 to-blue-700/40 border-blue-600/40"
 
                     return (
                       <div
                         key={alert.id}
                         className={`bg-gradient-to-br ${severityColors}
-                        rounded-2xl p-5 shadow-md hover:shadow-lg transition-all duration-300`}
+                        rounded-2xl p-5 shadow-md hover:shadow-lg transition-all duration-300 border`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <span className="font-semibold text-lg text-white leading-snug">{alert.title}</span>
                           <Badge
-                            variant={getSeverityColor(alert.severity)}
-                            className="uppercase tracking-wide text-xs px-3 py-1 rounded-lg"
+                            className={`uppercase tracking-wide text-xs px-3 py-1 rounded-lg font-semibold ${getSeverityBadgeColor(alert.severity)}`}
                           >
                             {alert.severity}
                           </Badge>
                         </div>
 
-                        <p className="text-slate-200 mb-4 leading-relaxed">{alert.description}</p>
+                        <p className="text-slate-200 mb-4 leading-relaxed text-sm">{alert.description}</p>
 
-                        <div className="text-sm text-slate-400 space-y-2">
+                        <div className="text-sm text-slate-300 space-y-2">
                           <p>
-                            <span className="font-medium text-slate-300">Areas:</span> {alert.areas.join(", ")}
+                            <span className="font-medium text-slate-200">Affected Areas:</span> {alert.areas.join(", ")}
                           </p>
                           <p>
-                            <span className="font-medium text-slate-300">Valid until:</span>{" "}
+                            <span className="font-medium text-slate-200">Valid Until:</span>{" "}
                             {formatDate(alert.validUntil)}
                           </p>
+                          {alert.issued && (
+                            <p>
+                              <span className="font-medium text-slate-200">Issued:</span> {formatDate(alert.issued)}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )
