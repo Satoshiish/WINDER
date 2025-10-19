@@ -403,7 +403,7 @@ export default function AdminDashboard() {
 
         <div className="container mx-auto px-6 lg:px-8 py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-6 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-5 bg-slate-900 border border-slate-800 p-1 rounded-lg">
               <TabsTrigger
                 value="overview"
                 className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
