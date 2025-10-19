@@ -777,17 +777,18 @@ export default function WeatherApp() {
     return () => clearInterval(interval)
   }, [notificationsEnabled, pushNotificationsEnabled])
 
+  // /** rest of code here **/
   useEffect(() => {
     if (notificationsEnabled && alerts.length > 0) {
       const latestAlert = alerts[0]
       const alertTitle = `Weather Alert: ${latestAlert.severity.toUpperCase()}`
-      addNotification(alertTitle, latestAlert.title, "warning")
 
       if (pushNotificationsEnabled) {
         sendPushNotification(alertTitle, latestAlert.title)
       }
     }
   }, [alerts, notificationsEnabled, pushNotificationsEnabled])
+  // /** rest of code here **/
 
   useEffect(() => {
     let isCancelled = false
