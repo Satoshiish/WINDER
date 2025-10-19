@@ -149,3 +149,24 @@ export function NavigationSkeleton() {
     </div>
   )
 }
+
+export function WeatherIndicesSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-6 border border-slate-600/30 backdrop-blur-sm"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <Skeleton className="h-6 w-6 bg-slate-600/50 rounded" />
+            <Skeleton className="h-6 w-24 bg-slate-600/50" />
+          </div>
+          <Skeleton className="h-10 w-20 mb-2 bg-slate-600/50" />
+          <Skeleton className="h-5 w-16 mb-3 bg-slate-600/50" />
+          <Skeleton className="h-4 w-full bg-slate-600/50" />
+        </div>
+      ))}
+    </div>
+  )
+}

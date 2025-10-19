@@ -23,10 +23,10 @@ export function RiskPredictionCard({ risks, loading = false }: RiskPredictionCar
   }
 
   const getRiskBorderColor = (risk: number): string => {
-    if (risk >= 70) return "border-l-4 border-red-500"
-    if (risk >= 50) return "border-l-4 border-orange-500"
-    if (risk >= 30) return "border-l-4 border-yellow-500"
-    return "border-l-4 border-green-500"
+    if (risk >= 70) return "border-red-500"
+    if (risk >= 50) return "border-orange-500"
+    if (risk >= 30) return "border-yellow-500"
+    return "border-green-500"
   }
 
   const getTrendIcon = (trend: string) => {
@@ -68,7 +68,7 @@ export function RiskPredictionCard({ risks, loading = false }: RiskPredictionCar
       {risks.map((risk) => (
         <div
           key={risk.category}
-          className={`bg-slate-800/20 rounded-lg p-5 border border-slate-700/40 ${getRiskBorderColor(risk.risk)} backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/50`}
+          className={`bg-slate-800/20 rounded-lg p-5 border-l-4 ${getRiskBorderColor(risk.risk)} backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/50`}
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
