@@ -1,4 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
+import {
+  calculateHeatIndex,
+  calculateUVIndex,
+  calculateTyphoonImpactIndex,
+  getHeatIndexCategory,
+  getUVIndexCategory,
+  getTyphoonImpactCategory,
+} from "@/lib/weather-indices"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -11,11 +19,19 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,surface_pressure,wind_speed_10m&hourly=precipitation,wind_speed_10m,temperature_2m&timezone=Asia/Manila&forecast_days=3`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,surface_pressure,wind_speed_10m,cloud_cover&hourly=precipitation,wind_speed_10m,temperature_2m,cloud_cover&timezone=Asia/Manila&forecast_days=3`,
     )
 
     if (!response.ok) {
-      return NextResponse.json({ alerts: [], riskPredictions: await generateRiskPredictions(lat, lon) })
+      return NextResponse.json({
+        alerts: [],
+        riskPredictions: await generateRiskPredictions(lat, lon),
+        indices: {
+          heatIndex: { value: 0, category: "Safe", color: "green", advisory: "No data available" },
+          uvIndex: { value: 0, category: "Low", color: "green", advisory: "No data available" },
+          typhoonImpactIndex: { value: 0, category: "None", color: "green", advisory: "No data available" },
+        },
+      })
     }
 
     const data = await response.json()
@@ -23,7 +39,55 @@ export async function GET(request: NextRequest) {
     const alerts = generatePhilippineAlerts(data, lat, lon)
     const riskPredictions = await generateRiskPredictions(lat, lon, data)
 
-    return NextResponse.json({ alerts, riskPredictions })
+    const current = data.current
+    const hourly = data.hourly
+
+    const heatIndexValue = calculateHeatIndex(current.temperature_2m, current.relative_humidity_2m)
+    const heatIndexCategory = getHeatIndexCategory(heatIndexValue)
+
+    const uvIndexValue = calculateUVIndex(current.cloud_cover || 0, Number.parseFloat(lat))
+    const uvIndexCategory = getUVIndexCategory(uvIndexValue)
+
+    const typhoonImpactIndexValue = calculateTyphoonImpactIndex(
+      {
+        temperature: hourly.temperature_2m,
+        humidity: Array(hourly.precipitation.length).fill(current.relative_humidity_2m),
+        windSpeed: hourly.wind_speed_10m,
+        precipitation: hourly.precipitation,
+        pressure: Array(hourly.precipitation.length).fill(current.surface_pressure),
+        cloudCover: hourly.cloud_cover || Array(hourly.precipitation.length).fill(current.cloud_cover || 0),
+      },
+      current.surface_pressure,
+      Number.parseFloat(lat),
+      Number.parseFloat(lon),
+    )
+    const typhoonImpactCategory = getTyphoonImpactCategory(typhoonImpactIndexValue)
+
+    return NextResponse.json({
+      alerts,
+      riskPredictions,
+      indices: {
+        heatIndex: {
+          value: Math.round(heatIndexValue),
+          category: heatIndexCategory.category,
+          color: heatIndexCategory.color,
+          advisory: heatIndexCategory.advisory,
+        },
+        uvIndex: {
+          value: uvIndexValue,
+          category: uvIndexCategory.category,
+          color: uvIndexCategory.color,
+          advisory: uvIndexCategory.advisory,
+        },
+        typhoonImpactIndex: {
+          value: Math.round(typhoonImpactIndexValue),
+          category: typhoonImpactCategory.category,
+          color: typhoonImpactCategory.color,
+          advisory: typhoonImpactCategory.advisory,
+          typhoonLevel: typhoonImpactCategory.typhoonLevel,
+        },
+      },
+    })
   } catch (error) {
     console.error("Alerts API error:", error)
     return NextResponse.json({ error: "Failed to fetch alerts data" }, { status: 500 })

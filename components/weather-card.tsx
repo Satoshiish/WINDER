@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Cloud, Droplets, Wind, Eye, Loader2, AlertCircle, AlertTriangle } from "lucide-react"
 import { useState, useEffect } from "react"
+import { WeatherIndexIndicator } from "@/components/weather-index-indicator"
 
 interface WeatherData {
   temperature: number
@@ -32,6 +33,25 @@ interface WeatherCardProps {
   humidity?: number
   windSpeed?: number
   alertLevel?: "low" | "medium" | "high"
+  heatIndex?: {
+    value: number
+    category: string
+    color: string
+    advisory: string
+  }
+  floodRiskIndex?: {
+    value: number
+    category: string
+    color: string
+    advisory: string
+  }
+  typhoonImpactIndex?: {
+    value: number
+    category: string
+    color: string
+    advisory: string
+    typhoonLevel?: string
+  }
 }
 
 export function WeatherCard({
@@ -44,6 +64,9 @@ export function WeatherCard({
   humidity: staticHumidity,
   windSpeed: staticWindSpeed,
   alertLevel = "low",
+  heatIndex,
+  floodRiskIndex,
+  typhoonImpactIndex,
 }: WeatherCardProps) {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -206,6 +229,18 @@ export function WeatherCard({
             </div>
           </div>
         </div>
+
+        {(heatIndex || floodRiskIndex || typhoonImpactIndex) && (
+          <div className="pt-4 border-t">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Weather Indices</p>
+            <WeatherIndexIndicator
+              heatIndex={heatIndex}
+              floodRiskIndex={floodRiskIndex}
+              typhoonImpactIndex={typhoonImpactIndex}
+              compact={true}
+            />
+          </div>
+        )}
 
         {hourlyForecast.length > 0 && (
           <div className="grid grid-cols-4 gap-2 pt-4 border-t">

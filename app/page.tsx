@@ -27,6 +27,8 @@ import {
   Shield,
   Car,
   Flame,
+  Thermometer,
+  Wind,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
 import { InlineFeed } from "@/components/social/inline-feed"
@@ -39,8 +41,8 @@ import {
   LocationSkeleton,
   WeatherCardSkeleton,
   ForecastSkeleton,
-  RiskPredictionSkeleton,
 } from "@/components/skeletons/weather-skeleton"
+import { RiskPredictionCard } from "@/components/risk-prediction-card"
 
 import { useRouter } from "next/navigation" // Import useRouter
 import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
@@ -104,6 +106,29 @@ interface ForecastDay {
   icon?: string
 }
 
+// Define WeatherIndices interface
+interface WeatherIndices {
+  heatIndex: {
+    value: number
+    category: string
+    color: string
+    advisory: string
+  }
+  uvIndex: {
+    value: number
+    category: string
+    color: string
+    advisory: string
+  }
+  typhoonImpactIndex: {
+    value: number
+    category: string
+    color: string
+    advisory: string
+    typhoonLevel?: string
+  }
+}
+
 export default function WeatherApp() {
   const { toast } = useToast()
   const router = useRouter() // Initialize useRouter
@@ -114,6 +139,7 @@ export default function WeatherApp() {
   const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [riskPredictions, setRiskPredictions] = useState<RiskPrediction[]>([])
+  const [weatherIndices, setWeatherIndices] = useState<WeatherIndices | null>(null)
   const [forecast, setForecast] = useState<ForecastDay[]>([])
 
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null)
@@ -835,6 +861,9 @@ export default function WeatherApp() {
               if (!isCancelled) {
                 setAlerts(alertsData.alerts || [])
                 setRiskPredictions(alertsData.riskPredictions || [])
+                if (alertsData.indices) {
+                  setWeatherIndices(alertsData.indices)
+                }
               }
             } catch (error) {
               console.error("[v0] Alerts API error:", error)
@@ -2362,6 +2391,9 @@ export default function WeatherApp() {
         const alertsData = await alertsResponse.json()
         setAlerts(alertsData.alerts || [])
         setRiskPredictions(alertsData.riskPredictions || [])
+        if (alertsData.indices) {
+          setWeatherIndices(alertsData.indices)
+        }
       }
 
       const weatherData: WeatherData = {
@@ -3478,6 +3510,7 @@ export default function WeatherApp() {
                 </div>
               ) : null}
 
+              {/* Replace the inline risk predictions rendering with the new component */}
               {/* Risk Predictions */}
               {loading || searchLoading ? (
                 <div className="space-y-3">
@@ -3485,7 +3518,7 @@ export default function WeatherApp() {
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                     Risk Predictions
                   </h2>
-                  <RiskPredictionSkeleton />
+                  <RiskPredictionCard loading={true} risks={[]} />
                 </div>
               ) : riskPredictions.length > 0 ? (
                 <div className="space-y-3">
@@ -3493,25 +3526,68 @@ export default function WeatherApp() {
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                     Risk Predictions
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {riskPredictions.map((risk) => (
-                      <div
-                        key={risk.category}
-                        className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-4 border border-slate-600/30 backdrop-blur-sm"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-semibold">{risk.category}</h3>
-                          <div className="flex items-center">
-                            {getTrendIcon(risk.trend)}
-                            <span className={`text-sm ml-1 ${getRiskColor(risk.risk)}`}>{risk.risk}%</span>
-                          </div>
-                        </div>
-                        <p className="text-sm text-slate-300">{risk.description}</p>
-                      </div>
-                    ))}
-                  </div>
+                  <RiskPredictionCard risks={riskPredictions} />
                 </div>
               ) : null}
+
+              {/* Weather Indices */}
+              {weatherIndices && (
+                <div className="space-y-3">
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                    Weather Indices
+                  </h2>
+                  {/* Update the Weather Indices display section to show UV Index instead of Flood Risk */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Heat Index */}
+                    <div
+                      className={`bg-gradient-to-r from-red-600/30 to-red-500/30 rounded-xl p-5 border border-red-500/40 shadow-lg transition-all duration-200`}
+                    >
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Thermometer className="w-5 h-5 text-red-400" /> Heat Index
+                      </h3>
+                      <p className="text-2xl font-bold mt-2">{weatherIndices.heatIndex.value.toFixed(1)}°C</p>
+                      <p className={`text-sm font-medium ${weatherIndices.heatIndex.color}`}>
+                        {weatherIndices.heatIndex.category}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.heatIndex.advisory}</p>
+                    </div>
+
+                    {/* UV Index */}
+                    <div
+                      className={`bg-gradient-to-r from-yellow-600/30 to-yellow-500/30 rounded-xl p-5 border border-yellow-500/40 shadow-lg transition-all duration-200`}
+                    >
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Sun className="w-5 h-5 text-yellow-400" /> UV Index
+                      </h3>
+                      <p className="text-2xl font-bold mt-2">{weatherIndices.uvIndex.value.toFixed(1)}</p>
+                      <p className={`text-sm font-medium ${weatherIndices.uvIndex.color}`}>
+                        {weatherIndices.uvIndex.category}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.uvIndex.advisory}</p>
+                    </div>
+
+                    {/* Typhoon Impact Index */}
+                    <div
+                      className={`bg-gradient-to-r from-purple-600/30 to-purple-500/30 rounded-xl p-5 border border-purple-500/40 shadow-lg transition-all duration-200`}
+                    >
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Wind className="w-5 h-5 text-purple-400" /> Typhoon Impact
+                      </h3>
+                      <p className="text-2xl font-bold mt-2">{weatherIndices.typhoonImpactIndex.value.toFixed(1)}</p>
+                      <p className={`text-sm font-medium ${weatherIndices.typhoonImpactIndex.color}`}>
+                        {weatherIndices.typhoonImpactIndex.category}
+                      </p>
+                      {weatherIndices.typhoonImpactIndex.typhoonLevel && (
+                        <p className="text-xs text-slate-300 mt-2">
+                          Level: {weatherIndices.typhoonImpactIndex.typhoonLevel}
+                        </p>
+                      )}
+                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.typhoonImpactIndex.advisory}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
