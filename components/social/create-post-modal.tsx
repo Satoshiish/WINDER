@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { X, MapPin } from "lucide-react"
+import { X, MapPin, Loader } from "lucide-react"
+import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 
 interface CreatePostModalProps {
   isOpen: boolean
@@ -15,18 +16,89 @@ interface CreatePostModalProps {
 export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }: CreatePostModalProps) {
   const [content, setContent] = useState("")
   const [location, setLocation] = useState("")
+  const [address, setAddress] = useState("")
   const [postType, setPostType] = useState<"post" | "donation">("post")
+  const [latitude, setLatitude] = useState<number | null>(null)
+  const [longitude, setLongitude] = useState<number | null>(null)
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isOpen && !latitude && !longitude) {
+      detectLocation()
+    }
+  }, [isOpen])
+
+  const detectLocation = async () => {
+    setIsDetectingLocation(true)
+    setLocationError(null)
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation not supported")
+      setIsDetectingLocation(false)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+
+        setLatitude(lat)
+        setLongitude(lng)
+
+        try {
+          const barangay = await getBarangayFromCoordinates(lat, lng)
+          const formattedBarangay = formatBarangay(barangay)
+          setLocation(formattedBarangay)
+        } catch (error) {
+          console.error("[v0] Error detecting barangay:", error)
+          setLocation("Location detected")
+        }
+
+        setIsDetectingLocation(false)
+      },
+      (error) => {
+        console.error("[v0] Geolocation error:", error)
+        setLocationError("Unable to detect location. You can enter it manually.")
+        setIsDetectingLocation(false)
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    )
+  }
 
   const handleSubmit = () => {
     if (content.trim()) {
       onSubmit(content, {
         location_name: location || undefined,
+        address: address || undefined,
+        latitude: latitude || undefined,
+        longitude: longitude || undefined,
         post_type: postType,
       })
       setContent("")
       setLocation("")
+      setAddress("")
       setPostType("post")
+      setLatitude(null)
+      setLongitude(null)
+      setLocationError(null)
     }
+  }
+
+  const handleClose = () => {
+    setContent("")
+    setLocation("")
+    setAddress("")
+    setPostType("post")
+    setLatitude(null)
+    setLongitude(null)
+    setLocationError(null)
+    onClose()
   }
 
   if (!isOpen) return null
@@ -37,7 +109,7 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Share Your Thoughts</h2>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClose}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -80,21 +152,59 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
             rows={4}
           />
 
-          {/* Location */}
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-slate-500" />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Location</label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={detectLocation}
+                disabled={isDetectingLocation}
+                className="text-xs h-6 px-2"
+              >
+                {isDetectingLocation ? (
+                  <>
+                    <Loader className="w-3 h-3 mr-1 animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-3 h-3 mr-1" />
+                    Detect
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Detected location display */}
+            {location && (
+              <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <span className="text-sm text-blue-900 dark:text-blue-300">{location}</span>
+              </div>
+            )}
+
+            {/* Location error */}
+            {locationError && (
+              <div className="text-xs text-amber-600 dark:text-amber-400 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                {locationError}
+              </div>
+            )}
+
+            {/* Manual address input */}
             <Input
               type="text"
-              placeholder="Add location (optional)"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Add address (optional)"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               className="flex-1 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
             />
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
               Cancel
             </Button>
             <Button
