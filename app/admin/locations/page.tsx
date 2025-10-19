@@ -28,7 +28,6 @@ import {
 import type { LocationShare } from "@/lib/location-db"
 import { formatAddress } from "@/lib/format-address"
 import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
-import { loadEmergencyReports, type EmergencyReport } from "@/lib/emergency-db"
 
 export default function LocationManagement() {
   const { user } = useAuth()
@@ -42,8 +41,6 @@ export default function LocationManagement() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showDeleted, setShowDeleted] = useState(false)
   const [barangayData, setBarangayData] = useState<Record<string, string>>({})
-  const [emergencyReports, setEmergencyReports] = useState<EmergencyReport[]>([])
-  const [showReportLocations, setShowReportLocations] = useState(false)
 
   useEffect(() => {
     setFilteredShares(sharedLocations)
@@ -74,19 +71,6 @@ export default function LocationManagement() {
       fetchBarangayData()
     }
   }, [sharedLocations])
-
-  useEffect(() => {
-    const loadReports = async () => {
-      try {
-        const reports = await loadEmergencyReports()
-        setEmergencyReports(reports)
-      } catch (error) {
-        console.error("[v0] Error loading emergency reports:", error)
-      }
-    }
-
-    loadReports()
-  }, [])
 
   useEffect(() => {
     let filtered = sharedLocations
@@ -378,50 +362,21 @@ export default function LocationManagement() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 border-slate-600/30 backdrop-blur-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs text-slate-300 truncate">Report Locations</p>
-                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-orange-500">
-                      {emergencyReports.length}
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <AlertCircle className="w-4 h-4 text-orange-500" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           <Card className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 border-slate-600/30 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-white">
-                <span className="text-sm sm:text-base md:text-lg">
-                  All Locations ({filteredShares.length + (showReportLocations ? emergencyReports.length : 0)})
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={showReportLocations ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowReportLocations(!showReportLocations)}
-                    className={`${showReportLocations ? "bg-orange-600 hover:bg-orange-700" : "bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50"} rounded-xl text-xs`}
-                  >
-                    <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline ml-2">{showReportLocations ? "Hide" : "Show"} Reports</span>
-                  </Button>
-                  {filteredShares.length !== sharedLocations.length && (
-                    <Badge variant="outline" className="border-slate-600/50 text-slate-300 text-xs">
-                      Filtered from {sharedLocations.length}
-                    </Badge>
-                  )}
-                </div>
+                <span className="text-sm sm:text-base md:text-lg">Location Shares ({filteredShares.length})</span>
+                {filteredShares.length !== sharedLocations.length && (
+                  <Badge variant="outline" className="border-slate-600/50 text-slate-300 w-fit text-xs">
+                    Filtered from {sharedLocations.length}
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {filteredShares.length === 0 && (!showReportLocations || emergencyReports.length === 0) ? (
+              {filteredShares.length === 0 ? (
                 <div className="text-center py-8">
                   <MapPin className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                   <p className="text-slate-400 text-sm sm:text-base">
@@ -432,93 +387,6 @@ export default function LocationManagement() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {showReportLocations &&
-                    emergencyReports.map((report) => (
-                      <div
-                        key={`report-${report.id}`}
-                        className="p-3 sm:p-4 rounded-xl border bg-orange-900/20 border-orange-500/50 space-y-3"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="font-medium text-white text-sm sm:text-base truncate">{report.userName}</p>
-                              <p className="text-xs sm:text-sm text-slate-300 truncate">{report.contactNumber}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge
-                              variant="outline"
-                              className="border-orange-500/50 text-orange-500 text-xs capitalize"
-                            >
-                              {report.emergencyType}
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs capitalize ${
-                                report.status === "pending"
-                                  ? "border-yellow-500/50 text-yellow-500"
-                                  : report.status === "in-progress"
-                                    ? "border-blue-500/50 text-blue-500"
-                                    : "border-green-500/50 text-green-500"
-                              }`}
-                            >
-                              {report.status}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs sm:text-sm">
-                          <div className="min-w-0">
-                            <p className="text-slate-400">Location:</p>
-                            <p className="font-medium text-white truncate">{report.address}</p>
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-slate-400">Coordinates:</p>
-                            <p className="font-mono text-white text-xs truncate">
-                              {report.location.lat.toFixed(6)}, {report.location.lng.toFixed(6)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">Priority:</p>
-                            <p className="font-medium text-white capitalize">{report.priority}</p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">People Count:</p>
-                            <p className="font-medium text-white">{report.peopleCount}</p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">Reported:</p>
-                            <p className="font-medium text-white">{formatTimeAgo(new Date(report.timestamp))}</p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">Report ID:</p>
-                            <p className="font-mono text-white text-xs truncate">{report.id}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-orange-500/30">
-                          {report.additionalInfo && (
-                            <p className="text-xs text-slate-400 truncate">Info: {report.additionalInfo}</p>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              window.open(
-                                `https://maps.google.com/?q=${report.location.lat},${report.location.lng}`,
-                                "_blank",
-                              )
-                            }
-                            className="bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 rounded-xl text-xs px-2 sm:px-3"
-                          >
-                            <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
-                            <span className="hidden xs:inline">Map</span>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-
                   {filteredShares.map((share) => {
                     const isMarkedForDeletion = !!share.deletedAt
                     const hoursUntilDeletion = isMarkedForDeletion ? getTimeUntilDeletion(share.deletedAt!) : 0
