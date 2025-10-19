@@ -3995,133 +3995,197 @@ export default function WeatherApp() {
             <div className="flex-1 p-4 sm:p-6 space-y-4">
               {showEmergencyForm ? (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="senderName">Your Name</Label>
-                    <Input
-                      id="senderName"
-                      value={emergencyFormData.senderName}
-                      onChange={(e) => setEmergencyFormData({ ...emergencyFormData, senderName: e.target.value })}
-                      placeholder="Enter your name"
-                      className="bg-slate-800 border-slate-700 text-white"
-                    />
+                  <div className="text-center">
+                    <p className="text-slate-300 leading-relaxed">
+                      Please provide your contact information so emergency services can reach you.
+                    </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="senderPhone">Phone Number</Label>
-                    <Input
-                      id="senderPhone"
-                      value={emergencyFormData.senderPhone}
-                      onChange={(e) => setEmergencyFormData({ ...emergencyFormData, senderPhone: e.target.value })}
-                      placeholder="Enter your phone number"
-                      className="bg-slate-800 border-slate-700 text-white"
-                    />
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="senderName" className="text-slate-300 text-sm font-medium">
+                        Your Full Name *
+                      </Label>
+                      <Input
+                        id="senderName"
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={emergencyFormData.senderName}
+                        onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderName: e.target.value }))}
+                        className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="senderPhone" className="text-slate-300 text-sm font-medium">
+                        Phone Number *
+                      </Label>
+                      <Input
+                        id="senderPhone"
+                        type="tel"
+                        placeholder="+63 XXX XXX XXXX"
+                        value={emergencyFormData.senderPhone}
+                        onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderPhone: e.target.value }))}
+                        className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="peopleCount" className="text-slate-300 text-sm font-medium">
+                        Number of People Affected
+                      </Label>
+                      <Input
+                        id="peopleCount"
+                        type="number"
+                        min="1"
+                        placeholder="1"
+                        value={emergencyFormData.peopleCount}
+                        onChange={(e) =>
+                          setEmergencyFormData((prev) => ({
+                            ...prev,
+                            peopleCount: Number.parseInt(e.target.value) || 1,
+                          }))
+                        }
+                        className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                      />
+                    </div>
+
+                    <div className="bg-slate-800/30 p-3 rounded-lg">
+                      <p className="text-sm text-slate-300">
+                        <strong>Emergency Type:</strong>{" "}
+                        {emergencyFormData.emergencyType.charAt(0).toUpperCase() +
+                          emergencyFormData.emergencyType.slice(1)}
+                      </p>
+                      <p className="text-sm text-slate-400 mt-1">{emergencyFormData.description}</p>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="emergencyType">Emergency Type</Label>
-                    <select
-                      id="emergencyType"
-                      value={emergencyFormData.emergencyType}
-                      onChange={(e) => setEmergencyFormData({ ...emergencyFormData, emergencyType: e.target.value })}
-                      className="w-full bg-slate-800 border border-slate-700 text-white rounded-md p-2"
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowEmergencyForm(false)}
+                      className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
                     >
-                      <option value="">Select emergency type</option>
-                      <option value="flood">Flood</option>
-                      <option value="fire">Fire</option>
-                      <option value="medical">Medical Emergency</option>
-                      <option value="accident">Accident</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <textarea
-                      id="description"
-                      value={emergencyFormData.description}
-                      onChange={(e) => setEmergencyFormData({ ...emergencyFormData, description: e.target.value })}
-                      placeholder="Describe the emergency"
-                      className="w-full bg-slate-800 border border-slate-700 text-white rounded-md p-2 min-h-[100px]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="peopleCount">Number of People Affected</Label>
-                    <Input
-                      id="peopleCount"
-                      type="number"
-                      min="1"
-                      value={emergencyFormData.peopleCount}
-                      onChange={(e) =>
-                        setEmergencyFormData({
-                          ...emergencyFormData,
-                          peopleCount: Number.parseInt(e.target.value) || 1,
-                        })
+                      Back
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        handleEmergencyReport(emergencyFormData.emergencyType, emergencyFormData.description)
                       }
-                      className="bg-slate-800 border-slate-700 text-white"
-                    />
+                      className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white"
+                      disabled={!emergencyFormData.senderName.trim() || !emergencyFormData.senderPhone.trim()}
+                    >
+                      Send Emergency Report
+                    </Button>
                   </div>
-
-                  <Button
-                    className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl py-3 font-semibold shadow-lg"
-                    onClick={async () => {
-                      if (!location) {
-                        toast({
-                          title: "Location Required",
-                          description: "Please enable location services to report an emergency",
-                          variant: "destructive",
-                        })
-                        return
-                      }
-
-                      try {
-                        await saveEmergencyReport({
-                          ...emergencyFormData,
-                          location: {
-                            lat: location.lat,
-                            lon: location.lon,
-                          },
-                          timestamp: new Date(),
-                        })
-
-                        toast({
-                          title: "Emergency Reported",
-                          description: "Your emergency report has been submitted successfully",
-                        })
-
-                        setLocationSharingModalOpen(false)
-                        setShowEmergencyForm(false)
-                        setEmergencyFormData({
-                          senderName: "",
-                          senderPhone: "",
-                          emergencyType: "",
-                          description: "",
-                          peopleCount: 1,
-                        })
-                      } catch (error) {
-                        toast({
-                          title: "Error",
-                          description: "Failed to submit emergency report",
-                          variant: "destructive",
-                        })
-                      }
-                    }}
-                  >
-                    Submit Emergency Report
-                  </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <p className="text-slate-300 text-center">
-                    Share your location to report an emergency. This will help emergency services locate you quickly.
+                <>
+                  <p className="text-slate-300 leading-relaxed text-center">
+                    Select the type of emergency to report. Your location will be automatically shared with emergency
+                    services.
                   </p>
-                  <Button
-                    className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl py-3 font-semibold shadow-lg"
-                    onClick={() => setShowEmergencyForm(true)}
-                  >
-                    Continue to Emergency Form
-                  </Button>
-                </div>
+
+                  <div className="space-y-3">
+                    {/* Medical Emergency */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
+                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      onClick={() =>
+                        handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed")
+                      }
+                    >
+                      <Heart className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="font-semibold">Medical Emergency</div>
+                        <div className="text-xs opacity-90">Injury, illness, or health crisis</div>
+                      </div>
+                    </Button>
+
+                    {/* Fire Emergency */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
+                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      onClick={() => handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed")}
+                    >
+                      <Flame className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="font-semibold">Fire Emergency</div>
+                        <div className="text-xs opacity-90">Fire, smoke, or burning hazard</div>
+                      </div>
+                    </Button>
+
+                    {/* Crime/Security */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400
+                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      onClick={() => handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed")}
+                    >
+                      <Shield className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="font-semibold">Crime Emergency</div>
+                        <div className="text-xs opacity-90">Crime, threat, or safety concern</div>
+                      </div>
+                    </Button>
+
+                    {/* Natural Disaster */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
+                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      onClick={() =>
+                        handleEmergencyTypeSelect(
+                          "natural-disaster",
+                          "Natural disaster - flood, typhoon, earthquake, or landslide",
+                        )
+                      }
+                    >
+                      <CloudRain className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="font-semibold">Natural Disaster</div>
+                        <div className="text-xs opacity-90">Flood, typhoon, earthquake, landslide</div>
+                      </div>
+                    </Button>
+
+                    {/* Accident */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400
+                      text-white rounded-xl py-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-3"
+                      onClick={() =>
+                        handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed")
+                      }
+                    >
+                      <Car className="w-5 h-5" />
+                      <div className="text-left">
+                        <div className="font-semibold">Traffic Accident</div>
+                        <div className="text-xs opacity-90">Vehicle collision or road incident</div>
+                      </div>
+                    </Button>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-700/50">
+                    <p className="text-slate-400 text-sm text-center mb-3">Or contact emergency services directly:</p>
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500
+                        text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
+                        onClick={() => window.open("tel:911", "_self")}
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call 911
+                      </Button>
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500
+                        text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
+                        onClick={() => window.open("tel:143", "_self")}
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call 143
+                      </Button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </DialogContent>
