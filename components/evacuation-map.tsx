@@ -291,7 +291,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-6 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
+              <div className="w-1 h-10 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
                 Interactive Evacuation Map
