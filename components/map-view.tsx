@@ -47,17 +47,21 @@ export function MapView({ showEvacuationMap, setShowEvacuationMap, getWeatherMap
       </div>
 
       {/* Map Content */}
-      <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {showEvacuationMap ? (
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-4 sm:p-6 h-full">
+          // Evacuation Map - No extra styling needed as it handles its own
+          <div className="h-full">
             <EvacuationMap />
           </div>
         ) : (
-          <iframe
-            src={getWeatherMapUrl()}
-            className="w-full h-full rounded-2xl border border-slate-700 shadow-inner hover:shadow-lg transition-all duration-300"
-            title="Weather Map"
-          />
+          // Weather Map - Keep the existing styling
+          <div className="p-4 sm:p-6 h-full">
+            <iframe
+              src={getWeatherMapUrl()}
+              className="w-full h-full rounded-2xl border border-slate-700 shadow-inner hover:shadow-lg transition-all duration-300"
+              title="Weather Map"
+            />
+          </div>
         )}
       </div>
     </div>
