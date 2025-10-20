@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { X, Heart, MessageCircle, Share2, MoreVertical } from "lucide-react"
+import { X, MessageCircle, Share2, MoreVertical } from "lucide-react"
 import { CommentsSection } from "./comments-section"
 import { ShareModal } from "./share-modal"
 import { PostOptionsMenu } from "./post-options-menu"
@@ -18,17 +18,13 @@ interface PostDetailModalProps {
     content: string
     image_url?: string
     location_name?: string
-    likes_count: number
     comments_count: number
-    shares_count: number
     created_at: string
-    user_liked?: boolean
   }
   currentUserId: number
   currentUserName: string
   currentUserEmail: string
   isOwnPost: boolean
-  onLike?: () => void
   onShare?: (message?: string) => void
   onDelete?: () => void
 }
@@ -41,31 +37,27 @@ export function PostDetailModal({
   currentUserName,
   currentUserEmail,
   isOwnPost,
-  onLike,
   onShare,
   onDelete,
 }: PostDetailModalProps) {
-  const [isLiked, setIsLiked] = useState(post.user_liked || false)
-  const [likesCount, setLikesCount] = useState(post.likes_count)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showOptionsMenu, setShowOptionsMenu] = useState(false)
-
-  const handleLike = () => {
-    setIsLiked(!isLiked)
-    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1)
-    onLike?.()
-  }
 
   if (!isOpen) return null
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-slate-800 border border-slate-700/50 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
           {/* Header */}
-          <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Post Details</h2>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
+          <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-700/50 bg-slate-800/95 backdrop-blur-sm">
+            <h2 className="text-lg font-semibold text-white">Post Details</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+              onClick={onClose}
+            >
               <X className="w-4 h-4" />
             </Button>
           </div>
@@ -79,8 +71,8 @@ export function PostDetailModal({
                   {post.user_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white">{post.user_name}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <h3 className="font-semibold text-white">{post.user_name}</h3>
+                  <p className="text-xs text-slate-400">
                     {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                   </p>
                 </div>
@@ -88,7 +80,7 @@ export function PostDetailModal({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
                 onClick={() => setShowOptionsMenu(!showOptionsMenu)}
               >
                 <MoreVertical className="w-4 h-4" />
@@ -97,42 +89,30 @@ export function PostDetailModal({
 
             {/* Post Content */}
             <div>
-              <p className="text-slate-700 dark:text-slate-300 mb-3">{post.content}</p>
+              <p className="text-slate-300 mb-3">{post.content}</p>
               {post.image_url && (
                 <img
                   src={post.image_url || "/placeholder.svg"}
                   alt="Post content"
-                  className="w-full rounded-lg max-h-96 object-cover"
+                  className="w-full rounded-lg max-h-96 object-cover border border-slate-600/30"
                 />
               )}
             </div>
 
             {/* Stats */}
-            <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 py-3 border-y border-slate-200 dark:border-slate-700">
-              <span>{likesCount} likes</span>
-              <div className="flex gap-4">
-                <span>{post.comments_count} comments</span>
-                <span>{post.shares_count} shares</span>
-              </div>
+            <div className="flex items-center justify-between text-sm text-slate-400 py-3 border-y border-slate-700/50">
+              <span>{post.comments_count} comments</span>
             </div>
 
             {/* Actions */}
             <div className="flex items-center justify-between gap-2 py-2">
-              <Button
-                variant="ghost"
-                className={`flex-1 gap-2 ${isLiked ? "text-red-500" : "text-slate-600 dark:text-slate-400"}`}
-                onClick={handleLike}
-              >
-                <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
-                Like
-              </Button>
-              <Button variant="ghost" className="flex-1 gap-2 text-slate-600 dark:text-slate-400">
+              <Button variant="ghost" className="flex-1 gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10">
                 <MessageCircle className="w-4 h-4" />
                 Comment
               </Button>
               <Button
                 variant="ghost"
-                className="flex-1 gap-2 text-slate-600 dark:text-slate-400"
+                className="flex-1 gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10"
                 onClick={() => setShowShareModal(true)}
               >
                 <Share2 className="w-4 h-4" />
@@ -141,7 +121,7 @@ export function PostDetailModal({
             </div>
 
             {/* Comments Section */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="pt-4 border-t border-slate-700/50">
               <CommentsSection
                 postId={post.id}
                 currentUserId={currentUserId}

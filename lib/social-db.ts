@@ -7,7 +7,6 @@ export interface SocialPost {
   location_name?: string
   latitude?: number
   longitude?: number
-  likes_count: number
   comments_count: number
   status: "active" | "deleted"
   post_type: "post" | "donation"
@@ -77,7 +76,6 @@ export async function createSocialPost(
       address: options?.address || null,
       latitude: options?.latitude || null,
       longitude: options?.longitude || null,
-      likes_count: 0,
       comments_count: 0,
       status: "active",
       post_type: options?.post_type || "post",
