@@ -51,6 +51,7 @@ import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
 import { useLocationSharing } from "@/contexts/location-sharing-context"
 import { saveEmergencyReport } from "@/lib/emergency-db"
 import { EvacuationMap } from "@/components/evacuation-map"
+import { MapView } from "@/components/map-view"
 
 interface WeatherData {
   temperature: number
@@ -2942,9 +2943,7 @@ export default function WeatherApp() {
                       ? "bg-blue-500/20 text-blue-400"
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
-                  onClick={() => {
-                    setWeatherMapModalOpen(true)
-                  }}
+                  onClick={() => setActiveView("map")}
                 >
                   <MapPin className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">Map</span>
@@ -3174,9 +3173,7 @@ export default function WeatherApp() {
                     ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                     : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                 }`}
-                onClick={() => {
-                  setWeatherMapModalOpen(true)
-                }}
+                onClick={() => setActiveView("map")}
                 title="Weather Map"
               >
                 <MapPin className="h-5 w-5" />
@@ -3420,6 +3417,12 @@ export default function WeatherApp() {
         <div className="flex-1 flex flex-col min-w-0 pt-20 lg:pt-0 pb-20 lg:pb-0">
           {activeView === "social" ? (
             <InlineFeed />
+          ) : activeView === "map" ? (
+            <MapView
+              showEvacuationMap={showEvacuationMap}
+              setShowEvacuationMap={setShowEvacuationMap}
+              getWeatherMapUrl={getWeatherMapUrl}
+            />
           ) : (
             <div className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hidden">
               {/* Current Weather */}
@@ -4488,7 +4491,7 @@ export default function WeatherApp() {
           <DialogContent
             className="w-[95vw] sm:w-[90vw] md:w-[70vw] lg:w-[50vw] max-w-2xl
             mx-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
-            border border-slate-700/60 text-white rounded-2xl shadow-2xl
+            border border-slate-700/60 rounded-2xl shadow-2xl
             p-0 overflow-hidden animate-fadeInScale"
           >
             {/* Header */}

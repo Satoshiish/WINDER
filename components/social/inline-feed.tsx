@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { EnhancedPostCard } from "@/components/social/enhanced-post-card"
 import { CreatePostModal } from "@/components/social/create-post-modal"
+import { PostDetailModal } from "@/components/social/post-detail-modal"
 import { LocationFilter } from "@/components/social/location-filter"
 import { getSocialFeed, createSocialPost } from "@/lib/social-db"
 import { Plus, AlertCircle } from "lucide-react"
@@ -20,6 +21,10 @@ interface Post {
   weather_condition?: string
   weather_temperature?: number
   weather_risk_level?: "low" | "medium" | "high"
+  user_name?: string
+  user_email?: string
+  likes_count?: number
+  shares_count?: number
 }
 
 interface InlineFeedProps {
@@ -33,6 +38,8 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState("All Areas")
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [isPostDetailOpen, setIsPostDetailOpen] = useState(false)
   const [currentWeather, setCurrentWeather] = useState({
     location: "Current Location",
     temperature: 28,
@@ -73,6 +80,14 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
       console.error("Error in handleCreatePost:", error)
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const handleComment = (postId: number) => {
+    const post = posts.find((p) => p.id === postId)
+    if (post) {
+      setSelectedPost(post)
+      setIsPostDetailOpen(true)
     }
   }
 
@@ -136,7 +151,7 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
               imageUrl={post.image_url}
               commentsCount={post.comments_count}
               createdAt={post.created_at}
-              onComment={() => {}}
+              onComment={handleComment}
               onReport={handleReport}
               onMore={() => {}}
             />
@@ -151,6 +166,33 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
         onSubmit={handleCreatePost}
         isLoading={isCreating}
       />
+
+      {selectedPost && (
+        <PostDetailModal
+          isOpen={isPostDetailOpen}
+          onClose={() => {
+            setIsPostDetailOpen(false)
+            setSelectedPost(null)
+          }}
+          post={{
+            id: selectedPost.id,
+            user_name: selectedPost.user_name || "Anonymous",
+            user_email: selectedPost.user_email || "",
+            content: selectedPost.content,
+            image_url: selectedPost.image_url,
+            location_name: selectedPost.location_name,
+            likes_count: selectedPost.likes_count || 0,
+            comments_count: selectedPost.comments_count,
+            shares_count: 0,
+            created_at: selectedPost.created_at,
+            user_liked: false,
+          }}
+          currentUserId={user?.id || 0}
+          currentUserName={user?.email?.split("@")[0] || "User"}
+          currentUserEmail={user?.email || ""}
+          isOwnPost={false}
+        />
+      )}
     </div>
   )
 }
