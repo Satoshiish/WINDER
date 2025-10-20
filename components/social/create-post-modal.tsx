@@ -105,10 +105,13 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-lg max-w-md w-full shadow-xl">
+      <div className="bg-card border border-border/50 rounded-lg max-w-md w-full shadow-2xl backdrop-blur-sm">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Share Your Thoughts</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border/30">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-6 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
+            <h2 className="text-lg font-semibold text-foreground">Share Your Thoughts</h2>
+          </div>
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClose}>
             <X className="w-4 h-4" />
           </Button>
@@ -121,8 +124,8 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
               onClick={() => setPostType("post")}
               className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors ${
                 postType === "post"
-                  ? "bg-blue-500 text-white"
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
               Post
@@ -130,9 +133,7 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
             <button
               onClick={() => setPostType("donation")}
               className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors ${
-                postType === "donation"
-                  ? "bg-green-500 text-white"
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                postType === "donation" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
               Donation
@@ -148,13 +149,13 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
                 ? "What donation are you offering? (Anonymous)"
                 : "What's on your mind? (Anonymous)"
             }
-            className="w-full p-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full p-3 bg-muted/50 border border-border/50 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
             rows={4}
           />
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Location</label>
+              <label className="text-sm font-medium text-foreground">Location</label>
               <Button
                 type="button"
                 variant="ghost"
@@ -179,17 +180,15 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
 
             {/* Detected location display */}
             {location && (
-              <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                <span className="text-sm text-blue-900 dark:text-blue-300">{location}</span>
+              <div className="flex items-center gap-2 p-2 bg-primary/10 border border-primary/30 rounded-lg">
+                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="text-sm text-foreground">{location}</span>
               </div>
             )}
 
             {/* Location error */}
             {locationError && (
-              <div className="text-xs text-amber-600 dark:text-amber-400 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                {locationError}
-              </div>
+              <div className="text-xs text-destructive p-2 bg-destructive/10 rounded-lg">{locationError}</div>
             )}
 
             {/* Manual address input */}
@@ -198,7 +197,7 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
               placeholder="Add address (optional)"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="flex-1 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
+              className="flex-1 bg-muted/50 border-border/50 text-foreground placeholder-muted-foreground"
             />
           </div>
 
@@ -212,8 +211,8 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
               disabled={!content.trim() || isLoading}
               className={
                 postType === "donation"
-                  ? "bg-green-500 hover:bg-green-600 text-white"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-primary hover:bg-primary/90 text-primary-foreground"
               }
             >
               {isLoading ? "Posting..." : "Post"}

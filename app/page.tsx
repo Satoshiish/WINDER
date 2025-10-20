@@ -29,7 +29,6 @@ import {
   Flame,
   Thermometer,
   Wind,
-  AlertCircle,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
 import { InlineFeed } from "@/components/social/inline-feed"
@@ -3617,42 +3616,41 @@ export default function WeatherApp() {
             border border-slate-700/60 text-white rounded-3xl shadow-2xl
             flex flex-col overflow-hidden animate-fadeInScale"
           >
-            {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center justify-between gap-4 text-xl sm:text-2xl font-bold">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    {showEvacuationMap ? (
-                      <AlertCircle className="w-6 h-6 text-white animate-bounce" />
-                    ) : (
-                      <MapPin className="w-6 h-6 text-white animate-bounce" />
-                    )}
-                  </div>
-                  <span className="text-white">{showEvacuationMap ? "Evacuation Map" : "Weather Map"}</span>
+              <div className="space-y-3">
+                {/* Title with accent line */}
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
+                    {showEvacuationMap ? "Evacuation Map" : "Weather Map"}
+                  </DialogTitle>
                 </div>
-                <Button
-                  onClick={() => setShowEvacuationMap(!showEvacuationMap)}
-                  className={`flex items-center gap-2 ${
-                    showEvacuationMap
-                      ? "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400"
-                      : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
-                  } text-white rounded-lg px-3 py-2 text-sm font-semibold shadow-lg transition hover:scale-[1.02]`}
-                >
-                  {showEvacuationMap ? (
-                    <>
-                      <MapPin className="w-4 h-4" />
-                      <span className="hidden sm:inline">Weather Map</span>
-                      <span className="sm:hidden">Weather</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="hidden sm:inline">Evacuation Map</span>
-                      <span className="sm:hidden">Evacuation</span>
-                    </>
-                  )}
-                </Button>
-              </DialogTitle>
+
+                {/* Location selector */}
+                <div className="flex items-center gap-2 pl-4">
+                  <MapPin className="w-4 h-4 text-blue-400" />
+                  <Button
+                    onClick={() => setShowEvacuationMap(!showEvacuationMap)}
+                    className={`flex items-center gap-2 ${
+                      showEvacuationMap
+                        ? "bg-slate-800 hover:bg-slate-700 text-white"
+                        : "bg-slate-800 hover:bg-slate-700 text-white"
+                    } text-white rounded-lg px-3 py-1.5 text-sm font-medium shadow-md transition`}
+                  >
+                    {showEvacuationMap ? (
+                      <>
+                        <span className="hidden sm:inline">Weather Map</span>
+                        <span className="sm:hidden">Weather</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Evacuation Map</span>
+                        <span className="sm:hidden">Evacuation</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </DialogHeader>
 
             {/* Map Content */}

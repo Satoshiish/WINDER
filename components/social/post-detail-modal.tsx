@@ -47,15 +47,18 @@ export function PostDetailModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-slate-800 border border-slate-700/50 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-card border border-border/50 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
           {/* Header */}
-          <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-700/50 bg-slate-800/95 backdrop-blur-sm">
-            <h2 className="text-lg font-semibold text-white">Post Details</h2>
+          <div className="sticky top-0 flex items-center justify-between p-4 border-b border-border/30 bg-card/95 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-6 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
+              <h2 className="text-lg font-semibold text-foreground">Post Details</h2>
+            </div>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
               onClick={onClose}
             >
               <X className="w-4 h-4" />
@@ -67,12 +70,12 @@ export function PostDetailModal({
             {/* Post Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-semibold">
                   {post.user_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">{post.user_name}</h3>
-                  <p className="text-xs text-slate-400">
+                  <h3 className="font-semibold text-foreground">{post.user_name}</h3>
+                  <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                   </p>
                 </div>
@@ -80,7 +83,7 @@ export function PostDetailModal({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowOptionsMenu(!showOptionsMenu)}
               >
                 <MoreVertical className="w-4 h-4" />
@@ -89,30 +92,33 @@ export function PostDetailModal({
 
             {/* Post Content */}
             <div>
-              <p className="text-slate-300 mb-3">{post.content}</p>
+              <p className="text-foreground mb-3">{post.content}</p>
               {post.image_url && (
                 <img
                   src={post.image_url || "/placeholder.svg"}
                   alt="Post content"
-                  className="w-full rounded-lg max-h-96 object-cover border border-slate-600/30"
+                  className="w-full rounded-lg max-h-96 object-cover border border-border/50"
                 />
               )}
             </div>
 
             {/* Stats */}
-            <div className="flex items-center justify-between text-sm text-slate-400 py-3 border-y border-slate-700/50">
+            <div className="flex items-center justify-between text-sm text-muted-foreground py-3 border-y border-border/30">
               <span>{post.comments_count} comments</span>
             </div>
 
             {/* Actions */}
             <div className="flex items-center justify-between gap-2 py-2">
-              <Button variant="ghost" className="flex-1 gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10">
+              <Button
+                variant="ghost"
+                className="flex-1 gap-2 text-muted-foreground hover:text-primary hover:bg-primary/10"
+              >
                 <MessageCircle className="w-4 h-4" />
                 Comment
               </Button>
               <Button
                 variant="ghost"
-                className="flex-1 gap-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10"
+                className="flex-1 gap-2 text-muted-foreground hover:text-primary hover:bg-primary/10"
                 onClick={() => setShowShareModal(true)}
               >
                 <Share2 className="w-4 h-4" />
@@ -121,7 +127,7 @@ export function PostDetailModal({
             </div>
 
             {/* Comments Section */}
-            <div className="pt-4 border-t border-slate-700/50">
+            <div className="pt-4 border-t border-border/30">
               <CommentsSection
                 postId={post.id}
                 currentUserId={currentUserId}

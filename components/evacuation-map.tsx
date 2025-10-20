@@ -15,6 +15,8 @@ import {
   Layers,
   TrendingUp,
   Loader2,
+  Upload,
+  X,
 } from "lucide-react"
 import { getEvacuationDataForLocation } from "@/lib/evacuation-data"
 
@@ -26,6 +28,7 @@ interface FloodZone {
   affectedPopulation: number
   coordinates: [number, number]
   distance?: number
+  mapImage?: string
 }
 
 interface SafeRoute {
@@ -64,6 +67,8 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [nearbyRoutes, setNearbyRoutes] = useState<SafeRoute[]>([])
   const [nearbyCenters, setNearbyCenters] = useState<EvacuationCenter[]>([])
   const [currentCity, setCurrentCity] = useState<string>("")
+  const [zoneMapImages, setZoneMapImages] = useState<Record<string, string>>({})
+  const [uploadingZoneId, setUploadingZoneId] = useState<string | null>(null)
 
   useEffect(() => {
     const getLocation = async () => {
@@ -83,11 +88,9 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
 
         if (lat && lon) {
           setLocationData({ lat, lon })
-          console.log("[v0] Evacuation map location:", lat, lon)
         }
       } catch (error) {
         console.error("[v0] Error getting location:", error)
-        // Default to Olongapo City if geolocation fails
         setLocationData({ lat: 14.8436, lon: 120.3089 })
       }
     }
@@ -112,7 +115,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   }, [locationData])
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371 // Earth's radius in km
+    const R = 6371
     const dLat = ((lat2 - lat1) * Math.PI) / 180
     const dLon = ((lon2 - lon1) * Math.PI) / 180
     const a =
@@ -131,6 +134,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     const allZones: FloodZone[] = evacuationData.floodZones.map((zone) => ({
       ...zone,
       distance: calculateDistance(locationData.lat, locationData.lon, zone.coordinates[0], zone.coordinates[1]),
+      mapImage: zoneMapImages[zone.id],
     }))
 
     return allZones.sort((a, b) => (a.distance || 0) - (b.distance || 0))
@@ -169,7 +173,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     }
   }, [locationData])
 
-  // Calculate risk assessment
   useEffect(() => {
     if (weatherData && nearbyZones.length > 0) {
       const highRiskZones = nearbyZones.filter((z) => z.riskLevel === "high").length
@@ -189,6 +192,20 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       })
     }
   }, [weatherData, nearbyZones])
+
+  const handleMapImageUpload = (zoneId: string, file: File) => {
+    setUploadingZoneId(zoneId)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const imageData = e.target?.result as string
+      setZoneMapImages((prev) => ({
+        ...prev,
+        [zoneId]: imageData,
+      }))
+      setUploadingZoneId(null)
+    }
+    reader.readAsDataURL(file)
+  }
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -231,36 +248,36 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     <div className="space-y-6">
       {/* Risk Assessment Overview */}
       {riskAssessment && (
-        <Card className="border-2 border-primary/20">
+        <Card className="border-l-4 border-l-primary bg-slate-900/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <AlertTriangle className="h-5 w-5 text-destructive" />
               Risk Assessment
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <p className="text-xs text-muted-foreground mb-1">Overall Risk</p>
                 <Badge className={`${getRiskColor(riskAssessment.overallRisk)}`}>
                   {riskAssessment.overallRisk.toUpperCase()}
                 </Badge>
               </div>
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <p className="text-xs text-muted-foreground mb-1">Wind Speed</p>
                 <div className="flex items-center gap-1">
                   <Wind className="h-4 w-4 text-cyan-500" />
                   <span className="font-semibold">{riskAssessment.windSpeed}km/h</span>
                 </div>
               </div>
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <p className="text-xs text-muted-foreground mb-1">Humidity</p>
                 <div className="flex items-center gap-1">
                   <Droplets className="h-4 w-4 text-blue-500" />
                   <span className="font-semibold">{riskAssessment.rainfall}%</span>
                 </div>
               </div>
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <p className="text-xs text-muted-foreground mb-1">At Risk</p>
                 <span className="font-semibold text-lg">{(riskAssessment.affectedPopulation / 1000).toFixed(0)}K</span>
               </div>
@@ -270,13 +287,16 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       )}
 
       {/* Map Visualization */}
-      <Card>
+      <Card className="bg-slate-900/50 border-slate-800">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Interactive Evacuation Map
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-6 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Interactive Evacuation Map
+              </CardTitle>
+            </div>
             <div className="flex gap-2">
               <Button
                 variant={activeLayer === "flood" ? "default" : "outline"}
@@ -310,12 +330,12 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         </CardHeader>
         <CardContent>
           {/* Map Container */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg h-96 mb-6 flex items-center justify-center border-2 border-blue-200 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg h-96 mb-6 flex items-center justify-center border border-slate-700/50 relative overflow-hidden">
             {/* Map Background with Grid */}
-            <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0 opacity-5">
               <div className="grid grid-cols-6 grid-rows-4 h-full w-full">
                 {Array.from({ length: 24 }).map((_, i) => (
-                  <div key={i} className="border border-blue-300" />
+                  <div key={i} className="border border-primary/20" />
                 ))}
               </div>
             </div>
@@ -324,7 +344,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             {activeLayer === "flood" && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="space-y-4 w-full px-4">
-                  <p className="text-center text-sm font-semibold text-blue-900 mb-4">Flood-Prone Areas Near You</p>
+                  <p className="text-center text-sm font-semibold text-foreground mb-4">Flood-Prone Areas Near You</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {nearbyZones.slice(0, 6).map((zone) => (
                       <div
@@ -349,10 +369,10 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             {activeLayer === "routes" && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="space-y-3 w-full px-4">
-                  <p className="text-center text-sm font-semibold text-blue-900 mb-4">Safe Evacuation Routes</p>
+                  <p className="text-center text-sm font-semibold text-foreground mb-4">Safe Evacuation Routes</p>
                   <div className="space-y-2">
                     {nearbyRoutes.map((route) => (
-                      <div key={route.id} className="bg-white/80 p-3 rounded-lg border-l-4 border-green-500">
+                      <div key={route.id} className="bg-slate-800/80 p-3 rounded-lg border-l-4 border-green-500">
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <p className="font-semibold text-sm">{route.name}</p>
@@ -379,12 +399,12 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             {activeLayer === "centers" && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="space-y-3 w-full px-4">
-                  <p className="text-center text-sm font-semibold text-blue-900 mb-4">Nearest Evacuation Centers</p>
+                  <p className="text-center text-sm font-semibold text-foreground mb-4">Nearest Evacuation Centers</p>
                   <div className="space-y-2">
                     {nearbyCenters.map((center) => {
                       const occupancyPercent = (center.currentOccupancy / center.capacity) * 100
                       return (
-                        <div key={center.id} className="bg-white/80 p-3 rounded-lg border-l-4 border-purple-500">
+                        <div key={center.id} className="bg-slate-800/80 p-3 rounded-lg border-l-4 border-purple-500">
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <p className="font-semibold text-sm">{center.name}</p>
@@ -418,9 +438,9 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             )}
           </div>
 
-          {/* Selected Zone Details */}
+          {/* Selected Zone Details with Map Image */}
           {selectedZone && (
-            <Card className="bg-muted/50 border-2 border-primary/20">
+            <Card className="bg-slate-800/50 border-l-4 border-l-primary border-slate-700">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
@@ -428,11 +448,55 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                     {selectedZone.name}
                   </CardTitle>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedZone(null)} className="h-6 w-6 p-0">
-                    ×
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Zone Map</label>
+                  {zoneMapImages[selectedZone.id] ? (
+                    <div className="relative rounded-lg overflow-hidden border border-slate-700/50">
+                      <img
+                        src={zoneMapImages[selectedZone.id] || "/placeholder.svg"}
+                        alt={`${selectedZone.name} map`}
+                        className="w-full h-48 object-cover"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 h-8 w-8 p-0 bg-slate-900/80 hover:bg-slate-800"
+                        onClick={() => {
+                          setZoneMapImages((prev) => {
+                            const newImages = { ...prev }
+                            delete newImages[selectedZone.id]
+                            return newImages
+                          })
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-800/50 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">Click to upload map image</p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleMapImageUpload(selectedZone.id, file)
+                        }}
+                        disabled={uploadingZoneId === selectedZone.id}
+                      />
+                    </label>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Risk Level</p>
@@ -464,7 +528,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       </Card>
 
       {/* Flood-Prone Areas List */}
-      <Card>
+      <Card className="bg-slate-900/50 border-slate-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Droplets className="h-5 w-5 text-blue-500" />
@@ -474,7 +538,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         <CardContent>
           <div className="space-y-3">
             {nearbyZones.map((zone) => (
-              <div key={zone.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
+              <div key={zone.id} className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-lg">
                 <div className={`p-2 rounded-lg ${getRiskColor(zone.riskLevel)}`}>{getRiskIcon(zone.riskLevel)}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm">{zone.name}</p>
@@ -491,7 +555,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       </Card>
 
       {/* Safe Routes List */}
-      <Card>
+      <Card className="bg-slate-900/50 border-slate-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Navigation className="h-5 w-5 text-green-500" />
@@ -501,7 +565,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         <CardContent>
           <div className="space-y-3">
             {nearbyRoutes.map((route) => (
-              <div key={route.id} className="p-3 bg-muted rounded-lg border-l-4 border-green-500">
+              <div key={route.id} className="p-3 bg-slate-800/50 rounded-lg border-l-4 border-green-500">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="font-semibold text-sm">{route.name}</p>
@@ -537,7 +601,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       </Card>
 
       {/* Evacuation Centers Status */}
-      <Card>
+      <Card className="bg-slate-900/50 border-slate-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-purple-500" />
@@ -549,7 +613,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             {nearbyCenters.map((center) => {
               const occupancyPercent = (center.currentOccupancy / center.capacity) * 100
               return (
-                <div key={center.id} className="p-3 bg-muted rounded-lg">
+                <div key={center.id} className="p-3 bg-slate-800/50 rounded-lg">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="font-semibold text-sm">{center.name}</p>
@@ -583,7 +647,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       </Card>
 
       {/* Legend */}
-      <Card className="bg-muted/50">
+      <Card className="bg-slate-900/50 border-slate-800">
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
             <Layers className="h-4 w-4" />
