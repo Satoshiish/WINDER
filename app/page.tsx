@@ -2905,7 +2905,7 @@ export default function WeatherApp() {
           <>
             {/* Mobile Bottom Navigation */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-t border-slate-700/50">
-              <div className="grid grid-cols-7 gap-1 p-2">
+              <div className="grid grid-cols-6 gap-1 p-2">
                 {/* Home */}
                 <button
                   className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
@@ -2945,27 +2945,6 @@ export default function WeatherApp() {
                 >
                   <MapPin className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">Map</span>
-                </button>
-
-                {/* Alerts */}
-                <button
-                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 relative ${
-                    activeView === "alerts"
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "text-slate-400 hover:text-white hover:bg-slate-700/30"
-                  }`}
-                  onClick={() => {
-                    setAlertsModalOpen(true)
-                  }}
-                >
-                  <Bell className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">Alerts</span>
-
-                  {alerts.length > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md">
-                      <span className="text-[10px] text-white font-bold">{alerts.length}</span>
-                    </div>
-                  )}
                 </button>
 
                 {/* Social */}
@@ -3024,14 +3003,29 @@ export default function WeatherApp() {
                     </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSettingsModalOpen(true)}
-                  className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAlertsModalOpen(true)}
+                    className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg relative"
+                  >
+                    <Bell className="h-4 w-4" />
+                    {alerts.length > 0 && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-md">
+                        <span className="text-[10px] text-white font-bold">{alerts.length}</span>
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSettingsModalOpen(true)}
+                    className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </>
@@ -4328,14 +4322,17 @@ export default function WeatherApp() {
                     {/* Medical Emergency */}
                     <Button
                       className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
-                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-red-500/20
+                      flex items-center justify-start gap-2 sm:gap-3 md:gap-4 group"
                       onClick={() =>
                         handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed")
                       }
                     >
-                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                      <div className="text-left">
-                        <div className="font-semibold text-xs sm:text-sm">Medical Emergency</div>
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">Medical Emergency</div>
                         <div className="text-xs opacity-90">Injury, illness, or health crisis</div>
                       </div>
                     </Button>
@@ -4343,12 +4340,15 @@ export default function WeatherApp() {
                     {/* Fire Emergency */}
                     <Button
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
-                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-orange-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
                       onClick={() => handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed")}
                     >
-                      <Flame className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                      <div className="text-left">
-                        <div className="font-semibold text-xs sm:text-sm">Fire Emergency</div>
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">Fire Emergency</div>
                         <div className="text-xs opacity-90">Fire, smoke, or burning hazard</div>
                       </div>
                     </Button>
@@ -4356,12 +4356,15 @@ export default function WeatherApp() {
                     {/* Crime/Security */}
                     <Button
                       className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400
-                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-purple-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
                       onClick={() => handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed")}
                     >
-                      <Shield className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                      <div className="text-left">
-                        <div className="font-semibold text-xs sm:text-sm">Crime Emergency</div>
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">Crime Emergency</div>
                         <div className="text-xs opacity-90">Crime, threat, or safety concern</div>
                       </div>
                     </Button>
@@ -4369,7 +4372,8 @@ export default function WeatherApp() {
                     {/* Natural Disaster */}
                     <Button
                       className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
-                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-blue-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
                       onClick={() =>
                         handleEmergencyTypeSelect(
                           "natural-disaster",
@@ -4377,9 +4381,11 @@ export default function WeatherApp() {
                         )
                       }
                     >
-                      <CloudRain className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                      <div className="text-left">
-                        <div className="font-semibold text-xs sm:text-sm">Natural Disaster</div>
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <CloudRain className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">Natural Disaster</div>
                         <div className="text-xs opacity-90">Flood, typhoon, earthquake, landslide</div>
                       </div>
                     </Button>
@@ -4387,14 +4393,17 @@ export default function WeatherApp() {
                     {/* Accident */}
                     <Button
                       className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400
-                      text-white rounded-lg sm:rounded-xl p-2 sm:p-4 font-semibold shadow-lg transition hover:scale-[1.02] flex items-center justify-start gap-2 sm:gap-3"
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-yellow-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
                       onClick={() =>
                         handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed")
                       }
                     >
-                      <Car className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                      <div className="text-left">
-                        <div className="font-semibold text-xs sm:text-sm">Traffic Accident</div>
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">Traffic Accident</div>
                         <div className="text-xs opacity-90">Vehicle collision or road incident</div>
                       </div>
                     </Button>
