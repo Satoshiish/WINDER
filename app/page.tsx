@@ -29,6 +29,7 @@ import {
   Flame,
   Thermometer,
   Wind,
+  AlertCircle,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
 import { InlineFeed } from "@/components/social/inline-feed"
@@ -49,6 +50,7 @@ import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
 // import { useUser } from "@clerk/nextjs" // Import useUser
 import { useLocationSharing } from "@/contexts/location-sharing-context"
 import { saveEmergencyReport } from "@/lib/emergency-db"
+import { EvacuationMap } from "@/components/evacuation-map"
 
 interface WeatherData {
   temperature: number
@@ -222,6 +224,7 @@ export default function WeatherApp() {
 
   const [currentLocationLoading, setCurrentLocationLoading] = useState(false)
   const [showLocationModal, setShowLocationModal] = useState(false) // Added state for the location sharing modal
+  const [showEvacuationMap, setShowEvacuationMap] = useState(false) // State to toggle between weather map and evacuation map
 
   // State for emergency form fields
   const [emergencyFormData, setEmergencyFormData] = useState({
@@ -3057,7 +3060,7 @@ export default function WeatherApp() {
                   value={searchLocation}
                   onChange={(e) => handleSearchInputChange(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
-                  className={`w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 backdrop-blur-sm ${
+                  className={`w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 ${
                     searchLoading ? "text-white/50" : "text-white"
                   }`}
                 />
@@ -3613,21 +3616,55 @@ export default function WeatherApp() {
           >
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
-                <div className="w-12 h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <MapPin className="w-6 h-6 text-white animate-bounce" />
+              <DialogTitle className="flex items-center justify-between gap-4 text-xl sm:text-2xl font-bold">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    {showEvacuationMap ? (
+                      <AlertCircle className="w-6 h-6 text-white animate-bounce" />
+                    ) : (
+                      <MapPin className="w-6 h-6 text-white animate-bounce" />
+                    )}
+                  </div>
+                  <span className="text-white">{showEvacuationMap ? "Evacuation Map" : "Weather Map"}</span>
                 </div>
-                <span className="text-white">Weather Map</span>
+                <Button
+                  onClick={() => setShowEvacuationMap(!showEvacuationMap)}
+                  className={`flex items-center gap-2 ${
+                    showEvacuationMap
+                      ? "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400"
+                      : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
+                  } text-white rounded-lg px-3 py-2 text-sm font-semibold shadow-lg transition hover:scale-[1.02]`}
+                >
+                  {showEvacuationMap ? (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      <span className="hidden sm:inline">Weather Map</span>
+                      <span className="sm:hidden">Weather</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Evacuation Map</span>
+                      <span className="sm:hidden">Evacuation</span>
+                    </>
+                  )}
+                </Button>
               </DialogTitle>
             </DialogHeader>
 
             {/* Map Content */}
-            <div className="flex-1 p-4 sm:p-6">
-              <iframe
-                src={getWeatherMapUrl()}
-                className="w-full h-full rounded-2xl border border-slate-700 shadow-inner hover:shadow-lg transition-all duration-300"
-                title="Weather Map"
-              />
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
+              {showEvacuationMap ? (
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-4 sm:p-6">
+                  <EvacuationMap />
+                </div>
+              ) : (
+                <iframe
+                  src={getWeatherMapUrl()}
+                  className="w-full h-full rounded-2xl border border-slate-700 shadow-inner hover:shadow-lg transition-all duration-300"
+                  title="Weather Map"
+                />
+              )}
             </div>
           </DialogContent>
         </Dialog>
