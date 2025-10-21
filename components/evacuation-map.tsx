@@ -19,7 +19,6 @@ import {
   Building,
   ArrowLeft,
 } from "lucide-react"
-import { getEvacuationDataForLocation } from "@/lib/evacuation-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface FloodZone {
@@ -75,6 +74,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [nearbyZones, setNearbyZones] = useState<FloodZone[]>([])
   const [nearbyRoutes, setNearbyRoutes] = useState<SafeRoute[]>([])
   const [nearbyCenters, setNearbyCenters] = useState<EvacuationCenter[]>([])
+  const [apiLoading, setApiLoading] = useState(false)
 
   const zoneMapImages = {
     "olongapo-1": "/barretto-district-flood-map-evacuation-routes.jpg",
@@ -148,6 +148,57 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     fetchWeatherData()
   }, [locationData])
 
+  useEffect(() => {
+    const fetchEvacuationData = async () => {
+      if (!locationData) return
+
+      setApiLoading(true)
+      try {
+        const response = await fetch(`/api/evacuation?lat=${locationData.lat}&lng=${locationData.lon}`)
+        const result = await response.json()
+
+        if (result.success && result.data) {
+          const evacuationData = result.data
+          const floodZones = evacuationData.floodZones.map((zone: any) => ({
+            ...zone,
+            distance: calculateDistance(locationData.lat, locationData.lon, zone.coordinates[0], zone.coordinates[1]),
+            mapImage: zoneMapImages[zone.id as keyof typeof zoneMapImages],
+            lastUpdated: new Date().toISOString().split("T")[0],
+          }))
+
+          const evacuationCenters = evacuationData.evacuationCenters.map((center: any) => ({
+            ...center,
+            distance: calculateDistance(
+              locationData.lat,
+              locationData.lon,
+              center.coordinates[0],
+              center.coordinates[1],
+            ),
+            image: centerImages[center.id as keyof typeof centerImages],
+            facilities: ["Medical", "Food", "Shelter", "Sanitation"],
+            contact: "+63 912 345 6789",
+          }))
+
+          const safeRoutes = evacuationData.safeRoutes.map((route: any) => ({
+            ...route,
+            status: "clear" as const,
+          }))
+
+          setNearbyZones(floodZones.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0)))
+          setNearbyCenters(evacuationCenters.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0)))
+          setNearbyRoutes(safeRoutes)
+        }
+      } catch (error) {
+        console.error("Error fetching evacuation data:", error)
+      } finally {
+        setApiLoading(false)
+        setLoading(false)
+      }
+    }
+
+    fetchEvacuationData()
+  }, [locationData])
+
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371
     const dLat = ((lat2 - lat1) * Math.PI) / 180
@@ -159,66 +210,25 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     return R * c
   }
 
-  const getAllFloodZones = (): FloodZone[] => {
-    if (!locationData) return []
-
-    const evacuationData = getEvacuationDataForLocation(locationData.lat, locationData.lon)
-
-    const allZones: FloodZone[] = evacuationData.floodZones.map((zone) => ({
-      ...zone,
-      distance: calculateDistance(locationData.lat, locationData.lon, zone.coordinates[0], zone.coordinates[1]),
-      mapImage: zoneMapImages[zone.id as keyof typeof zoneMapImages],
-      lastUpdated: "2024-01-15",
-    }))
-
-    return allZones.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-  }
-
   const getFilteredSafeRoutes = (districtName?: string): SafeRoute[] => {
-    if (!locationData) return []
+    let routes = nearbyRoutes
 
-    const evacuationData = getEvacuationDataForLocation(locationData.lat, locationData.lon)
-    let routes = evacuationData.safeRoutes.map((route) => ({
-      ...route,
-      status: "clear" as const,
-    }))
-
-    // If a district is selected, filter routes that start from that district
     if (districtName) {
-      routes = routes.filter((route) => route.from === districtName)
+      routes = routes.filter((route) => {
+        // Match by exact name or by checking if the route starts from this district
+        return route.from.toLowerCase().includes(districtName.toLowerCase()) || route.from === districtName
+      })
     }
 
     return routes
   }
 
-  const getAllEvacuationCenters = (): EvacuationCenter[] => {
-    if (!locationData) return []
-
-    const evacuationData = getEvacuationDataForLocation(locationData.lat, locationData.lon)
-
-    const allCenters: EvacuationCenter[] = evacuationData.evacuationCenters.map((center) => ({
-      ...center,
-      distance: calculateDistance(locationData.lat, locationData.lon, center.coordinates[0], center.coordinates[1]),
-      image: centerImages[center.id as keyof typeof centerImages],
-      facilities: ["Medical", "Food", "Shelter", "Sanitation"],
-      contact: "+63 912 345 6789",
-    }))
-
-    return allCenters.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-  }
-
   useEffect(() => {
-    if (locationData) {
-      const floodZones = getAllFloodZones()
+    if (locationData && !apiLoading) {
       const safeRoutes = getFilteredSafeRoutes(selectedDistrict || undefined)
-      const evacuationCenters = getAllEvacuationCenters()
-
-      setNearbyZones(floodZones)
       setNearbyRoutes(safeRoutes)
-      setNearbyCenters(evacuationCenters)
-      setLoading(false)
     }
-  }, [locationData, selectedDistrict])
+  }, [selectedDistrict, apiLoading])
 
   useEffect(() => {
     if (weatherData && nearbyZones.length > 0) {
@@ -279,7 +289,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     }
   }
 
-  if (loading) {
+  if (loading || apiLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center gap-2">
@@ -566,7 +576,12 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         {/* District Selector */}
         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
           <label className="text-sm text-slate-300 mb-2 block">Select a district to view evacuation routes:</label>
-          <Select value={selectedDistrict || ""} onValueChange={(value) => setSelectedDistrict(value || null)}>
+          <Select
+            value={selectedDistrict || ""}
+            onValueChange={(value) => {
+              setSelectedDistrict(value || null)
+            }}
+          >
             <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
               <SelectValue placeholder="Choose a district..." />
             </SelectTrigger>
@@ -579,6 +594,17 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             </SelectContent>
           </Select>
         </div>
+
+        {selectedDistrict && nearbyZones.find((z) => z.name === selectedDistrict)?.mapImage && (
+          <div className="rounded-lg overflow-hidden border border-slate-600 bg-slate-800/50">
+            <img
+              src={nearbyZones.find((z) => z.name === selectedDistrict)?.mapImage || "/placeholder.svg"}
+              alt={`${selectedDistrict} evacuation map`}
+              className="w-full h-64 object-cover"
+            />
+            <p className="text-xs text-slate-400 p-2 text-center">Evacuation routes map for {selectedDistrict}</p>
+          </div>
+        )}
 
         {/* Evacuation Routes List */}
         <div className="space-y-3">
