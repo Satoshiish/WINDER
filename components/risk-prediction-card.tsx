@@ -1,6 +1,6 @@
 "use client"
 
-import { Cloud, Droplets, Wind, Mountain, TrendingDown, TrendingUp, Minus } from "lucide-react"
+import { Cloud, Droplets, Wind, Mountain, TrendingDown, TrendingUp, Minus, Zap } from "lucide-react"
 
 interface RiskPrediction {
   category: string
@@ -45,6 +45,8 @@ export function RiskPredictionCard({ risks, loading = false }: RiskPredictionCar
         return <Wind className="w-6 h-6 text-purple-400" />
       case "Landslide Risk":
         return <Mountain className="w-6 h-6 text-yellow-400" />
+      case "Earthquake Risk":
+        return <Zap className="w-6 h-6 text-orange-500" />
       default:
         return null
     }
