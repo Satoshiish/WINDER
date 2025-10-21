@@ -54,6 +54,7 @@ import { EvacuationMap } from "@/components/evacuation-map"
 import { MapView } from "@/components/map-view"
 import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
 import { SMSSettings } from "@/components/sms-settings"
+import { sendSMS } from "@/lib/sms-service" // Add sendSMS import at the top with other imports
 
 interface WeatherData {
   temperature: number
@@ -729,6 +730,23 @@ export default function Home() {
       }
 
       sendPushWithRetry()
+    }
+
+    if (smsPreferences?.enabled && smsPreferences?.phoneNumber) {
+      const smsType = type === "warning" ? "alert" : type === "error" ? "alert" : "weather"
+      const shouldSendSMS =
+        (smsType === "alert" && smsPreferences.riskAlerts) || (smsType === "weather" && smsPreferences.weatherUpdates)
+
+      if (shouldSendSMS) {
+        console.log("[v0] Sending SMS notification:", title)
+        sendSMS({
+          phoneNumber: smsPreferences.phoneNumber,
+          message: `${title}: ${enhancedMessage}`,
+          type: smsType,
+        }).catch((error) => {
+          console.error("[v0] Failed to send SMS:", error)
+        })
+      }
     }
   }
 
