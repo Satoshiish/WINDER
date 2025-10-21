@@ -170,3 +170,168 @@ export function WeatherIndicesSkeleton() {
     </div>
   )
 }
+
+export function EvacuationMapSkeleton() {
+  return (
+    <div className="space-y-6 p-4">
+      {/* Risk Assessment Skeleton */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-lg p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="col-span-2">
+            <Skeleton className="h-6 w-32 mb-3 bg-slate-600/50" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-10 w-10 rounded-lg bg-slate-600/50" />
+              <div className="flex-1">
+                <Skeleton className="h-5 w-40 mb-2 bg-slate-600/50" />
+                <Skeleton className="h-4 w-32 bg-slate-600/50" />
+              </div>
+            </div>
+          </div>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <Skeleton className="h-3 w-16 mb-2 bg-slate-600/50" />
+              <Skeleton className="h-5 w-20 bg-slate-600/50" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Flood Zones Grid Skeleton */}
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-32 bg-slate-600/50" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+              <div className="flex items-center gap-3 mb-3">
+                <Skeleton className="h-10 w-10 rounded-lg bg-slate-600/50" />
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-32 mb-2 bg-slate-600/50" />
+                  <Skeleton className="h-3 w-24 bg-slate-600/50" />
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <Skeleton className="h-3 w-20 bg-slate-600/50" />
+                <Skeleton className="h-3 w-20 bg-slate-600/50" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Evacuation Routes Skeleton */}
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-40 bg-slate-600/50" />
+        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+          <Skeleton className="h-4 w-48 mb-2 bg-slate-600/50" />
+          <Skeleton className="h-10 w-full bg-slate-600/50 rounded" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400">
+              <Skeleton className="h-4 w-40 mb-2 bg-slate-600/50" />
+              <Skeleton className="h-3 w-32 mb-3 bg-slate-600/50" />
+              <div className="flex gap-4">
+                <Skeleton className="h-3 w-16 bg-slate-600/50" />
+                <Skeleton className="h-3 w-16 bg-slate-600/50" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Evacuation Centers Skeleton */}
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-40 bg-slate-600/50" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-32 mb-2 bg-slate-600/50" />
+                  <Skeleton className="h-3 w-40 bg-slate-600/50" />
+                </div>
+                <Skeleton className="h-6 w-12 bg-slate-600/50 rounded" />
+              </div>
+              <Skeleton className="h-2 w-full mb-2 rounded-full bg-slate-600/50" />
+              <Skeleton className="h-3 w-24 bg-slate-600/50" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function EvacuationZoneDetailSkeleton() {
+  return (
+    <div className="space-y-6 p-4">
+      {/* Back Button Skeleton */}
+      <Skeleton className="h-10 w-32 rounded bg-slate-600/50" />
+
+      {/* Zone Details Card Skeleton */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-lg bg-slate-600/50" />
+            <div>
+              <Skeleton className="h-6 w-40 mb-2 bg-slate-600/50" />
+              <Skeleton className="h-4 w-32 bg-slate-600/50" />
+            </div>
+          </div>
+          <Skeleton className="h-8 w-24 rounded bg-slate-600/50" />
+        </div>
+
+        {/* Map Image Skeleton */}
+        <Skeleton className="h-96 w-full rounded-lg bg-slate-600/50" />
+
+        {/* Statistics Grid Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 text-center">
+              <Skeleton className="h-3 w-20 mx-auto mb-2 bg-slate-600/50" />
+              <Skeleton className="h-5 w-16 mx-auto bg-slate-600/50" />
+            </div>
+          ))}
+        </div>
+
+        {/* Routes Section Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-40 bg-slate-600/50" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400">
+                <Skeleton className="h-4 w-32 mb-2 bg-slate-600/50" />
+                <Skeleton className="h-3 w-40 mb-3 bg-slate-600/50" />
+                <div className="flex gap-4">
+                  <Skeleton className="h-3 w-16 bg-slate-600/50" />
+                  <Skeleton className="h-3 w-16 bg-slate-600/50" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Centers Section Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-40 bg-slate-600/50" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-32 mb-2 bg-slate-600/50" />
+                    <Skeleton className="h-3 w-40 bg-slate-600/50" />
+                  </div>
+                  <Skeleton className="h-6 w-16 rounded bg-slate-600/50" />
+                </div>
+                <Skeleton className="h-2 w-full mb-2 rounded-full bg-slate-600/50" />
+                <Skeleton className="h-3 w-32 bg-slate-600/50" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

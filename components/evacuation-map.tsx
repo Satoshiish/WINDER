@@ -12,7 +12,6 @@ import {
   Shield,
   Wind,
   TrendingUp,
-  Loader2,
   Users,
   Clock,
   Route,
@@ -20,6 +19,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { EvacuationMapSkeleton, EvacuationZoneDetailSkeleton } from "@/components/skeletons/weather-skeleton"
 
 interface FloodZone {
   id: string
@@ -290,17 +290,14 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   }
 
   if (loading || apiLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading evacuation map for your location...</p>
-        </div>
-      </div>
-    )
+    return <EvacuationMapSkeleton />
   }
 
   if (selectedZone) {
+    if (apiLoading) {
+      return <EvacuationZoneDetailSkeleton />
+    }
+
     return (
       <div className="space-y-6 p-4">
         {/* Back Button */}
