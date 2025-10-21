@@ -48,7 +48,7 @@ export function SMSSettings({ onSave }: SMSSettingsProps) {
     // Validate phone number if SMS is enabled
     if (smsEnabled && phoneNumber.trim()) {
       if (!validatePhoneNumber(phoneNumber)) {
-        setValidationError("Please enter a valid phone number (e.g., +1234567890 or 1234567890)")
+        setValidationError("Please enter a valid Philippine phone number (+639939487669 or 09939487669)")
         return
       }
     }
@@ -119,17 +119,17 @@ export function SMSSettings({ onSave }: SMSSettingsProps) {
         <div className="space-y-3">
           <Label className="text-white font-medium flex items-center gap-2">
             <Phone className="w-4 h-4" />
-            Phone Number
+            Philippine Phone Number
           </Label>
           <Input
             type="tel"
-            placeholder="+1 (555) 123-4567 or 5551234567"
+            placeholder="+639939487669 or 09939487669"
             value={phoneNumber}
             onChange={handlePhoneNumberChange}
             className="bg-slate-800/70 border border-slate-700/60 text-white placeholder:text-slate-500 rounded-xl h-11"
           />
           <p className="text-xs text-slate-400">
-            Enter your phone number in E.164 format or standard format. We support international numbers.
+            Enter your Philippine phone number in international format (+639XXXXXXXXX) or local format (09XXXXXXXXX).
           </p>
         </div>
       )}
