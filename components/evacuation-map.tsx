@@ -72,6 +72,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [loading, setLoading] = useState(true)
   const [locationData, setLocationData] = useState<{ lat: number; lon: number } | null>(null)
   const [nearbyZones, setNearbyZones] = useState<FloodZone[]>([])
+  const [allRoutes, setAllRoutes] = useState<SafeRoute[]>([])
   const [nearbyRoutes, setNearbyRoutes] = useState<SafeRoute[]>([])
   const [nearbyCenters, setNearbyCenters] = useState<EvacuationCenter[]>([])
   const [apiLoading, setApiLoading] = useState(false)
@@ -186,6 +187,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
 
           setNearbyZones(floodZones.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0)))
           setNearbyCenters(evacuationCenters.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0)))
+          setAllRoutes(safeRoutes)
           setNearbyRoutes(safeRoutes)
         }
       } catch (error) {
@@ -211,7 +213,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   }
 
   const getFilteredSafeRoutes = (districtName?: string): SafeRoute[] => {
-    let routes = nearbyRoutes
+    let routes = allRoutes
 
     if (districtName) {
       routes = routes.filter((route) => {
@@ -224,11 +226,11 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   }
 
   useEffect(() => {
-    if (locationData && !apiLoading) {
+    if (!apiLoading) {
       const safeRoutes = getFilteredSafeRoutes(selectedDistrict || undefined)
       setNearbyRoutes(safeRoutes)
     }
-  }, [selectedDistrict, apiLoading])
+  }, [selectedDistrict, apiLoading, allRoutes])
 
   useEffect(() => {
     if (weatherData && nearbyZones.length > 0) {
