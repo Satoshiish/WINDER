@@ -93,24 +93,52 @@ export function saveSMSPreferences(preferences: SMSPreferences): void {
 }
 
 /**
- * Validate phone number format
+ * Validate Philippine phone number format
+ * Updated to only accept Philippine numbers in +639XXXXXXXXX or 09XXXXXXXXX format
  */
 export function validatePhoneNumber(phoneNumber: string): boolean {
-  // E.164 format validation: +1234567890 or variations
-  const phoneRegex = /^\+?[1-9]\d{1,14}$/
-  return phoneRegex.test(phoneNumber.replace(/\D/g, ""))
+  // Remove all non-digit characters for validation
+  const cleaned = phoneNumber.replace(/\D/g, "")
+
+  // Philippine numbers: 63 (country code) + 9 (mobile prefix) + 9 digits = 12 digits total
+  // OR local format: 09 + 9 digits = 11 digits total
+
+  // Check if it's international format: +639XXXXXXXXX (63 + 9 + 9 digits)
+  if (phoneNumber.startsWith("+63")) {
+    return cleaned === "63" + cleaned.slice(2) && cleaned.length === 12 && cleaned.startsWith("639")
+  }
+
+  // Check if it's local format: 09XXXXXXXXX (0 + 9 + 9 digits)
+  if (phoneNumber.startsWith("0")) {
+    return cleaned.length === 11 && cleaned.startsWith("09")
+  }
+
+  // Check if it's just digits in international format without +: 639XXXXXXXXX
+  if (!phoneNumber.includes("+") && !phoneNumber.startsWith("0")) {
+    return cleaned.length === 12 && cleaned.startsWith("639")
+  }
+
+  return false
 }
 
 /**
- * Format phone number to E.164 format
+ * Format Philippine phone number to E.164 format (+639XXXXXXXXX)
+ * Updated to convert both +639... and 09... formats to E.164
  */
 export function formatPhoneNumber(phoneNumber: string): string {
+  // Remove all non-digit characters
   const cleaned = phoneNumber.replace(/\D/g, "")
-  if (cleaned.length === 10) {
-    return "+1" + cleaned // Assume US number
+
+  // If it's local format (09...), convert to international (+639...)
+  if (cleaned.startsWith("09")) {
+    return "+63" + cleaned.slice(1)
   }
-  if (cleaned.length === 11 && cleaned.startsWith("1")) {
+
+  // If it's already international format (639...), just add +
+  if (cleaned.startsWith("639")) {
     return "+" + cleaned
   }
+
+  // Fallback: just add + prefix
   return "+" + cleaned
 }
