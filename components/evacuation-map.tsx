@@ -20,6 +20,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import { getEvacuationDataForLocation } from "@/lib/evacuation-data"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface FloodZone {
   id: string
@@ -66,6 +67,7 @@ interface EvacuationMapProps {
 export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [selectedZone, setSelectedZone] = useState<FloodZone | null>(null)
   const [selectedCenter, setSelectedCenter] = useState<EvacuationCenter | null>(null)
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
   const [weatherData, setWeatherData] = useState<any>(null)
   const [riskAssessment, setRiskAssessment] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -172,14 +174,21 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     return allZones.sort((a, b) => (a.distance || 0) - (b.distance || 0))
   }
 
-  const getAllSafeRoutes = (): SafeRoute[] => {
+  const getFilteredSafeRoutes = (districtName?: string): SafeRoute[] => {
     if (!locationData) return []
 
     const evacuationData = getEvacuationDataForLocation(locationData.lat, locationData.lon)
-    return evacuationData.safeRoutes.map((route) => ({
+    let routes = evacuationData.safeRoutes.map((route) => ({
       ...route,
       status: "clear" as const,
     }))
+
+    // If a district is selected, filter routes that start from that district
+    if (districtName) {
+      routes = routes.filter((route) => route.from === districtName)
+    }
+
+    return routes
   }
 
   const getAllEvacuationCenters = (): EvacuationCenter[] => {
@@ -201,7 +210,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   useEffect(() => {
     if (locationData) {
       const floodZones = getAllFloodZones()
-      const safeRoutes = getAllSafeRoutes()
+      const safeRoutes = getFilteredSafeRoutes(selectedDistrict || undefined)
       const evacuationCenters = getAllEvacuationCenters()
 
       setNearbyZones(floodZones)
@@ -209,7 +218,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
       setNearbyCenters(evacuationCenters)
       setLoading(false)
     }
-  }, [locationData])
+  }, [locationData, selectedDistrict])
 
   useEffect(() => {
     if (weatherData && nearbyZones.length > 0) {
@@ -506,7 +515,10 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           {nearbyZones.map((zone) => (
             <div
               key={zone.id}
-              onClick={() => setSelectedZone(zone)}
+              onClick={() => {
+                setSelectedZone(zone)
+                setSelectedDistrict(zone.name)
+              }}
               className={`p-4 rounded-lg cursor-pointer transition-all hover:scale-105 border-2 ${getRiskColor(zone.riskLevel)} backdrop-blur-sm bg-gradient-to-r from-slate-800/50 to-slate-700/50`}
             >
               <div className="flex items-center gap-3 mb-3">
@@ -530,6 +542,95 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-white flex items-center gap-2">
+            <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
+            Evacuation Routes
+          </h2>
+          {selectedDistrict && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedDistrict(null)}
+              className="text-xs text-slate-400 hover:text-slate-200"
+            >
+              Clear Filter
+            </Button>
+          )}
+        </div>
+
+        {/* District Selector */}
+        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+          <label className="text-sm text-slate-300 mb-2 block">Select a district to view evacuation routes:</label>
+          <Select value={selectedDistrict || ""} onValueChange={(value) => setSelectedDistrict(value || null)}>
+            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+              <SelectValue placeholder="Choose a district..." />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              {nearbyZones.map((zone) => (
+                <SelectItem key={zone.id} value={zone.name} className="text-white">
+                  {zone.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Evacuation Routes List */}
+        <div className="space-y-3">
+          {nearbyRoutes.length > 0 ? (
+            nearbyRoutes.map((route) => (
+              <div
+                key={route.id}
+                className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400 backdrop-blur-sm"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 className="font-semibold text-white text-sm">{route.name}</h4>
+                    <p className="text-slate-300 text-xs">
+                      {route.from} → {route.to}
+                    </p>
+                  </div>
+                  <Badge className={getRouteStatusColor(route.status)}>{route.status}</Badge>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-slate-300">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{route.estimatedTime} min</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Navigation className="h-3 w-3" />
+                    <span>{route.distance}km</span>
+                  </div>
+                </div>
+                {route.hazards.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {route.hazards.map((hazard, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="bg-orange-500/20 text-orange-400 border-orange-400 text-xs"
+                      >
+                        {hazard}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-center">
+              <p className="text-slate-400 text-sm">
+                {selectedDistrict
+                  ? `No evacuation routes found for ${selectedDistrict}`
+                  : "Select a district to view evacuation routes"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
