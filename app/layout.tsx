@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { WeatherProvider } from "@/contexts/weather-context"
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context"
 import { LocationSharingProvider } from "@/contexts/location-sharing-context"
+import { LanguageProvider } from "@/contexts/language-context"
 import { AuthProvider } from "@/hooks/use-auth"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -89,14 +90,16 @@ export default function RootLayout({
       <body className="font-sans filipino-pattern">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <UserPreferencesProvider>
-              <WeatherProvider>
-                <LocationSharingProvider>
-                  {children}
-                  <Toaster />
-                </LocationSharingProvider>
-              </WeatherProvider>
-            </UserPreferencesProvider>
+            <LanguageProvider>
+              <UserPreferencesProvider>
+                <WeatherProvider>
+                  <LocationSharingProvider>
+                    {children}
+                    <Toaster />
+                  </LocationSharingProvider>
+                </WeatherProvider>
+              </UserPreferencesProvider>
+            </LanguageProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

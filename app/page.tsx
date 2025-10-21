@@ -55,6 +55,8 @@ import { MapView } from "@/components/map-view"
 import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
 import { SMSSettings } from "@/components/sms-settings"
 import { sendSMS } from "@/lib/sms-service" // Add sendSMS import at the top with other imports
+import { LanguageSelector } from "@/components/language-selector"
+import { useLanguage } from "@/contexts/language-context"
 
 interface WeatherData {
   temperature: number
@@ -141,6 +143,7 @@ export default function Home() {
   const { user } = useAuth() // Use custom auth instead of Clerk
   // const {user} = useUser() // Get user object
   const { addSharedLocation } = useLocationSharing()
+  const { t, language } = useLanguage()
 
   const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -2960,7 +2963,7 @@ export default function Home() {
                   onClick={() => setActiveView("dashboard")}
                 >
                   <Sun className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">Home</span>
+                  <span className="text-[11px] font-medium">{t("nav.dashboard")}</span>
                 </button>
 
                 {/* Search */}
@@ -2973,7 +2976,7 @@ export default function Home() {
                   onClick={() => setMobileSearchOpen(true)}
                 >
                   <Search className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">Search</span>
+                  <span className="text-[11px] font-medium">{t("nav.search")}</span>
                 </button>
 
                 {/* Map */}
@@ -2986,7 +2989,7 @@ export default function Home() {
                   onClick={() => setActiveView("map")}
                 >
                   <MapPin className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">Map</span>
+                  <span className="text-[11px] font-medium">{t("nav.map")}</span>
                 </button>
 
                 {/* Social */}
@@ -2999,7 +3002,7 @@ export default function Home() {
                   onClick={() => setActiveView("social")}
                 >
                   <Users className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">Social</span>
+                  <span className="text-[11px] font-medium">{t("nav.social")}</span>
                 </button>
 
                 {/* Quick Actions */}
@@ -3014,7 +3017,7 @@ export default function Home() {
                   }}
                 >
                   <Zap className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">Quick</span>
+                  <span className="text-[11px] font-medium">{t("nav.quick")}</span>
                 </button>
 
                 {/* SOS */}
@@ -3023,7 +3026,7 @@ export default function Home() {
                   onClick={() => setEmergencyModalOpen(true)}
                 >
                   <Phone className="h-5 w-5 mb-1" />
-                  <span className="text-[11px] font-medium">SOS</span>
+                  <span className="text-[11px] font-medium">{t("nav.sos")}</span>
                 </button>
               </div>
             </div>
@@ -3036,7 +3039,7 @@ export default function Home() {
                     <Cloud className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-semibold text-blue-400">WINDER+</h1>
+                    <h1 className="text-lg font-semibold text-blue-400 mb-1">WINDER+</h1>
                     <div className="flex items-center space-x-1">
                       <MapPin className="h-3 w-3 text-slate-400" />
                       <span className="text-sm text-slate-300">
@@ -3079,7 +3082,7 @@ export default function Home() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  Search Location
+                  {t("search.title")}
                 </h2>
                 <button
                   onClick={() => {
@@ -3093,22 +3096,24 @@ export default function Home() {
               </div>
 
               <div className="relative mb-6">
+                {/* Update search placeholder */}
                 <input
                   type="text"
-                  placeholder="Search for cities..."
+                  placeholder={t("search.placeholder")}
                   value={searchLocation}
                   onChange={(e) => handleSearchInputChange(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
-                  className={`w-full px-4 py-3 text-base bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 ${
-                    searchLoading ? "text-white/50" : "text-white"
+                  className={`w-full px-4 py-3 text-base bg-slate-700/50 border border-slate-600/50 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 ${
+                    searchLoading ? "text-white/50 placeholder-white/40" : "text-white placeholder-slate-400"
                   }`}
                 />
+                {/* Update search button */}
                 <Button
                   onClick={() => handleLocationSearch(searchLocation)}
                   disabled={searchLoading || !searchLocation.trim()}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
                 >
-                  {searchLoading ? <SearchSkeleton /> : "Search"}
+                  {searchLoading ? <SearchSkeleton /> : t("search.button")}
                 </Button>
 
                 {/* Search Suggestions */}
@@ -3142,7 +3147,7 @@ export default function Home() {
                 ) : (
                   <>
                     <MapPin className="h-4 w-4 mr-2" />
-                    Use Current Location
+                    {t("search.currentLocation")}
                   </>
                 )}
               </Button>
@@ -3152,7 +3157,7 @@ export default function Home() {
                 <div className="space-y-3">
                   <h3 className=" mt-2 text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Recent Searches
+                    {t("search.recent")}
                   </h3>
                   <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                     <div className="space-y-2">
@@ -3196,6 +3201,7 @@ export default function Home() {
 
             {/* Navigation Icons */}
             <div className="flex justify-center space-x-2">
+              {/* Update navigation button titles */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "dashboard"
@@ -3203,7 +3209,7 @@ export default function Home() {
                     : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                 }`}
                 onClick={() => setActiveView("dashboard")}
-                title="Dashboard"
+                title={t("nav.dashboard")}
               >
                 <Sun className="h-5 w-5" />
               </button>
@@ -3214,7 +3220,7 @@ export default function Home() {
                     : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                 }`}
                 onClick={() => setActiveView("map")}
-                title="Weather Map"
+                title={t("nav.map")}
               >
                 <MapPin className="h-5 w-5" />
               </button>
@@ -3227,7 +3233,7 @@ export default function Home() {
                 onClick={() => {
                   setAlertsModalOpen(true)
                 }}
-                title="Weather Alerts"
+                title={t("nav.alerts")}
               >
                 <Bell className="h-5 w-5" />
                 {alerts.length > 0 && (
@@ -3243,7 +3249,7 @@ export default function Home() {
                     : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                 }`}
                 onClick={() => setActiveView("social")}
-                title="Social Feed"
+                title={t("nav.social")}
               >
                 <Users className="h-5 w-5" />
               </button>
@@ -3251,14 +3257,14 @@ export default function Home() {
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-red-500/20"
                 onClick={() => setEmergencyModalOpen(true)}
-                title="Emergency Services"
+                title={t("nav.sos")}
               >
                 <Phone className="h-5 w-5" />
               </button>
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700/30 transition-all duration-200"
                 onClick={() => setSettingsModalOpen(true)}
-                title="Settings"
+                title={t("nav.settings")}
               >
                 <Settings className="h-5 w-5" />
               </button>
@@ -3271,13 +3277,14 @@ export default function Home() {
             <div className="space-y-3 relative z-50">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                Search Location
+                {t("search.title")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="relative">
+                  {/* Update search placeholder */}
                   <input
                     type="text"
-                    placeholder="Search for cities..."
+                    placeholder={t("search.placeholder")}
                     value={searchLocation}
                     onChange={(e) => handleSearchInputChange(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
@@ -3286,12 +3293,13 @@ export default function Home() {
                     }`}
                   />
 
+                  {/* Update search button */}
                   <Button
                     onClick={() => handleLocationSearch(searchLocation)}
                     disabled={searchLoading || !searchLocation.trim()}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
                   >
-                    {searchLoading ? <SearchSkeleton /> : "Search"}
+                    {searchLoading ? <SearchSkeleton /> : t("search.button")}
                   </Button>
 
                   {/* Search Suggestions */}
@@ -3324,7 +3332,7 @@ export default function Home() {
                   ) : (
                     <>
                       <MapPin className="h-4 w-4 mr-2" />
-                      Use Current Location
+                      {t("search.currentLocation")}
                     </>
                   )}
                 </Button>
@@ -3333,32 +3341,34 @@ export default function Home() {
 
             {/* Quick Actions */}
             <div className="space-y-3">
+              {/* Update Quick Actions section */}
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                Quick Actions
+                {t("quick.actions")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="space-y-2">
+                  {/* Update quick action buttons */}
                   <button
                     onClick={() => setEmergencyKitModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <Package className="h-4 w-4 text-blue-400" />
-                    Emergency Kit Tracker
+                    {t("quick.emergencyKit")}
                   </button>
                   <button
                     onClick={() => setLocationSharingModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <AlertTriangle className="h-4 w-4 text-red-400" />
-                    Report Emergency
+                    {t("quick.reportEmergency")}
                   </button>
                   <button
                     onClick={() => setWeatherHistoryModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <Clock className="h-4 w-4 text-green-400" />
-                    Weather History
+                    {t("quick.weatherHistory")}
                   </button>
                   {/* Admin Access Button */}
                   <button
@@ -3366,7 +3376,7 @@ export default function Home() {
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <Lock className="h-4 w-4 text-blue-400" />
-                    Admin Access
+                    {t("quick.adminAccess")}
                   </button>
                   {/* Volunteer Access Button */}
                   <button
@@ -3374,7 +3384,7 @@ export default function Home() {
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <Users className="h-4 w-4 text-green-400" />
-                    Volunteer Access
+                    {t("quick.volunteerAccess")}
                   </button>
                   {/* Responder Access Button */}
                   <button
@@ -3382,7 +3392,7 @@ export default function Home() {
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <Shield className="h-4 w-4 text-orange-400" />
-                    Responder Access
+                    {t("quick.responderAccess")}
                   </button>
                 </div>
               </div>
@@ -3390,9 +3400,10 @@ export default function Home() {
 
             {/* Suggested Locations */}
             <div className="space-y-3">
+              {/* Update Suggested Locations section */}
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                Suggested Locations
+                {t("suggested.locations")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="space-y-2">
@@ -3429,7 +3440,7 @@ export default function Home() {
               <div className="space-y-3">
                 <h2 className="text-base font-semibold text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  Recent Searches
+                  {t("search.recent")}
                 </h2>
                 <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                   <div className="space-y-2">
@@ -3498,15 +3509,20 @@ export default function Home() {
                                 {convertTemperature(displayWeather.temperature).toFixed(1)}
                                 {getTemperatureUnit()}
                               </h3>
+                              {/* Update weather display labels */}
                               <p className="text-sm text-slate-300">
-                                Feels like {convertTemperature(displayWeather.feelsLike).toFixed(1)}
+                                {t("weather.feelsLike")} {convertTemperature(displayWeather.feelsLike).toFixed(1)}
                                 {getTemperatureUnit()}
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm text-slate-300">Humidity: {displayWeather.humidity}%</p>
+                              {/* Update weather display labels */}
                               <p className="text-sm text-slate-300">
-                                Wind Speed: {convertWindSpeed(displayWeather.windSpeed).toFixed(1)}
+                                {t("weather.humidity")}: {displayWeather.humidity}%
+                              </p>
+                              {/* Update weather display labels */}
+                              <p className="text-sm text-slate-300">
+                                {t("weather.windSpeed")}: {convertWindSpeed(displayWeather.windSpeed).toFixed(1)}
                                 {getWindSpeedUnit()}
                               </p>
                             </div>
@@ -3526,17 +3542,19 @@ export default function Home() {
               {/* Forecast */}
               {loading || searchLoading ? (
                 <div className="space-y-3">
+                  {/* Update Weather Forecast section */}
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Weather Forecast
+                    {t("weather.forecast")}
                   </h2>
                   <ForecastSkeleton />
                 </div>
               ) : forecast.length > 0 ? (
                 <div className="space-y-3">
+                  {/* Update Weather Forecast section */}
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Weather Forecast
+                    {t("weather.forecast")}
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {forecast.slice(1, 5).map((day) => (
@@ -3569,17 +3587,19 @@ export default function Home() {
               {/* Risk Predictions */}
               {loading || searchLoading ? (
                 <div className="space-y-3">
+                  {/* Update Risk Predictions section */}
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Risk Predictions
+                    {t("weather.risks")}
                   </h2>
                   <RiskPredictionCard loading={true} risks={[]} />
                 </div>
               ) : riskPredictions.length > 0 ? (
                 <div className="space-y-3">
+                  {/* Update Risk Predictions section */}
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Risk Predictions
+                    {t("weather.risks")}
                   </h2>
                   <RiskPredictionCard risks={riskPredictions} />
                 </div>
@@ -3588,9 +3608,10 @@ export default function Home() {
               {/* Weather Indices */}
               {weatherIndices && (
                 <div className="space-y-3">
+                  {/* Update Weather Indices section */}
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                    Weather Indices
+                    {t("weather.indices")}
                   </h2>
                   {/* Update the Weather Indices display section to show UV Index instead of Flood Risk */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -3599,7 +3620,7 @@ export default function Home() {
                       className={`bg-gradient-to-r from-red-600/30 to-red-500/30 rounded-xl p-5 border border-red-500/40 shadow-lg transition-all duration-200`}
                     >
                       <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Thermometer className="w-5 h-5 text-red-400" /> Heat Index
+                        <Thermometer className="w-5 h-5 text-red-400" /> {t("weather.heatIndex")}
                       </h3>
                       <p className="text-2xl font-bold mt-2">{weatherIndices.heatIndex.value.toFixed(1)}°C</p>
                       <p className={`text-sm font-medium ${weatherIndices.heatIndex.color}`}>
@@ -3613,7 +3634,7 @@ export default function Home() {
                       className={`bg-gradient-to-r from-yellow-600/30 to-yellow-500/30 rounded-xl p-5 border border-yellow-500/40 shadow-lg transition-all duration-200`}
                     >
                       <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Sun className="w-5 h-5 text-yellow-400" /> UV Index
+                        <Sun className="w-5 h-5 text-yellow-400" /> {t("weather.uvIndex")}
                       </h3>
                       <p className="text-2xl font-bold mt-2">{weatherIndices.uvIndex.value.toFixed(1)}</p>
                       <p className={`text-sm font-medium ${weatherIndices.uvIndex.color}`}>
@@ -3627,7 +3648,7 @@ export default function Home() {
                       className={`bg-gradient-to-r from-purple-600/30 to-purple-500/30 rounded-xl p-5 border border-purple-500/40 shadow-lg transition-all duration-200`}
                     >
                       <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Wind className="w-5 h-5 text-purple-400" /> Typhoon Impact
+                        <Wind className="w-5 h-5 text-purple-400" /> {t("weather.typhoonImpact")}
                       </h3>
                       <p className="text-2xl font-bold mt-2">{weatherIndices.typhoonImpactIndex.value.toFixed(1)}</p>
                       <p className={`text-sm font-medium ${weatherIndices.typhoonImpactIndex.color}`}>
@@ -3662,7 +3683,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-gradient-to-tr from-blue-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
-                <span>{showEvacuationMap ? "Evacuation Map" : "Weather Map"}</span>
+                {/* Update alerts modal title */}
+                <span className="text-white">{showEvacuationMap ? t("map.evacuation") : t("map.weather")}</span>
               </DialogTitle>
             </DialogHeader>
 
@@ -3699,7 +3721,8 @@ export default function Home() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                   <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                 </div>
-                <span>Emergency Services</span>
+                {/* Update emergency modal title */}
+                <span className="text-white">{t("emergency.title")}</span>
               </DialogTitle>
             </DialogHeader>
 
@@ -3717,7 +3740,7 @@ export default function Home() {
                 }}
               >
                 <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                Call 911 – NDRRMC Emergency
+                {t("emergency.call911")}
               </Button>
 
               <Button
@@ -3732,7 +3755,7 @@ export default function Home() {
                 }}
               >
                 <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                Call 143 – Red Cross
+                {t("emergency.call143")}
               </Button>
 
               <Button
@@ -3747,7 +3770,7 @@ export default function Home() {
                 }}
               >
                 <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                Call 117 – Philippine Coast Guard
+                {t("emergency.call117")}
               </Button>
             </div>
           </DialogContent>
@@ -3769,7 +3792,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-gradient-to-tr from-yellow-500 to-yellow-400 rounded-2xl flex items-center justify-center shadow-lg">
                   <Bell className="w-6 h-6 text-white animate-pulse" />
                 </div>
-                <span className="text-white">Weather Alerts & Warnings</span>
+                {/* Update alerts modal title */}
+                <span className="text-white">{t("alerts.title")}</span>
               </DialogTitle>
             </DialogHeader>
 
@@ -3808,16 +3832,19 @@ export default function Home() {
                         <p className="text-slate-200 mb-4 leading-relaxed text-sm">{alert.description}</p>
 
                         <div className="text-sm text-slate-300 space-y-2">
+                          {/* Update alert details */}
                           <p>
-                            <span className="font-medium text-slate-200">Affected Areas:</span> {alert.areas.join(", ")}
+                            <span className="font-medium text-slate-200">{t("alerts.affectedAreas")}:</span>{" "}
+                            {alert.areas.join(", ")}
                           </p>
                           <p>
-                            <span className="font-medium text-slate-200">Valid Until:</span>{" "}
+                            <span className="font-medium text-slate-200">{t("alerts.validUntil")}:</span>{" "}
                             {formatDate(alert.validUntil)}
                           </p>
                           {alert.issued && (
                             <p>
-                              <span className="font-medium text-slate-200">Issued:</span> {formatDate(alert.issued)}
+                              <span className="font-medium text-slate-200">{t("alerts.issued")}:</span>{" "}
+                              {formatDate(alert.issued)}
                             </p>
                           )}
                         </div>
@@ -3828,7 +3855,8 @@ export default function Home() {
               ) : (
                 <div className="text-center py-16">
                   <Bell className="h-14 w-14 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400 text-lg">No active weather alerts</p>
+                  {/* Update no alerts message */}
+                  <p className="text-slate-400 text-lg">{t("alerts.noAlerts")}</p>
                 </div>
               )}
             </div>
@@ -3869,7 +3897,7 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <span className="text-white">Settings</span>
+                <span className="text-white">{t("settings.title")}</span>
               </DialogTitle>
             </DialogHeader>
 
@@ -3878,11 +3906,13 @@ export default function Home() {
               className="flex-1 overflow-y-auto py-6 px-5 sm:px-6 space-y-8
               [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             >
+              <LanguageSelector />
+
               {/* Temperature Unit */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
-                  Temperature Unit
+                  {t("settings.temperature")}
                 </h3>
                 <div className="flex space-x-3">
                   {["celsius", "fahrenheit"].map((unit) => (
@@ -3896,7 +3926,7 @@ export default function Home() {
                           : "bg-slate-800/70 hover:bg-slate-700/70 text-slate-300 border border-slate-700/60"
                       }`}
                     >
-                      {unit === "celsius" ? "Celsius (°C)" : "Fahrenheit (°F)"}
+                      {unit === "celsius" ? t("settings.temperature.celsius") : t("settings.temperature.fahrenheit")}
                     </Button>
                   ))}
                 </div>
@@ -3906,7 +3936,7 @@ export default function Home() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
-                  Wind Speed Unit
+                  {t("settings.wind")}
                 </h3>
                 <div className="flex space-x-3">
                   {["kmh", "mph", "ms"].map((unit) => (
@@ -3920,7 +3950,11 @@ export default function Home() {
                           : "bg-slate-800/70 hover:bg-slate-700/70 text-slate-300 border border-slate-700/60"
                       }`}
                     >
-                      {unit === "kmh" ? "km/h" : unit === "mph" ? "mph" : "m/s"}
+                      {unit === "kmh"
+                        ? t("settings.wind.kmh")
+                        : unit === "mph"
+                          ? t("settings.wind.mph")
+                          : t("settings.wind.ms")}
                     </Button>
                   ))}
                 </div>
@@ -3930,10 +3964,10 @@ export default function Home() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
-                  Location Services
+                  {t("settings.location")}
                 </h3>
                 <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
-                  <span className="text-slate-300">Use your location for local weather</span>
+                  <span className="text-slate-300">{t("settings.location.desc")}</span>
                   <Button
                     size="sm"
                     onClick={() => setLocationServicesEnabled(!locationServicesEnabled)}
@@ -3943,7 +3977,7 @@ export default function Home() {
                         : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
                     }`}
                   >
-                    {locationServicesEnabled ? "Enabled" : "Disabled"}
+                    {locationServicesEnabled ? t("settings.enabled") : t("settings.disabled")}
                   </Button>
                 </div>
               </div>
@@ -3952,10 +3986,10 @@ export default function Home() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
-                  Notifications
+                  {t("settings.notifications")}
                 </h3>
                 <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
-                  <span className="text-slate-300">Enable weather alerts and updates</span>
+                  <span className="text-slate-300">{t("settings.notifications.desc")}</span>
                   <Button
                     size="sm"
                     onClick={() => setNotificationsEnabled(!notificationsEnabled)}
@@ -3965,7 +3999,7 @@ export default function Home() {
                         : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
                     }`}
                   >
-                    {notificationsEnabled ? "Enabled" : "Disabled"}
+                    {notificationsEnabled ? t("settings.enabled") : t("settings.disabled")}
                   </Button>
                 </div>
               </div>
@@ -3974,10 +4008,10 @@ export default function Home() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                   <div className="w-1 h-5 bg-indigo-500 rounded-full"></div>
-                  Push Notifications
+                  {t("settings.push")}
                 </h3>
                 <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between">
-                  <span className="text-slate-300">Enable push notifications for alerts</span>
+                  <span className="text-slate-300">{t("settings.push.desc")}</span>
                   <Button
                     size="sm"
                     onClick={() => {
@@ -3994,7 +4028,7 @@ export default function Home() {
                         : "bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 border border-slate-700/60"
                     } ${!notificationsEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    {pushNotificationsEnabled ? "Enabled" : "Disabled"}
+                    {pushNotificationsEnabled ? t("settings.enabled") : t("settings.disabled")}
                   </Button>
                 </div>
               </div>
@@ -4048,9 +4082,10 @@ export default function Home() {
                     <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="text-white text-lg sm:text-xl">Weather History</h2>
+                    {/* Update weather history modal */}
+                    <h2 className="text-white text-lg sm:text-xl">{t("history.title")}</h2>
                     <p className="text-slate-400 text-xs sm:text-sm font-normal">
-                      {getFilteredHistory().length} records found
+                      {getFilteredHistory().length} {t("history.recordsFound")}
                     </p>
                   </div>
                 </div>
@@ -4138,11 +4173,9 @@ export default function Home() {
               ) : (
                 <div className="text-center text-slate-400 py-16">
                   <Clock className="w-16 h-16 mx-auto mb-4 text-slate-600 animate-pulse" />
-                  <h3 className="text-lg font-medium mb-2">No weather history available</h3>
+                  <h3 className="text-lg font-medium mb-2">{t("history.noDataTitle")}</h3>
                   <p className="text-sm">
-                    {historyFilter === "all"
-                      ? "Weather data will appear here as you use the app"
-                      : `No weather data found for the selected time period`}
+                    {historyFilter === "all" ? t("history.noDataDescAll") : t("history.noDataDescFiltered")}
                   </p>
                   {historyFilter !== "all" && (
                     <Button
@@ -4151,7 +4184,7 @@ export default function Home() {
                       size="sm"
                       className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700 rounded-lg"
                     >
-                      View All History
+                      {t("history.viewAll")}
                     </Button>
                   )}
                 </div>
@@ -4175,7 +4208,7 @@ export default function Home() {
           <DialogContent
             className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg
             mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
-            border border-slate-700/60 text-white rounded-2xl sm:rounded-3xl shadow-2xl
+            border border-slate-700/60 rounded-2xl sm:rounded-3xl shadow-2xl
             p-0 overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
@@ -4184,7 +4217,7 @@ export default function Home() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                   <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                 </div>
-                <span>Report Emergency</span>
+                <span>{t("reportEmergency.title")}</span>
               </DialogTitle>
             </DialogHeader>
 
@@ -4192,20 +4225,18 @@ export default function Home() {
               {showEmergencyForm ? (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-slate-300 leading-relaxed">
-                      Please provide your contact information so emergency services can reach you.
-                    </p>
+                    <p className="text-slate-300 leading-relaxed">{t("reportEmergency.contactInfoPrompt")}</p>
                   </div>
 
                   <div className="space-y-3">
                     <div>
                       <Label htmlFor="senderName" className="text-slate-300 text-sm font-medium">
-                        Your Full Name *
+                        {t("reportEmergency.fullName")} *
                       </Label>
                       <Input
                         id="senderName"
                         type="text"
-                        placeholder="Enter your full name"
+                        placeholder={t("reportEmergency.fullNamePlaceholder")}
                         value={emergencyFormData.senderName}
                         onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderName: e.target.value }))}
                         className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
@@ -4215,7 +4246,7 @@ export default function Home() {
 
                     <div>
                       <Label htmlFor="senderPhone" className="text-slate-300 text-sm font-medium">
-                        Phone Number *
+                        {t("reportEmergency.phoneNumber")} *
                       </Label>
                       <Input
                         id="senderPhone"
@@ -4230,7 +4261,7 @@ export default function Home() {
 
                     <div>
                       <Label htmlFor="peopleCount" className="text-slate-300 text-sm font-medium">
-                        Number of People Affected
+                        {t("reportEmergency.peopleAffected")}
                       </Label>
                       <Input
                         id="peopleCount"
@@ -4250,7 +4281,7 @@ export default function Home() {
 
                     <div className="bg-slate-800/30 p-3 rounded-lg">
                       <p className="text-sm text-slate-300">
-                        <strong>Emergency Type:</strong>{" "}
+                        <strong>{t("reportEmergency.typeLabel")}:</strong>{" "}
                         {emergencyFormData.emergencyType.charAt(0).toUpperCase() +
                           emergencyFormData.emergencyType.slice(1)}
                       </p>
@@ -4264,7 +4295,7 @@ export default function Home() {
                       onClick={() => setShowEmergencyForm(false)}
                       className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
                     >
-                      Back
+                      {t("common.back")}
                     </Button>
                     <Button
                       onClick={() =>
@@ -4273,15 +4304,14 @@ export default function Home() {
                       className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white"
                       disabled={!emergencyFormData.senderName.trim() || !emergencyFormData.senderPhone.trim()}
                     >
-                      Send Emergency Report
+                      {t("reportEmergency.sendReportButton")}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <>
                   <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base">
-                    Select the type of emergency to report. Your location will be automatically shared with emergency
-                    services.
+                    {t("reportEmergency.selectTypePrompt")}
                   </p>
 
                   <div className="space-y-2 sm:space-y-3">
@@ -4298,8 +4328,8 @@ export default function Home() {
                         <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                       </div>
                       <div className="text-left flex-1 min-w-0">
-                        <div className="font-semibold text-xs sm:text-sm md:text-base">Medical Emergency</div>
-                        <div className="text-xs opacity-90">Injury, illness, or health crisis</div>
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.medical")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.medicalDesc")}</div>
                       </div>
                     </Button>
 
@@ -4314,8 +4344,8 @@ export default function Home() {
                         <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                       </div>
                       <div className="text-left flex-1 min-w-0">
-                        <div className="font-semibold text-xs sm:text-sm md:text-base">Fire Emergency</div>
-                        <div className="text-xs opacity-90">Fire, smoke, or burning hazard</div>
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.fire")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.fireDesc")}</div>
                       </div>
                     </Button>
 
@@ -4330,8 +4360,8 @@ export default function Home() {
                         <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                       </div>
                       <div className="text-left flex-1 min-w-0">
-                        <div className="font-semibold text-xs sm:text-sm md:text-base">Crime Emergency</div>
-                        <div className="text-xs opacity-90">Crime, threat, or safety concern</div>
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.crime")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.crimeDesc")}</div>
                       </div>
                     </Button>
 
@@ -4351,8 +4381,8 @@ export default function Home() {
                         <CloudRain className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                       </div>
                       <div className="text-left flex-1 min-w-0">
-                        <div className="font-semibold text-xs sm:text-sm md:text-base">Natural Disaster</div>
-                        <div className="text-xs opacity-90">Flood, typhoon, earthquake, landslide</div>
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.disaster")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.disasterDesc")}</div>
                       </div>
                     </Button>
 
@@ -4369,14 +4399,14 @@ export default function Home() {
                         <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                       </div>
                       <div className="text-left flex-1 min-w-0">
-                        <div className="font-semibold text-xs sm:text-sm md:text-base">Traffic Accident</div>
-                        <div className="text-xs opacity-90">Vehicle collision or road incident</div>
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.accident")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.accidentDesc")}</div>
                       </div>
                     </Button>
                   </div>
 
                   <div className="pt-4 border-t border-slate-700/50">
-                    <p className="text-slate-400 text-sm text-center mb-3">Or contact emergency services directly:</p>
+                    <p className="text-slate-400 text-sm text-center mb-3">{t("emergency.contactDirectly")}</p>
                     <div className="flex gap-2">
                       <Button
                         className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500
@@ -4384,7 +4414,7 @@ export default function Home() {
                         onClick={() => window.open("tel:911", "_self")}
                       >
                         <Phone className="w-4 h-4 mr-2" />
-                        Call 911
+                        {t("emergency.call911Button")}
                       </Button>
                       <Button
                         className="flex-1 bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500
@@ -4392,7 +4422,7 @@ export default function Home() {
                         onClick={() => window.open("tel:143", "_self")}
                       >
                         <Phone className="w-4 h-4 mr-2" />
-                        Call 143
+                        {t("emergency.call143Button")}
                       </Button>
                     </div>
                   </div>
@@ -4426,13 +4456,13 @@ export default function Home() {
                 <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white animate-pulse" />
                 </div>
-                <span>Quick Actions</span>
+                <span>{t("quick.actions")}</span>
               </DialogTitle>
             </DialogHeader>
 
             <div className="flex-1 p-3 sm:p-4 md:p-6 space-y-1.5 sm:space-y-2 md:space-y-3 max-h-[60vh] sm:max-h-[70vh] overflow-y-auto scrollbar-hide">
               <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base mb-3 sm:mb-4">
-                Access essential features and emergency services quickly.
+                {t("quick.actions.prompt")}
               </p>
 
               <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
@@ -4451,8 +4481,8 @@ export default function Home() {
                     <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">Emergency Kit Tracker</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">Preparedness & inventory</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">{t("quick.emergencyKit")}</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">{t("quick.emergencyKitDesc")}</div>
                   </div>
                 </button>
 
@@ -4471,8 +4501,8 @@ export default function Home() {
                     <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">Report Emergency</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">Alert emergency services</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">{t("quick.reportEmergency")}</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">{t("quick.reportEmergencyDesc")}</div>
                   </div>
                 </button>
 
@@ -4491,8 +4521,8 @@ export default function Home() {
                     <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">Weather History</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">View past weather data</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">{t("quick.weatherHistory")}</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">{t("quick.weatherHistoryDesc")}</div>
                   </div>
                 </button>
 
@@ -4511,8 +4541,8 @@ export default function Home() {
                     <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">Admin Access</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">Administrative dashboard</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">{t("quick.adminAccess")}</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">{t("quick.adminAccessDesc")}</div>
                   </div>
                 </button>
 
@@ -4531,8 +4561,8 @@ export default function Home() {
                     <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">Volunteer Access</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">Field updates and monitoring</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">{t("quick.volunteerAccess")}</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">{t("quick.volunteerAccessDesc")}</div>
                   </div>
                 </button>
 
@@ -4551,8 +4581,8 @@ export default function Home() {
                     <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">Responder Access</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">Emergency response portal</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">{t("quick.responderAccess")}</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">{t("quick.responderAccessDesc")}</div>
                   </div>
                 </button>
               </div>
