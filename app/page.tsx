@@ -53,6 +53,7 @@ import { saveEmergencyReport } from "@/lib/emergency-db"
 import { EvacuationMap } from "@/components/evacuation-map"
 import { MapView } from "@/components/map-view"
 import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
+import { SMSSettings } from "@/components/sms-settings"
 
 interface WeatherData {
   temperature: number
@@ -241,6 +242,26 @@ export default function Home() {
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(true) // Controls the initial emergency prompt
   const [quickActionsModalOpen, setQuickActionsModalOpen] = useState(false)
   const [isQuickActionsFlow, setIsQuickActionsFlow] = useState(false)
+
+  const [smsPreferences, setSmsPreferences] = useState<any>(null)
+  useEffect(() => {
+    // Dynamically import to avoid server-side rendering issues if the service is client-only
+    const initializeSmsPreferences = async () => {
+      try {
+        const smsService = await import("@/lib/sms-service")
+        if (smsService && smsService.getSMSPreferences) {
+          setSmsPreferences(smsService.getSMSPreferences())
+        } else {
+          console.error("[v0] SMS service or getSMSPreferences function not found.")
+          setSmsPreferences(null) // Ensure it's null if not available
+        }
+      } catch (error) {
+        console.error("[v0] Error initializing SMS preferences:", error)
+        setSmsPreferences(null) // Ensure it's null on error
+      }
+    }
+    initializeSmsPreferences()
+  }, [])
 
   const getWeatherIcon = (condition: string, iconCode?: string) => {
     const iconClasses = "h-5 w-5 weather-icon flex-shrink-0"
@@ -2868,7 +2889,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen dark-dashboard text-white">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
       {/* Notifications */}
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
         {notifications
@@ -3959,6 +3980,15 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
+
+              <div className="border-t border-slate-700/50 pt-8">
+                <SMSSettings
+                  onSave={(preferences) => {
+                    setSmsPreferences(preferences)
+                  }}
+                  initialPreferences={smsPreferences} // Pass initial preferences
+                />
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -4231,7 +4261,7 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm">
+                  <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base">
                     Select the type of emergency to report. Your location will be automatically shared with emergency
                     services.
                   </p>
@@ -4512,6 +4542,6 @@ export default function Home() {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </main>
   )
 }
