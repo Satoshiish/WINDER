@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// Twilio configuration - will use environment variables
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN
-const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER
+const PHILSMS_API_TOKEN = process.env.PHILSMS_API_TOKEN
+const PHILSMS_API_URL = process.env.PHILSMS_API_URL || "https://app.philsms.com/api/v3/sms/send"
+const PHILSMS_SENDER_ID = process.env.PHILSMS_SENDER_ID || "WINDERPLUS"
 
 interface SMSPayload {
   phoneNumber: string
@@ -13,81 +12,71 @@ interface SMSPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify environment variables are set
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      console.error("[v0] Twilio configuration missing")
-      return NextResponse.json({ error: "Twilio configuration missing" }, { status: 500 })
+    if (!PHILSMS_API_TOKEN) {
+      console.error("[PhilSMS] Missing API token")
+      return NextResponse.json({ error: "Missing API token" }, { status: 500 })
     }
 
     const body: SMSPayload = await request.json()
     const { phoneNumber, message, type } = body
 
-    console.log("[v0] SMS Request - Phone:", phoneNumber, "Type:", type)
-
-    // Validate phone number format
-    if (!phoneNumber || !/^\+?[1-9]\d{1,14}$/.test(phoneNumber.replace(/\D/g, ""))) {
-      console.error("[v0] Invalid phone number format:", phoneNumber)
-      return NextResponse.json({ error: "Invalid phone number format" }, { status: 400 })
+    if (!phoneNumber || !validatePhoneNumber(phoneNumber)) {
+      return NextResponse.json({ error: "Invalid Philippine phone number" }, { status: 400 })
     }
 
-    // Validate message
     if (!message || message.trim().length === 0) {
-      console.error("[v0] Empty message")
       return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 })
     }
 
-    let formattedPhone = phoneNumber
-    if (!phoneNumber.startsWith("+")) {
-      // Remove all non-digits and add + prefix
-      const cleaned = phoneNumber.replace(/\D/g, "")
-      formattedPhone = "+" + cleaned
+    const formattedPhone = formatPhoneNumber(phoneNumber)
+
+    const payload = {
+      sender_id: PHILSMS_SENDER_ID,
+      recipients: [formattedPhone],
+      message,
     }
 
-    console.log("[v0] Formatted phone number:", formattedPhone)
-    console.log("[v0] From number:", TWILIO_PHONE_NUMBER)
-    console.log("[v0] Message preview:", message.substring(0, 50) + "...")
+    console.log("[PhilSMS] Sending message to", formattedPhone)
 
-    // Create Twilio API request
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`
-
-    const params = new URLSearchParams()
-    params.append("From", TWILIO_PHONE_NUMBER)
-    params.append("To", formattedPhone)
-    params.append("Body", message)
-
-    console.log("[v0] Sending SMS to Twilio API...")
-
-    const response = await fetch(twilioUrl, {
+    const response = await fetch(PHILSMS_API_URL, {
       method: "POST",
       headers: {
-        Authorization: `Basic ${Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${PHILSMS_API_TOKEN}`,
       },
-      body: params.toString(),
+      body: JSON.stringify(payload),
+      cache: "no-store",
     })
 
     const data = await response.json()
+    console.log("[PhilSMS] Response:", data)
 
-    if (!response.ok) {
-      console.error("[v0] Twilio API error:", data)
-      console.error("[v0] Error code:", data.code, "Message:", data.message)
-      return NextResponse.json({ error: data.message || "Failed to send SMS" }, { status: response.status })
+    if (data.error) {
+      console.error("[PhilSMS] API error:", data)
+      return NextResponse.json({ error: data.error }, { status: 500 })
     }
 
-    console.log("[v0] SMS sent successfully - Message SID:", data.sid)
-    console.log("[v0] SMS status:", data.status)
-
     return NextResponse.json(
-      {
-        success: true,
-        messageId: data.sid,
-        type,
-        status: data.status,
-      },
-      { status: 200 },
+      { success: true, type, data },
+      { status: 200 }
     )
-  } catch (error) {
-    console.error("[v0] SMS sending error:", error)
+  } catch (error: any) {
+    console.error("[PhilSMS] Internal error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
+}
+
+function validatePhoneNumber(phoneNumber: string): boolean {
+  const cleaned = phoneNumber.replace(/\D/g, "")
+  return (
+    (cleaned.startsWith("639") && cleaned.length === 12) ||
+    (cleaned.startsWith("09") && cleaned.length === 11)
+  )
+}
+
+function formatPhoneNumber(phoneNumber: string): string {
+  const cleaned = phoneNumber.replace(/\D/g, "")
+  if (cleaned.startsWith("09")) return "+63" + cleaned.slice(1)
+  if (cleaned.startsWith("639")) return "+" + cleaned
+  return "+63" + cleaned
 }
