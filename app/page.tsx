@@ -29,6 +29,7 @@ import {
   Flame,
   Thermometer,
   Wind,
+  Package,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
 import { InlineFeed } from "@/components/social/inline-feed"
@@ -46,11 +47,12 @@ import { RiskPredictionCard } from "@/components/risk-prediction-card"
 
 import { useRouter } from "next/navigation" // Import useRouter
 import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
-// import { useUser } from "@clerk/nextjs" // Import useUser
+// import {useUser} from "@clerk/nextjs" // Import useUser
 import { useLocationSharing } from "@/contexts/location-sharing-context"
 import { saveEmergencyReport } from "@/lib/emergency-db"
 import { EvacuationMap } from "@/components/evacuation-map"
 import { MapView } from "@/components/map-view"
+import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
 
 interface WeatherData {
   temperature: number
@@ -131,11 +133,11 @@ interface WeatherIndices {
   }
 }
 
-export default function WeatherApp() {
+export default function Home() {
   const { toast } = useToast()
   const router = useRouter() // Initialize useRouter
   const { user } = useAuth() // Use custom auth instead of Clerk
-  // const { user } = useUser() // Get user object
+  // const {user} = useUser() // Get user object
   const { addSharedLocation } = useLocationSharing()
 
   const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null)
@@ -161,7 +163,7 @@ export default function WeatherApp() {
   const [forecastModalOpen, setForecastModalOpen] = useState(false)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   const [windModalOpen, setWindModalOpen] = useState(false)
-  const [firstAidModalOpen, setFirstAidModalOpen] = useState(false)
+  const [emergencyKitModalOpen, setEmergencyKitModalOpen] = useState(false)
   const [locationSharingModalOpen, setLocationSharingModalOpen] = useState(false)
   const [weatherHistoryModalOpen, setWeatherHistoryModalOpen] = useState(false)
   const [weatherHistory, setWeatherHistory] = useState<WeatherHistoryEntry[]>([])
@@ -3299,11 +3301,11 @@ export default function WeatherApp() {
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="space-y-2">
                   <button
-                    onClick={() => setFirstAidModalOpen(true)}
+                    onClick={() => setEmergencyKitModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
                   >
-                    <Heart className="h-4 w-4 text-red-400" />
-                    Open First Aid Guide
+                    <Package className="h-4 w-4 text-blue-400" />
+                    Emergency Kit Tracker
                   </button>
                   <button
                     onClick={() => setLocationSharingModalOpen(true)}
@@ -3617,40 +3619,12 @@ export default function WeatherApp() {
             flex flex-col overflow-hidden animate-fadeInScale"
           >
             <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
-              <div className="space-y-3">
-                {/* Title with accent line */}
-                <div className="flex items-center gap-3">
-                  <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-                  <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
-                    {showEvacuationMap ? "Evacuation Map" : "Weather Map"}
-                  </DialogTitle>
+              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
+                <div className="w-12 h-12 bg-gradient-to-tr from-blue-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <MapPin className="w-6 h-6 text-white" />
                 </div>
-
-                {/* Location selector */}
-                <div className="flex items-center gap-2 pl-4">
-                  <MapPin className="w-4 h-4 text-blue-400" />
-                  <Button
-                    onClick={() => setShowEvacuationMap(!showEvacuationMap)}
-                    className={`flex items-center gap-2 ${
-                      showEvacuationMap
-                        ? "bg-slate-800 hover:bg-slate-700 text-white"
-                        : "bg-slate-800 hover:bg-slate-700 text-white"
-                    } text-white rounded-lg px-3 py-1.5 text-sm font-medium shadow-md transition`}
-                  >
-                    {showEvacuationMap ? (
-                      <>
-                        <span className="hidden sm:inline">Weather Map</span>
-                        <span className="sm:hidden">Weather</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="hidden sm:inline">Evacuation Map</span>
-                        <span className="sm:hidden">Evacuation</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
+                <span>{showEvacuationMap ? "Evacuation Map" : "Weather Map"}</span>
+              </DialogTitle>
             </DialogHeader>
 
             {/* Map Content */}
@@ -3990,110 +3964,16 @@ export default function WeatherApp() {
         </Dialog>
       )}
 
-      {/* First Aid Modal */}
-      {firstAidModalOpen && (
-        <Dialog
-          open={firstAidModalOpen}
-          onOpenChange={(open) => {
-            setFirstAidModalOpen(open)
-            if (!open && isQuickActionsFlow) {
-              setTimeout(() => setQuickActionsModalOpen(true), 100)
-            }
-          }}
-        >
-          <DialogContent className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-700/60 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale">
-            {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
-                <div className="w-12 h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Heart className="w-6 h-6 text-white animate-pulse" />
-                </div>
-                First Aid Guide
-              </DialogTitle>
-            </DialogHeader>
-
-            {/* Scrollable Body */}
-            <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
-              <p className="text-slate-300 leading-relaxed">
-                Quick reference for common emergency situations. Always call emergency services for serious injuries.
-              </p>
-
-              {/* Sections */}
-              <div className="space-y-4">
-                <div className="bg-slate-800/40 backdrop-blur rounded-xl p-5 border border-red-500/30 shadow hover:scale-[1.02] transition">
-                  <h3 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" />
-                    Cuts & Bleeding
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Apply direct pressure with clean cloth
-                    <br />
-                    2. Elevate the wound above heart level
-                    <br />
-                    3. Keep pressure until bleeding stops
-                  </p>
-                </div>
-
-                <div className="bg-slate-800/40 backdrop-blur rounded-xl p-5 border border-green-500/30 shadow hover:scale-[1.02] transition">
-                  <h3 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
-                    <Heart className="w-5 h-5" />
-                    CPR Basics
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Check responsiveness and breathing
-                    <br />
-                    2. Call 911 immediately
-                    <br />
-                    3. 30 chest compressions, 2 rescue breaths
-                    <br />
-                    4. Repeat until help arrives
-                  </p>
-                </div>
-
-                <div className="bg-slate-800/40 backdrop-blur rounded-xl p-5 border border-orange-500/30 shadow hover:scale-[1.02] transition">
-                  <h3 className="font-semibold text-orange-400 mb-2 flex items-center gap-2">
-                    <Zap className="w-5 h-5" />
-                    Burns
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Cool with running water for 10-20 minutes
-                    <br />
-                    2. Remove jewelry/clothing from area
-                    <br />
-                    3. Cover with sterile gauze
-                    <br />
-                    4. Do not use ice or butter
-                  </p>
-                </div>
-
-                <div className="bg-slate-800/40 backdrop-blur rounded-xl p-5 border border-blue-500/30 shadow hover:scale-[1.02] transition">
-                  <h3 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" />
-                    Choking
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    1. Encourage coughing if conscious
-                    <br />
-                    2. 5 back blows between shoulder blades
-                    <br />
-                    3. 5 abdominal thrusts (Heimlich)
-                    <br />
-                    4. Repeat until object is expelled
-                  </p>
-                </div>
-              </div>
-
-              {/* Emergency Call Button */}
-              <Button
-                className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl py-3 font-semibold mt-6 shadow-lg transition hover:scale-[1.02]"
-                onClick={() => window.open("tel:911", "_self")}
-              >
-                <Phone className="w-5 h-5 mr-2" /> Call Emergency Services (911)
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Emergency Kit Tracker Component */}
+      <EmergencyKitTracker
+        open={emergencyKitModalOpen}
+        onOpenChange={(open) => {
+          setEmergencyKitModalOpen(open)
+          if (!open && isQuickActionsFlow) {
+            setTimeout(() => setQuickActionsModalOpen(true), 100)
+          }
+        }}
+      />
 
       {/* Weather History Modal */}
       {weatherHistoryModalOpen && (
@@ -4508,23 +4388,23 @@ export default function WeatherApp() {
               </p>
 
               <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
-                {/* First Aid Guide */}
+                {/* Emergency Kit Tracker */}
                 <button
                   onClick={() => {
                     setIsQuickActionsFlow(true)
-                    setFirstAidModalOpen(true)
+                    setEmergencyKitModalOpen(true)
                     setQuickActionsModalOpen(false)
                   }}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
-                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-red-500/20
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
+                  text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-blue-500/20
                   flex items-center gap-2 sm:gap-3 md:gap-4 group"
                 >
                   <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
-                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                    <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <div className="font-semibold text-xs sm:text-sm md:text-base">First Aid Guide</div>
-                    <div className="text-xs opacity-90 truncate hidden sm:block">Emergency medical procedures</div>
+                    <div className="font-semibold text-xs sm:text-sm md:text-base">Emergency Kit Tracker</div>
+                    <div className="text-xs opacity-90 truncate hidden sm:block">Preparedness & inventory</div>
                   </div>
                 </button>
 

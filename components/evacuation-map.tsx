@@ -17,6 +17,8 @@ import {
   Route,
   Building,
   ArrowLeft,
+  X,
+  Maximize2,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EvacuationMapSkeleton, EvacuationZoneDetailSkeleton } from "@/components/skeletons/weather-skeleton"
@@ -76,6 +78,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [nearbyRoutes, setNearbyRoutes] = useState<SafeRoute[]>([])
   const [nearbyCenters, setNearbyCenters] = useState<EvacuationCenter[]>([])
   const [apiLoading, setApiLoading] = useState(false)
+  const [fullScreenImage, setFullScreenImage] = useState<{ url: string; title: string } | null>(null)
 
   const zoneMapImages = {
     "olongapo-1": "/barretto-district-flood-map-evacuation-routes.jpg",
@@ -295,6 +298,34 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     return <EvacuationMapSkeleton />
   }
 
+  if (fullScreenImage) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-4xl max-h-[90vh]">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setFullScreenImage(null)}
+            className="absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 text-white z-10"
+          >
+            <X className="h-6 w-6" />
+          </Button>
+          <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-700">
+            <img
+              src={fullScreenImage.url || "/placeholder.svg"}
+              alt={fullScreenImage.title}
+              className="w-full h-auto max-h-[80vh] object-contain"
+            />
+            <div className="p-4 bg-slate-800 border-t border-slate-700">
+              <p className="text-white text-sm font-semibold">{fullScreenImage.title}</p>
+              <p className="text-slate-400 text-xs mt-1">Click the X button or press Escape to close</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (selectedZone) {
     if (apiLoading) {
       return <EvacuationZoneDetailSkeleton />
@@ -331,14 +362,24 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Hardcoded Map Image */}
             {selectedZone.mapImage && (
-              <div className="rounded-lg overflow-hidden border border-slate-600">
+              <div
+                className="rounded-lg overflow-hidden border border-slate-600 cursor-pointer group relative"
+                onClick={() =>
+                  setFullScreenImage({
+                    url: selectedZone.mapImage || "",
+                    title: `${selectedZone.name} - Evacuation Routes Map`,
+                  })
+                }
+              >
                 <img
                   src={selectedZone.mapImage || "/placeholder.svg"}
                   alt={`${selectedZone.name} evacuation map`}
-                  className="w-full h-96 object-cover"
+                  className="w-full h-96 object-cover group-hover:opacity-75 transition-opacity"
                 />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                  <Maximize2 className="h-8 w-8 text-white" />
+                </div>
               </div>
             )}
 
@@ -595,13 +636,27 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         </div>
 
         {selectedDistrict && nearbyZones.find((z) => z.name === selectedDistrict)?.mapImage && (
-          <div className="rounded-lg overflow-hidden border border-slate-600 bg-slate-800/50">
+          <div
+            className="rounded-lg overflow-hidden border border-slate-600 bg-slate-800/50 cursor-pointer group relative"
+            onClick={() => {
+              const zone = nearbyZones.find((z) => z.name === selectedDistrict)
+              if (zone?.mapImage) {
+                setFullScreenImage({
+                  url: zone.mapImage,
+                  title: `${selectedDistrict} - Evacuation Routes Map`,
+                })
+              }
+            }}
+          >
             <img
               src={nearbyZones.find((z) => z.name === selectedDistrict)?.mapImage || "/placeholder.svg"}
               alt={`${selectedDistrict} evacuation map`}
-              className="w-full h-64 object-cover"
+              className="w-full h-64 object-cover group-hover:opacity-75 transition-opacity"
             />
-            <p className="text-xs text-slate-400 p-2 text-center">Evacuation routes map for {selectedDistrict}</p>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+              <Maximize2 className="h-6 w-6 text-white" />
+            </div>
+            <p className="text-xs text-slate-400 p-2 text-center">Click to view full map for {selectedDistrict}</p>
           </div>
         )}
 
