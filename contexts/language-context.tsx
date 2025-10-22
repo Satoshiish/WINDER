@@ -167,6 +167,49 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.stable": "Stable",
     "risk.increasing": "Increasing",
     "risk.decreasing": "Decreasing",
+
+    // Navigation
+  "nav.dashboard": "Dashboard",
+  "nav.search": "Search",
+  "nav.map": "Map",
+  "nav.social": "Social",
+  "nav.alerts": "Alerts",
+  "nav.sos": "Emergency",
+  "nav.settings": "Settings",
+  "nav.quick": "Quick Actions",
+
+  // Map
+  "map.weather": "Weather Map",
+  "map.evacuation": "Evacuation Map",
+
+  // Alerts
+  "alerts.title": "Weather Alerts",
+  "alerts.affectedAreas": "Affected Areas",
+  "alerts.validUntil": "Valid Until",
+  "alerts.issued": "Issued",
+  "alerts.noAlerts": "No active weather alerts",
+
+  // History
+  "history.title": "Weather History",
+  "history.recordsFound": "records found",
+  "history.noDataTitle": "No weather history",
+  "history.noDataDescAll": "Weather history will appear here as you check different locations",
+  "history.noDataDescFiltered": "No weather data found for the selected filter",
+  "history.viewAll": "View All History",
+
+  // Report Emergency
+  "reportEmergency.title": "Report Emergency",
+  "reportEmergency.contactInfoPrompt": "Please provide your contact information for emergency services",
+  "reportEmergency.fullName": "Full Name",
+  "reportEmergency.fullNamePlaceholder": "Enter your full name",
+  "reportEmergency.phoneNumber": "Phone Number",
+  "reportEmergency.peopleAffected": "Number of People Affected",
+  "reportEmergency.typeLabel": "Emergency Type",
+  "reportEmergency.selectTypePrompt": "Select the type of emergency",
+  "reportEmergency.sendReportButton": "Send Report",
+
+  // Common
+  "common.back": "Back",
   },
   tl: {
     // App Header
@@ -321,6 +364,49 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.stable": "Matatag",
     "risk.increasing": "Tumataas",
     "risk.decreasing": "Bumababa",
+
+    // Navigation
+  "nav.dashboard": "Dashboard",
+  "nav.search": "Maghanap",
+  "nav.map": "Mapa",
+  "nav.social": "Social",
+  "nav.alerts": "Mga Alerto",
+  "nav.sos": "Emergency",
+  "nav.settings": "Mga Setting",
+  "nav.quick": "Mabilis na Aksyon",
+
+  // Map
+  "map.weather": "Mapa ng Panahon",
+  "map.evacuation": "Mapa ng Ebakwasyon",
+
+  // Alerts
+  "alerts.title": "Mga Alerto sa Panahon",
+  "alerts.affectedAreas": "Mga Apektadong Lugar",
+  "alerts.validUntil": "Wastong Hanggang",
+  "alerts.issued": "Inilabas",
+  "alerts.noAlerts": "Walang aktibong mga alerto sa panahon",
+
+  // History
+  "history.title": "Kasaysayan ng Panahon",
+  "history.recordsFound": "mga rekord na natagpuan",
+  "history.noDataTitle": "Walang kasaysayan ng panahon",
+  "history.noDataDescAll": "Lalabas ang kasaysayan ng panahon habang nagche-check ka ng iba't ibang lokasyon",
+  "history.noDataDescFiltered": "Walang nakitang data ng panahon para sa napiling filter",
+  "history.viewAll": "Tingnan ang Lahat ng Kasaysayan",
+
+  // Report Emergency
+  "reportEmergency.title": "Mag-ulat ng Emergency",
+  "reportEmergency.contactInfoPrompt": "Pakibigay ang iyong impormasyon ng contact para sa mga emergency service",
+  "reportEmergency.fullName": "Buong Pangalan",
+  "reportEmergency.fullNamePlaceholder": "Ilagay ang iyong buong pangalan",
+  "reportEmergency.phoneNumber": "Numero ng Telepono",
+  "reportEmergency.peopleAffected": "Bilang ng mga Apektadong Tao",
+  "reportEmergency.typeLabel": "Uri ng Emergency",
+  "reportEmergency.selectTypePrompt": "Piliin ang uri ng emergency",
+  "reportEmergency.sendReportButton": "Ipadala ang Ulat",
+
+  // Common
+  "common.back": "Bumalik",
   },
 }
 

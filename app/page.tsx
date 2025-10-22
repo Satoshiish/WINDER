@@ -2976,6 +2976,7 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setActiveView("dashboard")}
+                  title={t("nav.dashboard")}
                 >
                   <Sun className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.dashboard")}</span>
@@ -2989,6 +2990,7 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setMobileSearchOpen(true)}
+                  title={t("nav.search")}
                 >
                   <Search className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.search")}</span>
@@ -3002,6 +3004,7 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setActiveView("map")}
+                  title={t("nav.map")}
                 >
                   <MapPin className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.map")}</span>
@@ -3015,6 +3018,7 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setActiveView("social")}
+                  title={t("nav.social")}
                 >
                   <Users className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.social")}</span>
@@ -3030,6 +3034,7 @@ export default function Home() {
                   onClick={() => {
                     setQuickActionsModalOpen(true)
                   }}
+                  title={t("nav.quick")}
                 >
                   <Zap className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.quick")}</span>
@@ -3039,6 +3044,7 @@ export default function Home() {
                 <button
                   className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
                   onClick={() => setEmergencyModalOpen(true)}
+                  title={t("nav.sos")}
                 >
                   <Phone className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.sos")}</span>
@@ -3069,6 +3075,7 @@ export default function Home() {
                     size="sm"
                     onClick={() => setAlertsModalOpen(true)}
                     className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg relative"
+                    title={t("nav.alerts")}
                   >
                     <Bell className="h-4 w-4" />
                     {alerts.length > 0 && (
@@ -3082,6 +3089,7 @@ export default function Home() {
                     size="sm"
                     onClick={() => setSettingsModalOpen(true)}
                     className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg"
+                    title={t("nav.settings")}
                   >
                     <Settings className="h-4 w-4" />
                   </Button>
@@ -3091,6 +3099,7 @@ export default function Home() {
           </>
         )}
 
+        {/* Mobile Search Modal */}
         {mobileSearchOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
             <div className="fixed inset-x-0 top-0 bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-md border-b border-slate-700/50 p-6">
@@ -3105,13 +3114,13 @@ export default function Home() {
                     setShowSuggestions(false)
                   }}
                   className="text-slate-400 hover:text-white transition-colors"
+                  title={t("common.close")}
                 >
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
               <div className="relative mb-6">
-                {/* Update search placeholder */}
                 <input
                   type="text"
                   placeholder={t("search.placeholder")}
@@ -3122,14 +3131,16 @@ export default function Home() {
                     searchLoading ? "text-white/50 placeholder-white/40" : "text-white placeholder-slate-400"
                   }`}
                 />
-                {/* Update search button */}
+
                 <Button
                   onClick={() => handleLocationSearch(searchLocation)}
                   disabled={searchLoading || !searchLocation.trim()}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
+                  title={t("search.button")}
                 >
                   {searchLoading ? <SearchSkeleton /> : t("search.button")}
                 </Button>
+              </div>
 
                 {/* Search Suggestions */}
                 {showSuggestions && filteredSuggestions.length > 0 && (
@@ -3156,6 +3167,7 @@ export default function Home() {
                 onClick={handleCurrentLocation}
                 disabled={currentLocationLoading}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-1.5 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
+                title={t("search.currentLocation")}
               >
                 {currentLocationLoading ? (
                   <LocationSkeleton />
@@ -3216,7 +3228,7 @@ export default function Home() {
 
             {/* Navigation Icons */}
             <div className="flex justify-center space-x-2">
-              {/* Update navigation button titles */}
+              {/* Dashboard */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "dashboard"
@@ -3228,6 +3240,8 @@ export default function Home() {
               >
                 <Sun className="h-5 w-5" />
               </button>
+
+              {/* Map */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "map"
@@ -3239,6 +3253,8 @@ export default function Home() {
               >
                 <MapPin className="h-5 w-5" />
               </button>
+
+              {/* Alerts */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 relative ${
                   activeView === "alerts"
@@ -3257,6 +3273,8 @@ export default function Home() {
                   </div>
                 )}
               </button>
+
+              {/* Social */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "social"
@@ -3268,7 +3286,8 @@ export default function Home() {
               >
                 <Users className="h-5 w-5" />
               </button>
-              {/* ... existing emergency/settings buttons ... */}
+
+              {/* Emergency/SOS */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-red-500/20"
                 onClick={() => setEmergencyModalOpen(true)}
@@ -3276,6 +3295,8 @@ export default function Home() {
               >
                 <Phone className="h-5 w-5" />
               </button>
+
+              {/* Settings */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700/30 transition-all duration-200"
                 onClick={() => setSettingsModalOpen(true)}
@@ -3296,7 +3317,6 @@ export default function Home() {
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="relative">
-                  {/* Update search placeholder */}
                   <input
                     type="text"
                     placeholder={t("search.placeholder")}
@@ -3308,39 +3328,21 @@ export default function Home() {
                     }`}
                   />
 
-                  {/* Update search button */}
                   <Button
                     onClick={() => handleLocationSearch(searchLocation)}
                     disabled={searchLoading || !searchLocation.trim()}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
+                    title={t("search.button")}
                   >
                     {searchLoading ? <SearchSkeleton /> : t("search.button")}
                   </Button>
-
-                  {/* Search Suggestions */}
-                  {showSuggestions && filteredSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
-                      {filteredSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setSearchLocation(suggestion)
-                            setShowSuggestions(false)
-                            handleLocationSearch(suggestion)
-                          }}
-                          className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <Button
                   onClick={handleCurrentLocation}
                   disabled={currentLocationLoading}
                   className="w-full mt-2 sm:mt-3 md:mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
+                  title={t("search.currentLocation")}
                 >
                   {currentLocationLoading ? (
                     <LocationSkeleton />
@@ -3356,55 +3358,67 @@ export default function Home() {
 
             {/* Quick Actions */}
             <div className="space-y-3">
-              {/* Update Quick Actions section */}
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                 {t("quick.actions")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="space-y-2">
-                  {/* Update quick action buttons */}
+                  {/* Emergency Kit */}
                   <button
                     onClick={() => setEmergencyKitModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                    title={t("quick.emergencyKitDesc")}
                   >
                     <Package className="h-4 w-4 text-blue-400" />
                     {t("quick.emergencyKit")}
                   </button>
+
+                  {/* Report Emergency */}
                   <button
                     onClick={() => setLocationSharingModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                    title={t("quick.reportEmergencyDesc")}
                   >
                     <AlertTriangle className="h-4 w-4 text-red-400" />
                     {t("quick.reportEmergency")}
                   </button>
+
+                  {/* Weather History */}
                   <button
                     onClick={() => setWeatherHistoryModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                    title={t("quick.weatherHistoryDesc")}
                   >
                     <Clock className="h-4 w-4 text-green-400" />
                     {t("quick.weatherHistory")}
                   </button>
-                  {/* Admin Access Button */}
+
+                  {/* Admin Access */}
                   <button
                     onClick={() => router.push("/login")}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                    title={t("quick.adminAccessDesc")}
                   >
                     <Lock className="h-4 w-4 text-blue-400" />
                     {t("quick.adminAccess")}
                   </button>
-                  {/* Volunteer Access Button */}
+
+                  {/* Volunteer Access */}
                   <button
                     onClick={() => router.push("/volunteer-login")}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                    title={t("quick.volunteerAccessDesc")}
                   >
                     <Users className="h-4 w-4 text-green-400" />
                     {t("quick.volunteerAccess")}
                   </button>
-                  {/* Responder Access Button */}
+
+                  {/* Responder Access */}
                   <button
                     onClick={() => router.push("/responder-login")}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
+                    title={t("quick.responderAccessDesc")}
                   >
                     <Shield className="h-4 w-4 text-orange-400" />
                     {t("quick.responderAccess")}
