@@ -57,13 +57,6 @@ import { SMSSettings } from "@/components/sms-settings"
 import { sendSMS } from "@/lib/sms-service" // Add sendSMS import at the top with other imports
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
-import { translateWeatherDescription } from "@/lib/translate-weather"
-import {
-  translateHeatIndexAdvisory,
-  translateUVIndexAdvisory,
-  translateTyphoonImpactAdvisory,
-  translateTyphoonLevel,
-} from "@/lib/translate-indices"
 
 interface WeatherData {
   temperature: number
@@ -151,8 +144,6 @@ export default function Home() {
   // const {user} = useUser() // Get user object
   const { addSharedLocation } = useLocationSharing()
   const { t, language } = useLanguage()
-
-  const getLangCode = (): "en" | "tl" => language as "en" | "tl"
 
   const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -2300,27 +2291,30 @@ export default function Home() {
       return
     }
 
-    const properLocationName = findProperLocationName(searchTerm.trim())
-    const coordinates = geocodeLocation(properLocationName)
-
-    if (!coordinates) {
-      addNotification("Location Not Found", `Could not find coordinates for "${properLocationName}".`, "error")
-      setSearchLoading(false)
-      return
-    }
-
+    const trimmedLocation = searchTerm.trim()
     setSearchLoading(true)
+    // </CHANGE> Fixed undeclared variable - changed 'response' to 'alertsResponse'
+    // </CHANGE> Fixed undeclared variable - changed 'response' to 'alertsResponse'
     setSearchWeather(null)
     setSearchError("")
 
-    console.log("[v0] Searching for location:", properLocationName, coordinates)
+    console.log("[v0] Searching for location:", trimmedLocation)
 
     try {
+      const properLocationName = findProperLocationName(trimmedLocation)
+      const coordinates = geocodeLocation(properLocationName)
+
+      if (!coordinates) {
+        throw new Error(`Location "${trimmedLocation}" not found in our database`)
+      }
+
+      console.log("[v0] Found coordinates for", properLocationName, coordinates)
+
       const weatherResponse = await fetch(`/api/weather/current?lat=${coordinates.lat}&lon=${coordinates.lon}`)
 
       if (!weatherResponse.ok) {
         const errorData = await weatherResponse.json().catch(() => ({}))
-        throw new Error(errorData.error || `Failed to fetch weather data (Status: ${weatherResponse.status})`)
+        throw new Error(errorData.error || "Failed to fetch weather data")
       }
 
       const weatherData = await weatherResponse.json()
@@ -2332,8 +2326,6 @@ export default function Home() {
       if (forecastResponse.ok) {
         forecastData = await forecastResponse.json()
         console.log("[v0] Forecast data received:", forecastData)
-      } else {
-        console.warn("[v0] Failed to fetch forecast:", forecastResponse.status)
       }
 
       const searchWeatherData: WeatherData = {
@@ -2359,11 +2351,6 @@ export default function Home() {
         const alertsData = await alertsResponse.json()
         if (alertsData.alerts) setAlerts(alertsData.alerts)
         if (alertsData.riskPredictions) setRiskPredictions(alertsData.riskPredictions)
-        if (alertsData.indices) {
-          setWeatherIndices(alertsData.indices)
-        }
-      } else {
-        console.warn("[v0] Failed to fetch alerts:", alertsResponse.status)
       }
 
       const weatherEmoji = getWeatherEmoji(searchWeatherData.condition)
@@ -2374,11 +2361,13 @@ export default function Home() {
       )
 
       updateRecentSearches(properLocationName)
+
       saveWeatherToHistory(searchWeatherData)
     } catch (error) {
       console.error("[v0] Location search failed:", error)
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch weather data"
       addNotification("Search Failed", errorMessage, "error")
+
       setSearchWeather(null)
       setSelectedLocationName("")
     } finally {
@@ -2456,8 +2445,6 @@ export default function Home() {
       if (forecastResponse.ok) {
         const forecastData = await forecastResponse.json()
         setForecast(forecastData.forecasts || [])
-      } else {
-        console.warn("[v0] Failed to fetch forecast:", forecastResponse.status)
       }
 
       const alertsResponse = await fetch(`/api/weather/alerts?lat=${lat}&lon=${lon}`)
@@ -2468,8 +2455,6 @@ export default function Home() {
         if (alertsData.indices) {
           setWeatherIndices(alertsData.indices)
         }
-      } else {
-        console.warn("[v0] Failed to fetch alerts:", alertsResponse.status)
       }
 
       const weatherData: WeatherData = {
@@ -2976,7 +2961,6 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setActiveView("dashboard")}
-                  title={t("nav.dashboard")}
                 >
                   <Sun className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.dashboard")}</span>
@@ -2990,7 +2974,6 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setMobileSearchOpen(true)}
-                  title={t("nav.search")}
                 >
                   <Search className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.search")}</span>
@@ -3004,7 +2987,6 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setActiveView("map")}
-                  title={t("nav.map")}
                 >
                   <MapPin className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.map")}</span>
@@ -3018,7 +3000,6 @@ export default function Home() {
                       : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                   onClick={() => setActiveView("social")}
-                  title={t("nav.social")}
                 >
                   <Users className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.social")}</span>
@@ -3034,7 +3015,6 @@ export default function Home() {
                   onClick={() => {
                     setQuickActionsModalOpen(true)
                   }}
-                  title={t("nav.quick")}
                 >
                   <Zap className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.quick")}</span>
@@ -3044,7 +3024,6 @@ export default function Home() {
                 <button
                   className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
                   onClick={() => setEmergencyModalOpen(true)}
-                  title={t("nav.sos")}
                 >
                   <Phone className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.sos")}</span>
@@ -3075,7 +3054,6 @@ export default function Home() {
                     size="sm"
                     onClick={() => setAlertsModalOpen(true)}
                     className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg relative"
-                    title={t("nav.alerts")}
                   >
                     <Bell className="h-4 w-4" />
                     {alerts.length > 0 && (
@@ -3089,7 +3067,6 @@ export default function Home() {
                     size="sm"
                     onClick={() => setSettingsModalOpen(true)}
                     className="w-8 h-8 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg"
-                    title={t("nav.settings")}
                   >
                     <Settings className="h-4 w-4" />
                   </Button>
@@ -3099,7 +3076,6 @@ export default function Home() {
           </>
         )}
 
-        {/* Mobile Search Modal */}
         {mobileSearchOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
             <div className="fixed inset-x-0 top-0 bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-md border-b border-slate-700/50 p-6">
@@ -3114,13 +3090,13 @@ export default function Home() {
                     setShowSuggestions(false)
                   }}
                   className="text-slate-400 hover:text-white transition-colors"
-                  title={t("common.close")}
                 >
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
               <div className="relative mb-6">
+                {/* Update search placeholder */}
                 <input
                   type="text"
                   placeholder={t("search.placeholder")}
@@ -3131,16 +3107,14 @@ export default function Home() {
                     searchLoading ? "text-white/50 placeholder-white/40" : "text-white placeholder-slate-400"
                   }`}
                 />
-
+                {/* Update search button */}
                 <Button
                   onClick={() => handleLocationSearch(searchLocation)}
                   disabled={searchLoading || !searchLocation.trim()}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
-                  title={t("search.button")}
                 >
                   {searchLoading ? <SearchSkeleton /> : t("search.button")}
                 </Button>
-              </div>
 
                 {/* Search Suggestions */}
                 {showSuggestions && filteredSuggestions.length > 0 && (
@@ -3167,7 +3141,6 @@ export default function Home() {
                 onClick={handleCurrentLocation}
                 disabled={currentLocationLoading}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-1.5 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
-                title={t("search.currentLocation")}
               >
                 {currentLocationLoading ? (
                   <LocationSkeleton />
@@ -3228,7 +3201,7 @@ export default function Home() {
 
             {/* Navigation Icons */}
             <div className="flex justify-center space-x-2">
-              {/* Dashboard */}
+              {/* Update navigation button titles */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "dashboard"
@@ -3240,8 +3213,6 @@ export default function Home() {
               >
                 <Sun className="h-5 w-5" />
               </button>
-
-              {/* Map */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "map"
@@ -3253,8 +3224,6 @@ export default function Home() {
               >
                 <MapPin className="h-5 w-5" />
               </button>
-
-              {/* Alerts */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 relative ${
                   activeView === "alerts"
@@ -3273,8 +3242,6 @@ export default function Home() {
                   </div>
                 )}
               </button>
-
-              {/* Social */}
               <button
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                   activeView === "social"
@@ -3286,8 +3253,7 @@ export default function Home() {
               >
                 <Users className="h-5 w-5" />
               </button>
-
-              {/* Emergency/SOS */}
+              {/* ... existing emergency/settings buttons ... */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-red-500/20"
                 onClick={() => setEmergencyModalOpen(true)}
@@ -3295,8 +3261,6 @@ export default function Home() {
               >
                 <Phone className="h-5 w-5" />
               </button>
-
-              {/* Settings */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700/30 transition-all duration-200"
                 onClick={() => setSettingsModalOpen(true)}
@@ -3317,6 +3281,7 @@ export default function Home() {
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="relative">
+                  {/* Update search placeholder */}
                   <input
                     type="text"
                     placeholder={t("search.placeholder")}
@@ -3328,21 +3293,39 @@ export default function Home() {
                     }`}
                   />
 
+                  {/* Update search button */}
                   <Button
                     onClick={() => handleLocationSearch(searchLocation)}
                     disabled={searchLoading || !searchLocation.trim()}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
-                    title={t("search.button")}
                   >
                     {searchLoading ? <SearchSkeleton /> : t("search.button")}
                   </Button>
+
+                  {/* Search Suggestions */}
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
+                      {filteredSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setSearchLocation(suggestion)
+                            setShowSuggestions(false)
+                            handleLocationSearch(suggestion)
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <Button
                   onClick={handleCurrentLocation}
                   disabled={currentLocationLoading}
                   className="w-full mt-2 sm:mt-3 md:mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
-                  title={t("search.currentLocation")}
                 >
                   {currentLocationLoading ? (
                     <LocationSkeleton />
@@ -3358,67 +3341,55 @@ export default function Home() {
 
             {/* Quick Actions */}
             <div className="space-y-3">
+              {/* Update Quick Actions section */}
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                 {t("quick.actions")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
                 <div className="space-y-2">
-                  {/* Emergency Kit */}
+                  {/* Update quick action buttons */}
                   <button
                     onClick={() => setEmergencyKitModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                    title={t("quick.emergencyKitDesc")}
                   >
                     <Package className="h-4 w-4 text-blue-400" />
                     {t("quick.emergencyKit")}
                   </button>
-
-                  {/* Report Emergency */}
                   <button
                     onClick={() => setLocationSharingModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                    title={t("quick.reportEmergencyDesc")}
                   >
                     <AlertTriangle className="h-4 w-4 text-red-400" />
                     {t("quick.reportEmergency")}
                   </button>
-
-                  {/* Weather History */}
                   <button
                     onClick={() => setWeatherHistoryModalOpen(true)}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                    title={t("quick.weatherHistoryDesc")}
                   >
                     <Clock className="h-4 w-4 text-green-400" />
                     {t("quick.weatherHistory")}
                   </button>
-
-                  {/* Admin Access */}
+                  {/* Admin Access Button */}
                   <button
                     onClick={() => router.push("/login")}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                    title={t("quick.adminAccessDesc")}
                   >
                     <Lock className="h-4 w-4 text-blue-400" />
                     {t("quick.adminAccess")}
                   </button>
-
-                  {/* Volunteer Access */}
+                  {/* Volunteer Access Button */}
                   <button
                     onClick={() => router.push("/volunteer-login")}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                    title={t("quick.volunteerAccessDesc")}
                   >
                     <Users className="h-4 w-4 text-green-400" />
                     {t("quick.volunteerAccess")}
                   </button>
-
-                  {/* Responder Access */}
+                  {/* Responder Access Button */}
                   <button
                     onClick={() => router.push("/responder-login")}
                     className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-600/50 rounded-lg transition-colors flex items-center gap-2"
-                    title={t("quick.responderAccessDesc")}
                   >
                     <Shield className="h-4 w-4 text-orange-400" />
                     {t("quick.responderAccess")}
@@ -3605,13 +3576,14 @@ export default function Home() {
                             </p>
                           </div>
                         </div>
-                        <p className="text-xs text-slate-400">{translateWeatherDescription(day.description, t)}</p>
+                        <p className="text-xs text-slate-400">{day.description}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : null}
 
+              {/* Replace the inline risk predictions rendering with the new component */}
               {/* Risk Predictions */}
               {loading || searchLoading ? (
                 <div className="space-y-3">
@@ -3654,9 +3626,7 @@ export default function Home() {
                       <p className={`text-sm font-medium ${weatherIndices.heatIndex.color}`}>
                         {weatherIndices.heatIndex.category}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {translateHeatIndexAdvisory(weatherIndices.heatIndex.category, getLangCode())}
-                      </p>
+                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.heatIndex.advisory}</p>
                     </div>
 
                     {/* UV Index */}
@@ -3670,9 +3640,7 @@ export default function Home() {
                       <p className={`text-sm font-medium ${weatherIndices.uvIndex.color}`}>
                         {weatherIndices.uvIndex.category}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {translateUVIndexAdvisory(weatherIndices.uvIndex.category, getLangCode())}
-                      </p>
+                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.uvIndex.advisory}</p>
                     </div>
 
                     {/* Typhoon Impact Index */}
@@ -3688,12 +3656,10 @@ export default function Home() {
                       </p>
                       {weatherIndices.typhoonImpactIndex.typhoonLevel && (
                         <p className="text-xs text-slate-300 mt-2">
-                          Level: {translateTyphoonLevel(weatherIndices.typhoonImpactIndex.typhoonLevel, getLangCode())}
+                          Level: {weatherIndices.typhoonImpactIndex.typhoonLevel}
                         </p>
                       )}
-                      <p className="text-xs text-slate-400 mt-1">
-                        {translateTyphoonImpactAdvisory(weatherIndices.typhoonImpactIndex.category, getLangCode())}
-                      </p>
+                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.typhoonImpactIndex.advisory}</p>
                     </div>
                   </div>
                 </div>
@@ -4259,9 +4225,7 @@ export default function Home() {
               {showEmergencyForm ? (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-slate-300 leading-relaxed text-xs sm:text-sm md:text-base">
-                      {t("reportEmergency.contactInfoPrompt")}
-                    </p>
+                    <p className="text-slate-300 leading-relaxed">{t("reportEmergency.contactInfoPrompt")}</p>
                   </div>
 
                   <div className="space-y-3">
