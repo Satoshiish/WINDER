@@ -72,32 +72,33 @@ export async function getTeamInfo(teamId: number): Promise<ResponseTeam | null> 
 
 export async function assignTeamToEmergency(emergencyId: string, teamId: string | number): Promise<boolean> {
   try {
-    console.log('🔄 [DEBUG] assignTeamToEmergency called:', { emergencyId, teamId })
-    
+    console.log("🔄 [DEBUG] assignTeamToEmergency called:", { emergencyId, teamId })
+
     // Convert teamId to number if it's a string
-    const teamIdNum = typeof teamId === 'string' ? Number.parseInt(teamId) : teamId
-    
+    const teamIdNum = typeof teamId === "string" ? Number.parseInt(teamId) : teamId
+
+    const team = await getTeamInfo(teamIdNum)
+    const teamName = team?.team_name || `Team ${teamIdNum}`
+
     const updates: any = {
       assigned_team_id: teamIdNum,
+      assigned_to: teamName,
       deployment_status: "dispatched",
       dispatched_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
 
-    const { error } = await supabase
-      .from("emergency_reports")
-      .update(updates)
-      .eq("id", emergencyId)
+    const { error } = await supabase.from("emergency_reports").update(updates).eq("id", emergencyId)
 
     if (error) {
-      console.error('❌ [DEBUG] Error assigning team to emergency:', error)
+      console.error("❌ [DEBUG] Error assigning team to emergency:", error)
       return false
     }
 
-    console.log('✅ [DEBUG] Successfully assigned team to emergency')
+    console.log("✅ [DEBUG] Successfully assigned team to emergency")
     return true
   } catch (error) {
-    console.error('❌ [DEBUG] Exception assigning team to emergency:', error)
+    console.error("❌ [DEBUG] Exception assigning team to emergency:", error)
     return false
   }
 }

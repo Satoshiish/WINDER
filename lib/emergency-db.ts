@@ -130,10 +130,7 @@ export async function updateEmergencyReport(id: string, updates: Partial<Emergen
     if (updates.deletedAt !== undefined) updateData.deleted_at = updates.deletedAt
 
     // Remove Number.parseInt() - use the string ID directly
-    const { error } = await supabase
-      .from("emergency_reports")
-      .update(updateData)
-      .eq("id", id) // Use string ID directly
+    const { error } = await supabase.from("emergency_reports").update(updateData).eq("id", id) // Use string ID directly
 
     if (error) {
       console.error("Error updating emergency report:", error)
@@ -152,9 +149,9 @@ export async function deleteEmergencyReport(id: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("emergency_reports")
-      .update({ 
+      .update({
         deleted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString() // Also update this timestamp
+        updated_at: new Date().toISOString(), // Also update this timestamp
       })
       .eq("id", id) // Use string ID directly
 
@@ -175,9 +172,9 @@ export async function undoDeleteEmergencyReport(id: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("emergency_reports")
-      .update({ 
+      .update({
         deleted_at: null,
-        updated_at: new Date().toISOString() // Also update this timestamp
+        updated_at: new Date().toISOString(), // Also update this timestamp
       })
       .eq("id", id) // Use string ID directly
 

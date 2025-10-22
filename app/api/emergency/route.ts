@@ -16,8 +16,8 @@ export async function POST(request: Request) {
           priority: report.priority,
           people_count: report.peopleCount,
           address: report.address,
-          location_lat: report.location.lat,
-          location_lng: report.location.lng,
+          location_lat: report.location.lat.toString(), // Convert to string to preserve precision
+          location_lng: report.location.lng.toString(), // Convert to string to preserve precision
           additional_info: report.additionalInfo,
           status: report.status,
           assigned_to: report.assignedTo,

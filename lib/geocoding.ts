@@ -20,14 +20,14 @@ interface BarangayBoundary {
 
 const fallbackBarangayData: BarangayBoundary[] = [
   // LUZON - Olongapo City Barangays
-  { name: "Sta Rita", city: "Olongapo City", lat: 14.8458, lng: 120.2914, radius: 1.5 },
+  { name: "Sta Rita", city: "Olongapo City", lat: 14.853, lng: 120.2982, radius: 1.5 },
   { name: "Gordon Heights", city: "Olongapo City", lat: 14.8156, lng: 120.2689, radius: 1.2 },
   { name: "East Bajac-Bajac", city: "Olongapo City", lat: 14.8347, lng: 120.2892, radius: 1.0 },
   { name: "West Bajac-Bajac", city: "Olongapo City", lat: 14.8289, lng: 120.2756, radius: 1.0 },
   { name: "East Tapinac", city: "Olongapo City", lat: 14.8423, lng: 120.2945, radius: 1.0 },
   { name: "West Tapinac", city: "Olongapo City", lat: 14.8378, lng: 120.2834, radius: 1.0 },
   { name: "Barretto", city: "Olongapo City", lat: 14.7989, lng: 120.2567, radius: 2.0 },
-  { name: "New Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.2978, radius: 1.5 },
+  { name: "New Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.2978, radius: 0.8 },
   { name: "Old Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.3045, radius: 1.0 },
   { name: "Pag-asa", city: "Olongapo City", lat: 14.8534, lng: 120.3012, radius: 1.2 },
   { name: "Kalaklan", city: "Olongapo City", lat: 14.8623, lng: 120.3089, radius: 1.5 },
