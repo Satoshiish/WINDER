@@ -264,7 +264,18 @@ export default function Home() {
         setSmsPreferences(null) // Ensure it's null on error
       }
     }
+
     initializeSmsPreferences()
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "winder-sms-preferences") {
+        console.log("[v0] SMS preferences updated in storage, reloading...")
+        initializeSmsPreferences()
+      }
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
   }, [])
 
   const getWeatherIcon = (condition: string, iconCode?: string) => {
@@ -735,6 +746,7 @@ export default function Home() {
       sendPushWithRetry()
     }
 
+    // Merged SMS logic into addNotification function
     if (smsPreferences?.enabled && smsPreferences?.phoneNumber) {
       const smsType = type === "warning" ? "alert" : type === "error" ? "alert" : "weather"
       const shouldSendSMS =
@@ -742,15 +754,50 @@ export default function Home() {
 
       if (shouldSendSMS) {
         console.log("[v0] Sending SMS notification:", title)
+        console.log(
+          "[v0] SMS Details - Phone:",
+          smsPreferences.phoneNumber,
+          "Enabled:",
+          smsPreferences.enabled,
+          "Type:",
+          smsType,
+        )
         sendSMS({
           phoneNumber: smsPreferences.phoneNumber,
           message: `${title}: ${enhancedMessage}`,
           type: smsType,
-        }).catch((error) => {
-          console.error("[v0] Failed to send SMS:", error)
         })
+          .then((result) => {
+            if (result.success) {
+              console.log("[v0] SMS sent successfully with ID:", result.messageId)
+            } else {
+              console.error("[v0] SMS failed:", result.error)
+            }
+          })
+          .catch((error) => {
+            console.error("[v0] Failed to send SMS:", error)
+          })
+      } else {
+        console.log(
+          "[v0] SMS not sent - shouldSendSMS:",
+          shouldSendSMS,
+          "smsType:",
+          smsType,
+          "riskAlerts:",
+          smsPreferences.riskAlerts,
+          "weatherUpdates:",
+          smsPreferences.weatherUpdates,
+        )
       }
+    } else {
+      console.log(
+        "[v0] SMS preferences check failed - enabled:",
+        smsPreferences?.enabled,
+        "phoneNumber:",
+        smsPreferences?.phoneNumber,
+      )
     }
+    // </CHANGE> End of merged SMS logic
   }
 
   const [notificationQueue, setNotificationQueue] = useState<Array<{ title: string; message: string; type: string }>>(
