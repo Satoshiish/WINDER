@@ -16,7 +16,7 @@ export interface EmergencyReport {
   additionalInfo?: string
   status: "pending" | "in-progress" | "resolved" | "cancelled"
   assignedTo?: string
-  assigned_team_id?: number // Add this field
+  assigned_team_id?: number
   responseTime?: string
   notes: Array<{
     id: number
@@ -27,6 +27,10 @@ export interface EmergencyReport {
   deletedAt?: string
   timestamp: string
   updatedAt: string
+  deployment_status?: "dispatched" | "on_scene" | "resolved"
+  dispatched_at?: string
+  arrived_at?: string
+  resolved_at?: string
 }
 
 export interface EmergencyStats {
@@ -68,12 +72,17 @@ export async function loadEmergencyReports(): Promise<EmergencyReport[]> {
       additionalInfo: report.additional_info,
       status: report.status,
       assignedTo: report.assigned_to,
-      assigned_team_id: report.assigned_team_id, // Add this
+      assigned_team_id: report.assigned_team_id,
       responseTime: report.response_time,
       notes: report.notes || [],
       deletedAt: report.deleted_at,
       timestamp: report.created_at,
       updatedAt: report.updated_at,
+      // NEW: Add the missing fields
+      deployment_status: report.deployment_status,
+      dispatched_at: report.dispatched_at,
+      arrived_at: report.arrived_at,
+      resolved_at: report.resolved_at,
     }))
   } catch (error) {
     console.error("Error loading emergency reports:", error)
@@ -125,15 +134,22 @@ export async function updateEmergencyReport(id: string, updates: Partial<Emergen
     if (updates.additionalInfo !== undefined) updateData.additional_info = updates.additionalInfo
     if (updates.status !== undefined) updateData.status = updates.status
     if (updates.assignedTo !== undefined) updateData.assigned_to = updates.assignedTo
+    if (updates.assigned_team_id !== undefined) updateData.assigned_team_id = updates.assigned_team_id // FIXED: This was missing!
     if (updates.responseTime !== undefined) updateData.response_time = updates.responseTime
     if (updates.notes !== undefined) updateData.notes = updates.notes
     if (updates.deletedAt !== undefined) updateData.deleted_at = updates.deletedAt
+    // NEW: Add the missing deployment fields
+    if (updates.deployment_status !== undefined) updateData.deployment_status = updates.deployment_status
+    if (updates.dispatched_at !== undefined) updateData.dispatched_at = updates.dispatched_at
+    if (updates.arrived_at !== undefined) updateData.arrived_at = updates.arrived_at
+    if (updates.resolved_at !== undefined) updateData.resolved_at = updates.resolved_at
 
-    // Remove Number.parseInt() - use the string ID directly
+    console.log('🔄 Updating emergency report:', { id, updateData }) // Added debug log
+
     const { error } = await supabase
       .from("emergency_reports")
       .update(updateData)
-      .eq("id", id) // Use string ID directly
+      .eq("id", id)
 
     if (error) {
       console.error("Error updating emergency report:", error)
@@ -148,15 +164,79 @@ export async function updateEmergencyReport(id: string, updates: Partial<Emergen
   }
 }
 
+// NEW: Dedicated function for team assignment
+export async function assignTeamToEmergency(
+  reportId: string, 
+  teamId: number, 
+  assignedTo?: string
+): Promise<boolean> {
+  try {
+    const updateData: any = {
+      assigned_team_id: teamId,
+      updated_at: new Date().toISOString(),
+      deployment_status: 'dispatched',
+      dispatched_at: new Date().toISOString(),
+      status: 'in-progress', // Auto-update status when team is assigned
+    }
+
+    if (assignedTo) {
+      updateData.assigned_to = assignedTo
+    }
+
+    console.log('🚑 Assigning team to emergency:', { reportId, teamId, assignedTo })
+
+    const { error } = await supabase
+      .from("emergency_reports")
+      .update(updateData)
+      .eq("id", reportId)
+
+    if (error) {
+      console.error("Error assigning team to emergency:", error)
+      return false
+    }
+
+    console.log("✅ Successfully assigned team to emergency:", reportId)
+    return true
+  } catch (error) {
+    console.error("Error assigning team to emergency:", error)
+    return false
+  }
+}
+
+// NEW: Debug function to check current report state
+export async function debugCurrentReport(reportId: string): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from("emergency_reports")
+      .select("id, assigned_team_id, assigned_to, deployment_status, status")
+      .eq("id", reportId)
+      .single()
+
+    if (error) {
+      console.error("Error fetching report for debug:", error)
+      return
+    }
+
+    console.log('🔍 Current report data from DB:')
+    console.log('ID:', data.id)
+    console.log('Assigned Team ID:', data.assigned_team_id)
+    console.log('Assigned To:', data.assigned_to)
+    console.log('Deployment Status:', data.deployment_status)
+    console.log('Status:', data.status)
+  } catch (error) {
+    console.error("Error debugging report:", error)
+  }
+}
+
 export async function deleteEmergencyReport(id: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("emergency_reports")
       .update({ 
         deleted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString() // Also update this timestamp
+        updated_at: new Date().toISOString()
       })
-      .eq("id", id) // Use string ID directly
+      .eq("id", id)
 
     if (error) {
       console.error("Error deleting emergency report:", error)
@@ -177,9 +257,9 @@ export async function undoDeleteEmergencyReport(id: string): Promise<boolean> {
       .from("emergency_reports")
       .update({ 
         deleted_at: null,
-        updated_at: new Date().toISOString() // Also update this timestamp
+        updated_at: new Date().toISOString()
       })
-      .eq("id", id) // Use string ID directly
+      .eq("id", id)
 
     if (error) {
       console.error("Error undoing delete emergency report:", error)
