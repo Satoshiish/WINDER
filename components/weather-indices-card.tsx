@@ -1,6 +1,7 @@
 "use client"
 
 import { Sun, Wind, Thermometer } from "lucide-react"
+import { useLanguage } from "@/contexts/language-context"
 
 interface WeatherIndex {
   value: number
@@ -23,6 +24,8 @@ export function WeatherIndicesCard({
   typhoonImpactIndex,
   loading = false,
 }: WeatherIndicesCardProps) {
+  const { t } = useLanguage()
+
   const getCardBgColor = (color: string): string => {
     const colorMap: { [key: string]: string } = {
       green: "bg-green-950/60 border-green-700/50",
@@ -82,7 +85,7 @@ export function WeatherIndicesCard({
         >
           <div className="flex items-center gap-3 mb-4">
             <Thermometer className="h-6 w-6 text-red-400" />
-            <h3 className="text-lg font-semibold text-white">Heat Index</h3>
+            <h3 className="text-lg font-semibold text-white">{t("weather.heatIndex")}</h3>
           </div>
           <p className={`text-4xl font-bold ${getValueColor(heatIndex.color)} mb-2`}>{heatIndex.value.toFixed(1)}°C</p>
           <p className={`text-sm font-medium ${getTextColor(heatIndex.color)} mb-2`}>{heatIndex.category}</p>
@@ -97,7 +100,7 @@ export function WeatherIndicesCard({
         >
           <div className="flex items-center gap-3 mb-4">
             <Sun className="h-6 w-6 text-yellow-400" />
-            <h3 className="text-lg font-semibold text-white">UV Index</h3>
+            <h3 className="text-lg font-semibold text-white">{t("weather.uvIndex")}</h3>
           </div>
           <p className={`text-4xl font-bold ${getValueColor(uvIndex.color)} mb-2`}>{uvIndex.value.toFixed(1)}</p>
           <p className={`text-sm font-medium ${getTextColor(uvIndex.color)} mb-2`}>{uvIndex.category}</p>
@@ -112,7 +115,7 @@ export function WeatherIndicesCard({
         >
           <div className="flex items-center gap-3 mb-4">
             <Wind className="h-6 w-6 text-purple-400" />
-            <h3 className="text-lg font-semibold text-white">Typhoon Impact</h3>
+            <h3 className="text-lg font-semibold text-white">{t("weather.typhoonImpact")}</h3>
           </div>
           <p className={`text-4xl font-bold ${getValueColor(typhoonImpactIndex.color)} mb-2`}>
             {typhoonImpactIndex.value.toFixed(1)}
