@@ -1,6 +1,8 @@
 "use client"
 
 import { Cloud, Droplets, Wind, Mountain, TrendingDown, TrendingUp, Minus, Zap } from "lucide-react"
+import { useLanguage } from "@/contexts/language-context"
+import { translateRiskDescription } from "@/lib/translate-weather"
 
 interface RiskPrediction {
   category: string
@@ -15,6 +17,8 @@ interface RiskPredictionCardProps {
 }
 
 export function RiskPredictionCard({ risks, loading = false }: RiskPredictionCardProps) {
+  const { t } = useLanguage()
+
   const getRiskColor = (risk: number): string => {
     if (risk >= 70) return "text-red-400"
     if (risk >= 50) return "text-orange-400"
@@ -52,6 +56,17 @@ export function RiskPredictionCard({ risks, loading = false }: RiskPredictionCar
     }
   }
 
+  const translateRiskCategory = (category: string): string => {
+    const categoryMap: { [key: string]: string } = {
+      "Rainfall Risk": "risk.rainfall",
+      "Flood Risk": "risk.flood",
+      "Wind Risk": "risk.wind",
+      "Landslide Risk": "risk.landslide",
+      "Earthquake Risk": "risk.earthquake",
+    }
+    return t(categoryMap[category] || category)
+  }
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -75,14 +90,14 @@ export function RiskPredictionCard({ risks, loading = false }: RiskPredictionCar
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
               {getRiskIcon(risk.category)}
-              <h3 className="text-base font-semibold text-white">{risk.category}</h3>
+              <h3 className="text-base font-semibold text-white">{translateRiskCategory(risk.category)}</h3>
             </div>
             <div className="flex items-center gap-2">
               {getTrendIcon(risk.trend)}
               <span className={`text-2xl font-bold ${getRiskColor(risk.risk)}`}>{risk.risk}%</span>
             </div>
           </div>
-          <p className="text-sm text-slate-300 leading-relaxed">{risk.description}</p>
+          <p className="text-sm text-slate-300 leading-relaxed">{translateRiskDescription(risk.description, t)}</p>
         </div>
       ))}
     </div>
