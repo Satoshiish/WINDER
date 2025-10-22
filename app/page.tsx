@@ -57,6 +57,13 @@ import { SMSSettings } from "@/components/sms-settings"
 import { sendSMS } from "@/lib/sms-service" // Add sendSMS import at the top with other imports
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
+import { translateWeatherDescription } from "@/lib/translate-weather"
+import {
+  translateHeatIndexAdvisory,
+  translateUVIndexAdvisory,
+  translateTyphoonImpactAdvisory,
+  translateTyphoonLevel,
+} from "@/lib/translate-indices"
 
 interface WeatherData {
   temperature: number
@@ -144,6 +151,8 @@ export default function Home() {
   // const {user} = useUser() // Get user object
   const { addSharedLocation } = useLocationSharing()
   const { t, language } = useLanguage()
+
+  const getLangCode = (): "en" | "tl" => language as "en" | "tl"
 
   const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -2291,30 +2300,27 @@ export default function Home() {
       return
     }
 
-    const trimmedLocation = searchTerm.trim()
+    const properLocationName = findProperLocationName(searchTerm.trim())
+    const coordinates = geocodeLocation(properLocationName)
+
+    if (!coordinates) {
+      addNotification("Location Not Found", `Could not find coordinates for "${properLocationName}".`, "error")
+      setSearchLoading(false)
+      return
+    }
+
     setSearchLoading(true)
-    // </CHANGE> Fixed undeclared variable - changed 'response' to 'alertsResponse'
-    // </CHANGE> Fixed undeclared variable - changed 'response' to 'alertsResponse'
     setSearchWeather(null)
     setSearchError("")
 
-    console.log("[v0] Searching for location:", trimmedLocation)
+    console.log("[v0] Searching for location:", properLocationName, coordinates)
 
     try {
-      const properLocationName = findProperLocationName(trimmedLocation)
-      const coordinates = geocodeLocation(properLocationName)
-
-      if (!coordinates) {
-        throw new Error(`Location "${trimmedLocation}" not found in our database`)
-      }
-
-      console.log("[v0] Found coordinates for", properLocationName, coordinates)
-
       const weatherResponse = await fetch(`/api/weather/current?lat=${coordinates.lat}&lon=${coordinates.lon}`)
 
       if (!weatherResponse.ok) {
         const errorData = await weatherResponse.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to fetch weather data")
+        throw new Error(errorData.error || `Failed to fetch weather data (Status: ${weatherResponse.status})`)
       }
 
       const weatherData = await weatherResponse.json()
@@ -2326,6 +2332,8 @@ export default function Home() {
       if (forecastResponse.ok) {
         forecastData = await forecastResponse.json()
         console.log("[v0] Forecast data received:", forecastData)
+      } else {
+        console.warn("[v0] Failed to fetch forecast:", forecastResponse.status)
       }
 
       const searchWeatherData: WeatherData = {
@@ -2351,6 +2359,11 @@ export default function Home() {
         const alertsData = await alertsResponse.json()
         if (alertsData.alerts) setAlerts(alertsData.alerts)
         if (alertsData.riskPredictions) setRiskPredictions(alertsData.riskPredictions)
+        if (alertsData.indices) {
+          setWeatherIndices(alertsData.indices)
+        }
+      } else {
+        console.warn("[v0] Failed to fetch alerts:", alertsResponse.status)
       }
 
       const weatherEmoji = getWeatherEmoji(searchWeatherData.condition)
@@ -2361,13 +2374,11 @@ export default function Home() {
       )
 
       updateRecentSearches(properLocationName)
-
       saveWeatherToHistory(searchWeatherData)
     } catch (error) {
       console.error("[v0] Location search failed:", error)
-      const errorMessage = error instanceof Error ? error.message : "Failed to fetch weather data"
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."
       addNotification("Search Failed", errorMessage, "error")
-
       setSearchWeather(null)
       setSelectedLocationName("")
     } finally {
@@ -2445,6 +2456,8 @@ export default function Home() {
       if (forecastResponse.ok) {
         const forecastData = await forecastResponse.json()
         setForecast(forecastData.forecasts || [])
+      } else {
+        console.warn("[v0] Failed to fetch forecast:", forecastResponse.status)
       }
 
       const alertsResponse = await fetch(`/api/weather/alerts?lat=${lat}&lon=${lon}`)
@@ -2455,6 +2468,8 @@ export default function Home() {
         if (alertsData.indices) {
           setWeatherIndices(alertsData.indices)
         }
+      } else {
+        console.warn("[v0] Failed to fetch alerts:", alertsResponse.status)
       }
 
       const weatherData: WeatherData = {
@@ -3576,14 +3591,13 @@ export default function Home() {
                             </p>
                           </div>
                         </div>
-                        <p className="text-xs text-slate-400">{day.description}</p>
+                        <p className="text-xs text-slate-400">{translateWeatherDescription(day.description, t)}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : null}
 
-              {/* Replace the inline risk predictions rendering with the new component */}
               {/* Risk Predictions */}
               {loading || searchLoading ? (
                 <div className="space-y-3">
@@ -3626,7 +3640,9 @@ export default function Home() {
                       <p className={`text-sm font-medium ${weatherIndices.heatIndex.color}`}>
                         {weatherIndices.heatIndex.category}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.heatIndex.advisory}</p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {translateHeatIndexAdvisory(weatherIndices.heatIndex.category, getLangCode())}
+                      </p>
                     </div>
 
                     {/* UV Index */}
@@ -3640,7 +3656,9 @@ export default function Home() {
                       <p className={`text-sm font-medium ${weatherIndices.uvIndex.color}`}>
                         {weatherIndices.uvIndex.category}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.uvIndex.advisory}</p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {translateUVIndexAdvisory(weatherIndices.uvIndex.category, getLangCode())}
+                      </p>
                     </div>
 
                     {/* Typhoon Impact Index */}
@@ -3656,10 +3674,12 @@ export default function Home() {
                       </p>
                       {weatherIndices.typhoonImpactIndex.typhoonLevel && (
                         <p className="text-xs text-slate-300 mt-2">
-                          Level: {weatherIndices.typhoonImpactIndex.typhoonLevel}
+                          Level: {translateTyphoonLevel(weatherIndices.typhoonImpactIndex.typhoonLevel, getLangCode())}
                         </p>
                       )}
-                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.typhoonImpactIndex.advisory}</p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {translateTyphoonImpactAdvisory(weatherIndices.typhoonImpactIndex.category, getLangCode())}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -4225,7 +4245,9 @@ export default function Home() {
               {showEmergencyForm ? (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-slate-300 leading-relaxed">{t("reportEmergency.contactInfoPrompt")}</p>
+                    <p className="text-slate-300 leading-relaxed text-xs sm:text-sm md:text-base">
+                      {t("reportEmergency.contactInfoPrompt")}
+                    </p>
                   </div>
 
                   <div className="space-y-3">
