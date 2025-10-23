@@ -505,6 +505,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           onClick={() => {
             setSelectedZone(null);
             setSelectedDistrict(null);
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
           className="border-slate-600 text-slate-300 hover:bg-slate-800"
         >
@@ -777,6 +778,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               onClick={() => {
                 setSelectedZone(zone);
                 setSelectedDistrict(zone.name);
+                window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className={`p-4 rounded-lg cursor-pointer transition-all hover:scale-105 border-2 ${getRiskColor(
                 zone.riskLevel
