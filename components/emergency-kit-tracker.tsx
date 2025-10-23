@@ -27,19 +27,19 @@ const DEFAULT_ITEMS: KitItem[] = [
   {
     id: "water",
     name: "Water (1 gallon per person/day)",
-    status: "stocked",
+    status: "needs-update",
     lastChecked: Date.now() - 14 * 24 * 60 * 60 * 1000,
   },
   {
     id: "food",
     name: "Non-perishable food (3-day supply)",
-    status: "check-soon",
+    status: "needs-update",
     lastChecked: Date.now() - 30 * 24 * 60 * 60 * 1000,
   },
   {
     id: "first-aid",
     name: "First aid kit & medications",
-    status: "stocked",
+    status: "needs-update",
     lastChecked: Date.now() - 21 * 24 * 60 * 60 * 1000,
   },
   {
@@ -51,7 +51,7 @@ const DEFAULT_ITEMS: KitItem[] = [
   {
     id: "documents",
     name: "Important documents & cash",
-    status: "stocked",
+    status: "needs-update",
     lastChecked: Date.now() - 7 * 24 * 60 * 60 * 1000,
   },
 ]
@@ -158,7 +158,6 @@ export function EmergencyKitTracker({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-700/60 text-white max-w-lg w-[92vw] max-h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale">
-        {/* Header */}
         <DialogHeader className="flex-shrink-0 p-6 border-b border-slate-700/50">
           <DialogTitle className="flex items-center gap-4 text-xl sm:text-2xl font-bold">
             <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -168,7 +167,6 @@ export function EmergencyKitTracker({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Scrollable Body */}
         <div className="flex-1 p-6 space-y-5 overflow-y-auto scrollbar-hide">
           <p className="text-slate-300 leading-relaxed">
             Track your emergency preparedness and maintain your emergency kit inventory. Updates are saved to this
@@ -265,7 +263,6 @@ export function EmergencyKitTracker({
             </p>
           </div>
 
-          {/* Reset Button */}
           <button
             onClick={resetAllData}
             className="w-full text-xs px-3 py-2 rounded bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 transition"
