@@ -681,18 +681,16 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         </div>
 
         {/* District Selector */}
-        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-          <label className="text-sm text-slate-300 mb-2 block">Select a district to view evacuation routes:</label>
+        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 space-y-2">
+          <label className="text-sm text-slate-300 block">Select a district to view evacuation routes:</label>
           <Select
             value={selectedDistrict || ""}
-            onValueChange={(value) => {
-              setSelectedDistrict(value || null)
-            }}
+            onValueChange={(value) => setSelectedDistrict(value || null)}
           >
             <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
               <SelectValue placeholder="Choose a district..." />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectContent className="bg-slate-800 border-slate-700 max-h-60 overflow-y-auto">
               {nearbyZones.map((zone) => (
                 <SelectItem key={zone.id} value={zone.name} className="text-white">
                   {zone.name}
@@ -703,47 +701,71 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         </div>
 
         {/* Evacuation Routes List */}
-        <div className="space-y-3">
+        <div className="space-y-3 mt-4">
           {nearbyRoutes.length > 0 ? (
-            nearbyRoutes.map((route) => (
+            <>
               <div
-                key={route.id}
-                className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400 backdrop-blur-sm"
+                className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2
+                          scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 rounded-lg"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold text-white text-sm">{route.name}</h4>
-                    <p className="text-slate-300 text-xs">
-                      {route.from} → {route.to}
-                    </p>
-                  </div>
-                  <Badge className={getRouteStatusColor(route.status)}>{route.status}</Badge>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-slate-300">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    <span>{route.estimatedTime} min</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Navigation className="h-3 w-3" />
-                    <span>{route.distance}km</span>
-                  </div>
-                </div>
-                {route.hazards.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {route.hazards.map((hazard, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="outline"
-                        className="bg-orange-500/20 text-orange-400 border-orange-400 text-xs"
-                      >
-                        {hazard}
+                {nearbyRoutes.slice(0, showAll ? nearbyRoutes.length : 4).map((route) => (
+                  <div
+                    key={route.id}
+                    className="bg-slate-800/60 p-4 rounded-lg border-l-4 border-green-400 hover:border-green-500
+                              hover:bg-slate-700/60 transition-all duration-300 backdrop-blur-md shadow-md"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h4 className="font-semibold text-white text-sm">{route.name}</h4>
+                        <p className="text-slate-300 text-xs">
+                          {route.from} → {route.to}
+                        </p>
+                      </div>
+                      <Badge className={getRouteStatusColor(route.status)}>
+                        {route.status}
                       </Badge>
-                    ))}
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs text-slate-300">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{route.estimatedTime} min</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Navigation className="h-3 w-3" />
+                        <span>{route.distance}km</span>
+                      </div>
+                    </div>
+
+                    {route.hazards.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {route.hazards.map((hazard, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="bg-orange-500/20 text-orange-400 border-orange-400 text-xs"
+                          >
+                            {hazard}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))
+
+              {/* Show More / Show Less button */}
+              {nearbyRoutes.length > 4 && (
+                <div className="text-center mt-2">
+                  <button
+                    onClick={() => setShowAll((prev) => !prev)}
+                    className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors duration-200"
+                  >
+                    {showAll ? "Show less ▲" : `Show more (${nearbyRoutes.length - 4}) ▼`}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-center">
               <p className="text-slate-400 text-sm">
@@ -754,7 +776,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             </div>
           )}
         </div>
-      </div>
 
       {/* Nearby Evacuation Centers */}
       <div className="space-y-3">
