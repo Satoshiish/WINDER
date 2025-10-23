@@ -122,29 +122,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     "olongapo-ec-4": "/placeholder.svg?height=400&width=200",
   };
 
-  {
-    /* --- Route Images Data --- */
-  }
-  const routeImages: Record<string, string> = {
-    "barretto-evacuation-route": "/routes/barretto-route.jpg",
-    "kalaklan-evacuation-route": "/routes/kalaklan-route.jpg",
-    "mabayuan-evacuation-route": "/routes/mabayuan-route.jpg",
-    "gordon-heights-evacuation-route": "/routes/gordon-heights-route.jpg",
-    "sta-rita-evacuation-route": "/routes/sta-rita-route.jpg",
-    "east-bajac-bajac-evacuation-route": "/routes/east-bajac-bajac-route.jpg",
-    "west-bajac-bajac-evacuation-route": "/routes/west-bajac-bajac-route.jpg",
-    "new-cabalan-evacuation-route": "/routes/new-cabalan-route.jpg",
-    "old-cabalan-evacuation-route": "/routes/old-cabalan-route.jpg",
-    "east-tapinac-evacuation-route": "/routes/east-tapinac-route.jpg",
-    "west-tapinac-evacuation-route": "/routes/west-tapinac-route.jpg",
-    "new-kalalake-evacuation-route": "/routes/new-kalalake-route.jpg",
-    "banicain-evacuation-route": "/routes/banicain-route.jpg",
-    "asinan-evacuation-route": "/routes/asinan-route.jpg",
-    "pag-asa-evacuation-route": "/routes/pag-asa-route.jpg",
-    "kababae-evacuation-route": "/routes/kababae-route.jpg",
-    "upper-kalaklan-evacuation-route": "/routes/upper-kalaklan-route.jpg",
-  };
-
   // -------------------------
   // Location effect (use == null to allow 0 coords)
   // -------------------------
@@ -857,24 +834,24 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           )}
         </div>
 
-        {/* --- District Selector --- */}
-        <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700 shadow-lg backdrop-blur-md">
-          <label className="text-sm text-slate-300 mb-2 block font-medium">
-            Select a Barangay to view evacuation routes:
+        {/* District Selector */}
+        <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 space-y-2">
+          <label className="text-sm text-slate-300 block">
+            Select a district to view evacuation routes:
           </label>
           <Select
             value={selectedDistrict || ""}
             onValueChange={(value) => setSelectedDistrict(value || null)}
           >
-            <SelectTrigger className="bg-slate-700/60 border-slate-600 text-white rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
-              <SelectValue placeholder="Choose a barangay..." />
+            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+              <SelectValue placeholder="Choose a district..." />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700 max-h-[250px] overflow-y-auto">
+            <SelectContent className="bg-slate-800 border-slate-700 max-h-60 overflow-y-auto">
               {nearbyZones.map((zone) => (
                 <SelectItem
                   key={zone.id}
                   value={zone.name}
-                  className="text-white hover:bg-slate-700 cursor-pointer"
+                  className="text-white"
                 >
                   {zone.name}
                 </SelectItem>
@@ -883,16 +860,20 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           </Select>
         </div>
 
-        {/* --- Evacuation Routes Section --- */}
-        <div className="space-y-5 mt-5">
+        {/* Evacuation Routes List */}
+        <div className="space-y-3 mt-4">
           {nearbyRoutes.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {nearbyRoutes.map((route) => (
-                <div
-                  key={route.id}
-                  className="bg-slate-800/50 p-5 rounded-lg border border-slate-700 hover:border-cyan-400 transition-all duration-200 shadow-md hover:shadow-cyan-500/10 flex flex-col justify-between"
-                >
-                  <div>
+            <>
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2
+                   scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 rounded-lg"
+              >
+                {nearbyRoutes.map((route) => (
+                  <div
+                    key={route.id}
+                    className="bg-slate-800/60 p-4 rounded-lg border-l-4 border-green-400 hover:border-green-500
+                       hover:bg-slate-700/60 transition-all duration-300 backdrop-blur-md shadow-md"
+                  >
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h4 className="font-semibold text-white text-sm">
@@ -907,14 +888,14 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                       </Badge>
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-slate-300 mb-2">
+                    <div className="flex items-center gap-4 text-xs text-slate-300">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         <span>{route.estimatedTime} min</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Navigation className="h-3 w-3" />
-                        <span>{route.distance} km</span>
+                        <span>{route.distance}km</span>
                       </div>
                     </div>
 
@@ -932,39 +913,16 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                       </div>
                     )}
                   </div>
-
-                  {/* --- View Evacuation Route Map Button --- */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 text-xs text-cyan-300 border-cyan-500 hover:bg-cyan-500/20 transition-all"
-                    onClick={() => {
-                      const routeImage =
-                        routeImages[
-                          route.name.toLowerCase().replace(/\s+/g, "-")
-                        ] || "/placeholder.svg";
-                      setFullScreenImage({
-                        url: routeImage,
-                        title: `${route.name} - Evacuation Route`,
-                      });
-                    }}
-                  >
-                    View Evacuation Route Map
-                  </Button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="bg-slate-800/50 p-5 rounded-lg border border-slate-700 text-center">
-              <p className="text-slate-400 text-sm">
-                {selectedDistrict
-                  ? `No evacuation routes found for ${selectedDistrict}`
-                  : "Select a barangay to view evacuation routes"}
-              </p>
-            </div>
+            <p className="text-slate-400 text-sm italic">
+              No evacuation routes available for this district.
+            </p>
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }
