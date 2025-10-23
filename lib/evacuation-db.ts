@@ -29,45 +29,45 @@ export interface LocationEvacuationData {
   }>
 }
 
-export async function getEvacuationDataForLocation(lat: number, lng: number): Promise<LocationEvacuationData> {
+export async function getEvacuationDataForLocation(): Promise<LocationEvacuationData> {
   try {
-    // Find the closest city based on coordinates
-    const closestCity = await findClosestCity(lat, lng)
+    // Instead of finding closest city, fetch everything in DB (Olongapo only)
+    const city = "Olongapo City"
 
-    // Fetch flood zones for the city
+    // Fetch ALL flood zones
     const { data: floodZonesData, error: floodError } = await supabase
       .from("flood_zones")
       .select("*")
-      .eq("city", closestCity)
+      .eq("city", city)
 
     if (floodError) {
       console.error("Error fetching flood zones:", floodError)
-      return getDefaultEvacuationData(closestCity)
+      return getDefaultEvacuationData(city)
     }
 
-    // Fetch evacuation centers for the city
+    // Fetch ALL evacuation centers
     const { data: centersData, error: centersError } = await supabase
       .from("evacuation_centers")
       .select("*")
-      .eq("city", closestCity)
+      .eq("city", city)
 
     if (centersError) {
       console.error("Error fetching evacuation centers:", centersError)
-      return getDefaultEvacuationData(closestCity)
+      return getDefaultEvacuationData(city)
     }
 
-    // Fetch safe routes for the city
+    // Fetch ALL safe routes
     const { data: routesData, error: routesError } = await supabase
       .from("safe_routes")
       .select("*")
-      .eq("city", closestCity)
+      .eq("city", city)
 
     if (routesError) {
       console.error("Error fetching safe routes:", routesError)
-      return getDefaultEvacuationData(closestCity)
+      return getDefaultEvacuationData(city)
     }
 
-    // Transform the data to match the expected format
+    // Map DB results into the expected structure
     const floodZones = (floodZonesData || []).map((zone: any) => ({
       id: zone.id,
       name: zone.name,
@@ -97,57 +97,14 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
     }))
 
     return {
-      city: closestCity,
+      city,
       floodZones,
       evacuationCenters,
       safeRoutes,
     }
   } catch (error) {
     console.error("Error fetching evacuation data:", error)
-    return getDefaultEvacuationData("Unknown")
-  }
-}
-
-async function findClosestCity(lat: number, lng: number): Promise<string> {
-  try {
-    const { data: cities, error } = await supabase.from("cities").select("name, latitude, longitude")
-
-    if (error || !cities || cities.length === 0) {
-      console.error("Error fetching cities:", error)
-      return "Olongapo City" // Default fallback
-    }
-
-    let closestCity = cities[0].name
-    let minDistance = Number.POSITIVE_INFINITY
-
-    for (const city of cities) {
-      const distance = Math.sqrt(Math.pow(lat - city.latitude, 2) + Math.pow(lng - city.longitude, 2))
-      if (distance < minDistance) {
-        minDistance = distance
-        closestCity = city.name
-      }
-    }
-
-    return closestCity
-  } catch (error) {
-    console.error("Error finding closest city:", error)
-    return "Olongapo City" // Default fallback
-  }
-}
-
-export async function getAvailableCities(): Promise<string[]> {
-  try {
-    const { data: cities, error } = await supabase.from("cities").select("name").order("name")
-
-    if (error) {
-      console.error("Error fetching cities:", error)
-      return ["Olongapo City", "Manila", "Cebu City"]
-    }
-
-    return cities?.map((city: any) => city.name) || ["Olongapo City", "Manila", "Cebu City"]
-  } catch (error) {
-    console.error("Error fetching cities:", error)
-    return ["Olongapo City", "Manila", "Cebu City"]
+    return getDefaultEvacuationData("Olongapo City")
   }
 }
 
@@ -160,6 +117,7 @@ function getDefaultEvacuationData(city: string): LocationEvacuationData {
   }
 }
 
+// Keep these utility functions as-is for updating
 export async function updateEvacuationCenterOccupancy(centerId: string, currentOccupancy: number): Promise<boolean> {
   try {
     const { error } = await supabase
