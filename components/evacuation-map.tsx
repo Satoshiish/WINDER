@@ -18,7 +18,6 @@ import {
   Building,
   ArrowLeft,
   X,
-  Maximize2,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EvacuationMapSkeleton, EvacuationZoneDetailSkeleton } from "@/components/skeletons/weather-skeleton"
@@ -81,26 +80,38 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [fullScreenImage, setFullScreenImage] = useState<{ url: string; title: string } | null>(null)
 
   const zoneMapImages = {
-    "olongapo-1": "/barretto-district-flood-map-evacuation-routes.jpg",
+    "olongapo-1": "/barreto-district-flood-map-evacuation-routes.jpg",
     "olongapo-2": "/kalaklan-district-flood-map-evacuation-routes.jpg",
     "olongapo-3": "/mabayuan-district-flood-map-evacuation-routes.jpg",
     "olongapo-4": "/gordon-heights-flood-map-evacuation-routes.jpg",
-    "olongapo-5": "/sta-rita-district-flood-map-evacuation-routes.jpg",
-    "manila-1": "/binondo-district-flood-map-evacuation-routes.jpg",
-    "manila-2": "/tondo-district-flood-map-evacuation-routes.jpg",
-    "manila-3": "/quiapo-district-flood-map-evacuation-routes.jpg",
-    "manila-4": "/ermita-district-flood-map-evacuation-routes.jpg",
-    "manila-5": "/malate-district-flood-map-evacuation-routes.jpg",
-    "cebu-1": "/pardo-district-flood-map-evacuation-routes.jpg",
-    "cebu-2": "/mabolo-district-flood-map-evacuation-routes.jpg",
-    "cebu-3": "/lahug-district-flood-map-evacuation-routes.jpg",
+    "olongapo-5": "/santa-rita-district-flood-map-evacuation-routes.jpg",
+    "olongapo-6": "/east-bajac-bajac-flood-map-evacuation-routes.jpg",
+    "olongapo-7": "/west-bajac-bajac-flood-map-evacuation-routes.jpg",
+    "olongapo-8": "/new-cabalan-flood-map-evacuation-routes.jpg",
+    "olongapo-9": "/old-cabalan-flood-map-evacuation-routes.jpg",
+    "olongapo-10": "/east-tapinac-flood-map-evacuation-routes.jpg",
+    "olongapo-11": "/new-kalalake-flood-map-evacuation-routes.jpg",
+    "olongapo-12": "/banicain-flood-map-evacuation-routes.jpg",
+    "olongapo-13": "/asinan-flood-map-evacuation-routes.jpg",
+    "olongapo-14": "/west-tapinac-flood-map-evacuation-routes.jpg",
+    "olongapo-15": "/pag-asa-flood-map-evacuation-routes.jpg",
+    "olongapo-16": "/placeholder.svg?height=400&width=600",
+    "olongapo-17": "/placeholder.svg?height=400&width=600",
+    "manila-1": "/placeholder.svg?height=400&width=600",
+    "manila-2": "/placeholder.svg?height=400&width=600",
+    "manila-3": "/placeholder.svg?height=400&width=600",
+    "manila-4": "/placeholder.svg?height=400&width=600",
+    "manila-5": "/placeholder.svg?height=400&width=600",
+    "cebu-1": "/placeholder.svg?height=400&width=600",
+    "cebu-2": "/placeholder.svg?height=400&width=600",
+    "cebu-3": "/placeholder.svg?height=400&width=600",
   }
 
   const centerImages = {
-    "center-1": "/api/placeholder/400/200?text=Evacuation+Center",
-    "center-2": "/api/placeholder/400/200?text=Evacuation+Center",
-    "center-3": "/api/placeholder/400/200?text=Evacuation+Center",
-    "center-4": "/api/placeholder/400/200?text=Evacuation+Center",
+    "center-1": "/placeholder.svg?height=400&width=200",
+    "center-2": "/placeholder.svg?height=400&width=200",
+    "center-3": "/placeholder.svg?height=400&width=200",
+    "center-4": "/placeholder.svg?height=400&width=200",
   }
 
   useEffect(() => {
@@ -343,7 +354,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           Back to Flood Zones
         </Button>
 
-        {/* Zone Details Card */}
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -362,26 +372,21 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {selectedZone.mapImage && (
-              <div
-                className="rounded-lg overflow-hidden border border-slate-600 cursor-pointer group relative"
-                onClick={() =>
-                  setFullScreenImage({
-                    url: selectedZone.mapImage || "",
-                    title: `${selectedZone.name} - Evacuation Routes Map`,
-                  })
-                }
-              >
-                <img
-                  src={selectedZone.mapImage || "/placeholder.svg"}
-                  alt={`${selectedZone.name} evacuation map`}
-                  className="w-full h-96 object-cover group-hover:opacity-75 transition-opacity"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                  <Maximize2 className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            )}
+            <div
+              onClick={() =>
+                setFullScreenImage({
+                  url: selectedZone.mapImage || "/placeholder.svg",
+                  title: `${selectedZone.name} - Flood Map & Evacuation Routes`,
+                })
+              }
+              className="rounded-lg overflow-hidden border border-slate-600 h-96 cursor-pointer hover:opacity-90 transition-opacity bg-slate-800"
+            >
+              <img
+                src={selectedZone.mapImage || "/placeholder.svg"}
+                alt={`${selectedZone.name} flood map`}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
             {/* Zone Statistics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -555,13 +560,13 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         </Card>
       )}
 
-      {/* Flood Zones Grid */}
+      {/* Barangay Routes Grid */}
       <div className="space-y-3">
         <h2 className="text-base font-semibold text-white flex items-center gap-2">
           <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-          Flood-Prone Areas
+          Barangay Routes
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {nearbyZones.map((zone) => (
             <div
               key={zone.id}
@@ -634,31 +639,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             </SelectContent>
           </Select>
         </div>
-
-        {selectedDistrict && nearbyZones.find((z) => z.name === selectedDistrict)?.mapImage && (
-          <div
-            className="rounded-lg overflow-hidden border border-slate-600 bg-slate-800/50 cursor-pointer group relative"
-            onClick={() => {
-              const zone = nearbyZones.find((z) => z.name === selectedDistrict)
-              if (zone?.mapImage) {
-                setFullScreenImage({
-                  url: zone.mapImage,
-                  title: `${selectedDistrict} - Evacuation Routes Map`,
-                })
-              }
-            }}
-          >
-            <img
-              src={nearbyZones.find((z) => z.name === selectedDistrict)?.mapImage || "/placeholder.svg"}
-              alt={`${selectedDistrict} evacuation map`}
-              className="w-full h-64 object-cover group-hover:opacity-75 transition-opacity"
-            />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-              <Maximize2 className="h-6 w-6 text-white" />
-            </div>
-            <p className="text-xs text-slate-400 p-2 text-center">Click to view full map for {selectedDistrict}</p>
-          </div>
-        )}
 
         {/* Evacuation Routes List */}
         <div className="space-y-3">
