@@ -177,3 +177,20 @@ export async function updateSafeRouteStatus(
     return false
   }
 }
+
+export async function getAvailableCities(): Promise<string[]> {
+  try {
+    const { data: cities, error } = await supabase.from("cities").select("name").order("name")
+
+    if (error) {
+      console.error("Error fetching cities:", error)
+      // Fallback list
+      return ["Olongapo City", "Manila", "Cebu City"]
+    }
+
+    return cities?.map((city: any) => city.name) || ["Olongapo City", "Manila", "Cebu City"]
+  } catch (error) {
+    console.error("Error fetching cities:", error)
+    return ["Olongapo City", "Manila", "Cebu City"]
+  }
+}
