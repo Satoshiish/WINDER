@@ -79,7 +79,8 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [apiLoading, setApiLoading] = useState(false)
   const [fullScreenImage, setFullScreenImage] = useState<{ url: string; title: string } | null>(null)
 
-  const zoneMapImages = {
+  // --- image maps (normalize lookup keys) ---
+  const zoneMapImages: Record<string, string> = {
     "olongapo-1": "/barreto-district-flood-map-evacuation-routes.jpg",
     "olongapo-2": "/kalaklan-district-flood-map-evacuation-routes.jpg",
     "olongapo-3": "/mabayuan-district-flood-map-evacuation-routes.jpg",
@@ -95,43 +96,44 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     "olongapo-13": "/asinan-flood-map-evacuation-routes.jpg",
     "olongapo-14": "/west-tapinac-flood-map-evacuation-routes.jpg",
     "olongapo-15": "/pag-asa-flood-map-evacuation-routes.jpg",
-    "olongapo-16": "/placeholder.svg?height=400&width=600",
-    "olongapo-17": "/placeholder.svg?height=400&width=600",
-    "manila-1": "/placeholder.svg?height=400&width=600",
-    "manila-2": "/placeholder.svg?height=400&width=600",
-    "manila-3": "/placeholder.svg?height=400&width=600",
-    "manila-4": "/placeholder.svg?height=400&width=600",
-    "manila-5": "/placeholder.svg?height=400&width=600",
-    "cebu-1": "/placeholder.svg?height=400&width=600",
-    "cebu-2": "/placeholder.svg?height=400&width=600",
-    "cebu-3": "/placeholder.svg?height=400&width=600",
   }
 
-  const centerImages = {
-    "center-1": "/placeholder.svg?height=400&width=200",
-    "center-2": "/placeholder.svg?height=400&width=200",
-    "center-3": "/placeholder.svg?height=400&width=200",
-    "center-4": "/placeholder.svg?height=400&width=200",
+  const centerImages: Record<string, string> = {
+    "olongapo-ec-1": "/placeholder.svg?height=400&width=200",
+    "olongapo-ec-2": "/placeholder.svg?height=400&width=200",
+    "olongapo-ec-3": "/placeholder.svg?height=400&width=200",
+    "olongapo-ec-4": "/placeholder.svg?height=400&width=200",
   }
 
+  // -------------------------
+  // Location effect (use == null to allow 0 coords)
+  // -------------------------
   useEffect(() => {
     const getLocation = async () => {
       try {
         let lat = userLat
         let lon = userLon
 
-        if (!lat || !lon) {
-          if (navigator.geolocation) {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject)
-            })
-            lat = position.coords.latitude
-            lon = position.coords.longitude
+        if (lat == null || lon == null) {
+          // try browser geolocation
+          if (typeof navigator !== "undefined" && navigator.geolocation) {
+            try {
+              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+              })
+              lat = position.coords.latitude
+              lon = position.coords.longitude
+            } catch (err) {
+              console.warn("Geolocation not available or blocked by user.", err)
+            }
           }
         }
 
-        if (lat && lon) {
+        if (lat != null && lon != null) {
           setLocationData({ lat, lon })
+        } else {
+          // fallback to Manila if nothing available
+          setLocationData({ lat: 14.5995, lon: 120.9842 })
         }
       } catch (error) {
         console.error("Error getting location:", error)
@@ -142,16 +144,19 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     getLocation()
   }, [userLat, userLon])
 
+  // -------------------------
+  // Weather fetch (unchanged)
+  // -------------------------
   useEffect(() => {
     const fetchWeatherData = async () => {
       if (!locationData) return
-
       try {
         const response = await fetch(`/api/weather/current?lat=${locationData.lat}&lon=${locationData.lon}`)
+        if (!response.ok) throw new Error("Weather API error")
         const data = await response.json()
         setWeatherData(data)
       } catch (error) {
-        console.error("Error fetching weather:", error)
+        console.warn("Error fetching weather, using fallback sample:", error)
         setWeatherData({
           windSpeed: 45,
           humidity: 75,
@@ -159,53 +164,95 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         })
       }
     }
-
     fetchWeatherData()
   }, [locationData])
 
+  // -------------------------
+  // Evacuation data fetch (defensive)
+  // -------------------------
   useEffect(() => {
     const fetchEvacuationData = async () => {
       if (!locationData) return
-
+      // avoid double set
       setApiLoading(true)
       try {
-        const response = await fetch(`/api/evacuation?lat=${locationData.lat}&lng=${locationData.lon}`)
-        const result = await response.json()
+        const res = await fetch(`/api/evacuation?lat=${locationData.lat}&lng=${locationData.lon}`)
+        const result = await res.json()
+        console.log("Evacuation API response:", result)
 
-        if (result.success && result.data) {
-          const evacuationData = result.data
-          const floodZones = evacuationData.floodZones.map((zone: any) => ({
-            ...zone,
-            distance: calculateDistance(locationData.lat, locationData.lon, zone.coordinates[0], zone.coordinates[1]),
-            mapImage: zoneMapImages[zone.id as keyof typeof zoneMapImages],
-            lastUpdated: new Date().toISOString().split("T")[0],
-          }))
-
-          const evacuationCenters = evacuationData.evacuationCenters.map((center: any) => ({
-            ...center,
-            distance: calculateDistance(
-              locationData.lat,
-              locationData.lon,
-              center.coordinates[0],
-              center.coordinates[1],
-            ),
-            image: centerImages[center.id as keyof typeof centerImages],
-            facilities: ["Medical", "Food", "Shelter", "Sanitation"],
-            contact: "+63 912 345 6789",
-          }))
-
-          const safeRoutes = evacuationData.safeRoutes.map((route: any) => ({
-            ...route,
-            status: "clear" as const,
-          }))
-
-          setNearbyZones(floodZones.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0)))
-          setNearbyCenters(evacuationCenters.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0)))
-          setAllRoutes(safeRoutes)
-          setNearbyRoutes(safeRoutes)
+        if (!result || !result.success || !result.data) {
+          // If no data, ensure we clear and stop loading
+          setNearbyZones([])
+          setNearbyCenters([])
+          setAllRoutes([])
+          setNearbyRoutes([])
+          return
         }
+
+        const evacuationData = result.data
+
+        // Defensive defaults
+        const floodZonesRaw = evacuationData.floodZones || []
+        const centersRaw = evacuationData.evacuationCenters || []
+        const routesRaw = evacuationData.safeRoutes || []
+
+        const floodZones = floodZonesRaw.map((zone: any) => {
+          const id = String(zone.id || zone.zone_id || zone.zoneId || "").toLowerCase()
+          const mapKey = id // normalized for lookup
+          return {
+            id,
+            name: zone.name || zone.zone_name || "Unknown",
+            riskLevel: zone.riskLevel || zone.risk_level || "low",
+            area: zone.area || zone.size || "Unknown",
+            affectedPopulation: Number(zone.affectedPopulation ?? zone.affected_population ?? 0),
+            coordinates: [Number(zone.coordinates?.[0] ?? zone.latitude), Number(zone.coordinates?.[1] ?? zone.longitude)] as [number, number],
+            distance: calculateDistance(locationData.lat, locationData.lon, Number(zone.latitude ?? zone.coordinates?.[0] ?? 0), Number(zone.longitude ?? zone.coordinates?.[1] ?? 0)),
+            mapImage: zoneMapImages[mapKey] || "/placeholder.svg",
+            lastUpdated: new Date().toISOString().split("T")[0],
+          } as FloodZone
+        })
+
+        const evacuationCenters = centersRaw.map((center: any) => {
+          const id = String(center.id || center.center_id || "").toLowerCase()
+          const imageKey = id
+          return {
+            id,
+            name: center.name || "Evacuation Center",
+            capacity: Number(center.capacity ?? 0),
+            currentOccupancy: Number(center.currentOccupancy ?? center.current_occupancy ?? 0),
+            coordinates: [Number(center.latitude ?? center.coordinates?.[0] ?? 0), Number(center.longitude ?? center.coordinates?.[1] ?? 0)] as [number, number],
+            address: center.address || "",
+            distance: calculateDistance(locationData.lat, locationData.lon, Number(center.latitude ?? 0), Number(center.longitude ?? 0)),
+            image: centerImages[imageKey] || "/placeholder.svg",
+            facilities: center.facilities || ["Medical", "Food", "Shelter", "Sanitation"],
+            contact: center.contact || "+63 912 345 6789",
+          } as EvacuationCenter
+        })
+
+        const safeRoutes = routesRaw.map((route: any) => {
+          return {
+            id: String(route.id || route.route_id || ""),
+            name: route.name || `${route.from_location || route.from} → ${route.to_location || route.to}`,
+            from: route.from || route.from_location || "Unknown",
+            to: route.to || route.to_location || "Unknown",
+            distance: Number(route.distance ?? 0),
+            estimatedTime: Number(route.estimatedTime ?? route.estimated_time ?? 0),
+            hazards: Array.isArray(route.hazards) ? route.hazards : (route.hazards ? [route.hazards] : []),
+            status: (route.status as SafeRoute["status"]) || "clear",
+          } as SafeRoute
+        })
+
+        // sort by distance
+        setNearbyZones(floodZones.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity)))
+        setNearbyCenters(evacuationCenters.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity)))
+        setAllRoutes(safeRoutes)
+        setNearbyRoutes(safeRoutes)
       } catch (error) {
         console.error("Error fetching evacuation data:", error)
+        setNearbyZones([])
+        setNearbyCenters([])
+        setAllRoutes([])
+        setNearbyRoutes([])
       } finally {
         setApiLoading(false)
         setLoading(false)
@@ -215,7 +262,9 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     fetchEvacuationData()
   }, [locationData])
 
+  // Haversine (good)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    if (!lat2 || !lon2) return Infinity
     const R = 6371
     const dLat = ((lat2 - lat1) * Math.PI) / 180
     const dLon = ((lon2 - lon1) * Math.PI) / 180
@@ -226,38 +275,50 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     return R * c
   }
 
+  // Relaxed matching for routes
   const getFilteredSafeRoutes = (districtName?: string): SafeRoute[] => {
-    let routes = allRoutes
+    let routes = allRoutes || []
+    if (!districtName || districtName.trim() === "") return routes
 
-    if (districtName) {
-      routes = routes.filter((route) => {
-        // Match by exact name or by checking if the route starts from this district
-        return route.from.toLowerCase().includes(districtName.toLowerCase()) || route.from === districtName
-      })
-    }
+    const dn = districtName.toLowerCase().replace(/^(brgy\.?|barangay)\s*/i, "").trim()
+    return routes.filter((route) => {
+      const from = (route.from || "").toLowerCase()
+      const to = (route.to || "").toLowerCase()
+      // remove common prefixes to improve match reliability
+      const fromClean = from.replace(/^(brgy\.?|barangay)\s*/i, "").trim()
+      const toClean = to.replace(/^(brgy\.?|barangay)\s*/i, "").trim()
 
-    return routes
+      return (
+        fromClean.includes(dn) ||
+        toClean.includes(dn) ||
+        dn.includes(fromClean) ||
+        dn.includes(toClean)
+      )
+    })
   }
 
+  // Update nearbyRoutes when district selection or allRoutes change
   useEffect(() => {
     if (!apiLoading) {
       const safeRoutes = getFilteredSafeRoutes(selectedDistrict || undefined)
       setNearbyRoutes(safeRoutes)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDistrict, apiLoading, allRoutes])
 
+  // Risk assessment
   useEffect(() => {
     if (weatherData && nearbyZones.length > 0) {
       const highRiskZones = nearbyZones.filter((z) => z.riskLevel === "high").length
-      const totalAffected = nearbyZones.reduce((sum, z) => sum + z.affectedPopulation, 0)
+      const totalAffected = nearbyZones.reduce((sum, z) => sum + (z.affectedPopulation || 0), 0)
 
       setRiskAssessment({
         overallRisk:
           weatherData.windSpeed > 60 || weatherData.humidity > 80
             ? "high"
             : weatherData.windSpeed > 40
-              ? "medium"
-              : "low",
+            ? "medium"
+            : "low",
         affectedPopulation: totalAffected,
         highRiskZones: highRiskZones,
         rainfall: weatherData.humidity || 0,
@@ -266,6 +327,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     }
   }, [weatherData, nearbyZones])
 
+  // small helpers for UI classes (unchanged)
   const getRiskColor = (level: string) => {
     switch (level) {
       case "high":
@@ -347,7 +409,10 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         {/* Back Button */}
         <Button
           variant="outline"
-          onClick={() => setSelectedZone(null)}
+          onClick={() => {
+            setSelectedZone(null)
+            setSelectedDistrict(null)
+          }}
           className="border-slate-600 text-slate-300 hover:bg-slate-800"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -467,7 +532,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               </h3>
               <div className="space-y-3">
                 {nearbyCenters.slice(0, 3).map((center) => {
-                  const occupancyPercent = (center.currentOccupancy / center.capacity) * 100
+                  const occupancyPercent = (center.currentOccupancy / Math.max(center.capacity, 1)) * 100
                   return (
                     <div key={center.id} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
                       <div className="flex items-start justify-between mb-2">
@@ -480,8 +545,8 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                             occupancyPercent > 80
                               ? "bg-red-500/20 text-red-400"
                               : occupancyPercent > 50
-                                ? "bg-yellow-500/20 text-yellow-400"
-                                : "bg-green-500/20 text-green-400"
+                              ? "bg-yellow-500/20 text-yellow-400"
+                              : "bg-green-500/20 text-green-400"
                           }`}
                         >
                           {occupancyPercent.toFixed(0)}% full
@@ -490,13 +555,9 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                       <div className="w-full bg-slate-600 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full transition-all ${
-                            occupancyPercent > 80
-                              ? "bg-red-400"
-                              : occupancyPercent > 50
-                                ? "bg-yellow-400"
-                                : "bg-green-400"
+                            occupancyPercent > 80 ? "bg-red-400" : occupancyPercent > 50 ? "bg-yellow-400" : "bg-green-400"
                           }`}
-                          style={{ width: `${occupancyPercent}%` }}
+                          style={{ width: `${Math.min(Math.max(occupancyPercent, 0), 100)}%` }}
                         />
                       </div>
                       <p className="text-xs text-slate-300 mt-2">
@@ -513,6 +574,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     )
   }
 
+  // Main list view
   return (
     <div className="space-y-6 p-4">
       {/* Risk Assessment Overview */}
@@ -702,7 +764,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {nearbyCenters.map((center) => {
-            const occupancyPercent = (center.currentOccupancy / center.capacity) * 100
+            const occupancyPercent = (center.currentOccupancy / Math.max(center.capacity, 1)) * 100
             return (
               <div
                 key={center.id}
@@ -718,8 +780,8 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                       occupancyPercent > 80
                         ? "bg-red-500/20 text-red-400"
                         : occupancyPercent > 50
-                          ? "bg-yellow-500/20 text-yellow-400"
-                          : "bg-green-500/20 text-green-400"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-green-500/20 text-green-400"
                     }`}
                   >
                     {occupancyPercent.toFixed(0)}%
@@ -730,7 +792,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                     className={`h-2 rounded-full transition-all ${
                       occupancyPercent > 80 ? "bg-red-400" : occupancyPercent > 50 ? "bg-yellow-400" : "bg-green-400"
                     }`}
-                    style={{ width: `${occupancyPercent}%` }}
+                    style={{ width: `${Math.min(Math.max(occupancyPercent, 0), 100)}%` }}
                   />
                 </div>
                 <p className="text-slate-400 text-xs">
