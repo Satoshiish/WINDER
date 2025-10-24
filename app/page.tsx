@@ -4116,120 +4116,113 @@ export default function Home() {
           }}
         >
           <DialogContent
-            className="w-[95vw] sm:max-w-2xl max-h-[85vh]
-            bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
-            border border-slate-600/50 text-white rounded-xl shadow-2xl
-            flex flex-col overflow-hidden backdrop-blur-sm"
+            className="w-[92vw] sm:w-[40vw] max-h-[80vh]
+            bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 text-white rounded-3xl shadow-2xl
+            flex flex-col overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
-            <DialogHeader className="flex-shrink-0 px-6 py-4 bg-slate-800/30 border-b border-slate-700/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
-                    <Clock className="w-5 h-5 text-white" />
+            <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xl sm:text-2xl font-bold">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-green-600 to-green-500 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="text-white text-lg font-semibold">{t("history.title")}</h2>
-                    <p className="text-slate-300 text-sm">
+                    <h2 className="text-white text-lg sm:text-xl">{t("history.title")}</h2>
+                    <p className="text-slate-400 text-xs sm:text-sm font-normal">
                       {getFilteredHistory().length} {t("history.recordsFound")}
                     </p>
                   </div>
                 </div>
 
-                {weatherHistory.length > 0 && (
-                  <Button
-                    onClick={clearWeatherHistory}
-                    variant="outline"
-                    size="sm"
-                    className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300
-                    transition-colors rounded-lg px-3 py-1.5 text-xs"
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <select
+                    value={historyFilter}
+                    onChange={(e) => setHistoryFilter(e.target.value as any)}
+                    className="flex-1 sm:flex-none bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white
+                    focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner text-sm"
                   >
-                    Clear All
-                  </Button>
-                )}
-              </div>
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                  </select>
+
+                  {weatherHistory.length > 0 && (
+                    <Button
+                      onClick={clearWeatherHistory}
+                      variant="outline"
+                      size="sm"
+                      className="flex-shrink-0 border-red-600 text-red-400 hover:bg-gradient-to-r hover:from-red-600 hover:to-red-500
+                      hover:text-white transition rounded-lg px-3 sm:px-4 py-2 bg-transparent text-sm"
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </div>
+              </DialogTitle>
             </DialogHeader>
 
-            {/* Filters */}
-            <div className="flex-shrink-0 px-6 py-3 bg-slate-800/20 border-b border-slate-700/30">
-              <div className="flex items-center gap-3">
-                <label className="text-slate-300 text-sm whitespace-nowrap">Filter by:</label>
-                <select
-                  value={historyFilter}
-                  onChange={(e) => setHistoryFilter(e.target.value as any)}
-                  className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-white text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="all">All Time</option>
-                  <option value="today">Today</option>
-                  <option value="week">This Week</option>
-                  <option value="month">This Month</option>
-                </select>
-              </div>
-            </div>
-
             {/* Body */}
-            <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {getFilteredHistory().length > 0 ? (
                 <div className="space-y-3">
                   {getFilteredHistory().map((entry) => (
                     <div
                       key={entry.id}
-                      className="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4
-                      hover:bg-slate-700/40 hover:border-slate-600/50
-                      transition-all duration-200 cursor-pointer group"
+                      className="bg-gradient-to-r from-slate-800/40 to-slate-900/40
+                      border border-slate-700/50 rounded-2xl p-4 sm:p-5
+                      hover:from-slate-800/70 hover:to-slate-900/70
+                      transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        {/* Weather Info */}
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
                           <div className="flex-shrink-0 mt-1">
                             {getWeatherIcon(entry.condition, entry.icon)}
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-white font-bold text-xl">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h3 className="text-white font-semibold text-lg whitespace-nowrap">
                                 {Math.round(convertTemperature(entry.temperature))}
                                 {getTemperatureUnit()}
                               </h3>
-                              <span className="text-slate-200 text-sm font-medium">{entry.condition}</span>
+                              <span className="text-slate-300 text-sm truncate">{entry.condition}</span>
                             </div>
 
-                            <p className="text-slate-300 text-sm mb-2 truncate">{entry.description}</p>
+                            <p className="text-slate-400 text-sm mb-2 truncate">{entry.description}</p>
 
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                              <span className="flex items-center gap-1.5">
+                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-slate-500">
+                              <span className="flex items-center gap-1 min-w-0 flex-1 sm:flex-initial">
                                 <MapPin className="w-3 h-3 flex-shrink-0" />
-                                <span className="truncate max-w-[120px]">{entry.locationName || entry.location}</span>
+                                <span className="truncate">{entry.locationName || entry.location}</span>
                               </span>
-                              <span>💧 {entry.humidity}%</span>
-                              <span>
+                              <span className="whitespace-nowrap flex-shrink-0">💧 {entry.humidity}%</span>
+                              <span className="whitespace-nowrap flex-shrink-0">
                                 💨 {Math.round(convertWindSpeed(entry.windSpeed))} {getWindSpeedUnit()}
                               </span>
-                              <span>
-                                🌡️ Feels like {Math.round(convertTemperature(entry.feelsLike))}
+                              <span className="whitespace-nowrap flex-shrink-0">
+                                🌡️ {Math.round(convertTemperature(entry.feelsLike))}
                                 {getTemperatureUnit()}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Timestamp */}
-                        <div className="flex-shrink-0 text-right">
-                          <div className="text-slate-200 text-sm font-medium whitespace-nowrap">{entry.date}</div>
-                          <div className="text-slate-400 text-xs">{entry.time}</div>
+                        <div className="text-left sm:text-right text-slate-400 text-sm flex-shrink-0">
+                          <div className="font-medium text-xs sm:text-sm whitespace-nowrap">{entry.date}</div>
+                          <div className="text-xs whitespace-nowrap">{entry.time}</div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-slate-400 py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-slate-700/50 rounded-full flex items-center justify-center">
-                    <Clock className="w-8 h-8 text-slate-500" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2 text-slate-300">{t("history.noDataTitle")}</h3>
-                  <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                <div className="text-center text-slate-400 py-16">
+                  <Clock className="w-16 h-16 mx-auto mb-4 text-slate-600 animate-pulse" />
+                  <h3 className="text-lg font-medium mb-2">{t("history.noDataTitle")}</h3>
+                  <p className="text-sm">
                     {historyFilter === "all" ? t("history.noDataDescAll") : t("history.noDataDescFiltered")}
                   </p>
                   {historyFilter !== "all" && (
@@ -4237,7 +4230,7 @@ export default function Home() {
                       onClick={() => setHistoryFilter("all")}
                       variant="outline"
                       size="sm"
-                      className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700/50 rounded-lg"
+                      className="mt-4 border-slate-600 text-slate-400 hover:bg-slate-700 rounded-lg"
                     >
                       {t("history.viewAll")}
                     </Button>
