@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 
-type Language = "en" | "tl"
+export type Language = "en" | "tl"
 
 interface LanguageContextType {
   language: Language
@@ -136,7 +136,7 @@ const translations: Record<Language, Record<string, string>> = {
     "risk.strongSeismicActivity": "Strong seismic activity detected",
 
     // Emergency
-    "emergency.title": "Emergency",
+    "emergency.title": "Emergency Numbers",
     "emergency.report": "Report Emergency",
     "emergency.kit": "Emergency Kit",
     "emergency.evacuation": "Evacuation Map",
