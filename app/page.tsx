@@ -3768,67 +3768,75 @@ export default function Home() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                   <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                 </div>
-                <span className="text-white">{t("emergency.title")}</span>
+                <span className="text-white">Report Emergency</span>
               </DialogTitle>
             </DialogHeader>
 
-            {/* Buttons */}
-            <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-              {/* Call 911 */}
-              <div className="space-y-1">
+            {/* Body */}
+            <div className="p-5 sm:p-6 space-y-4">
+              <h2 className="text-center text-slate-300 font-medium mb-2">
+                Select the type of emergency
+              </h2>
+
+              {/* Emergency Categories */}
+              <div className="space-y-3">
+                {/* Medical Emergency */}
+                <button className="w-full text-left p-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-lg transition-all">
+                  <p className="text-lg font-semibold">Medical Emergency</p>
+                  <p className="text-sm text-slate-100/80">Ambulance and medical assistance</p>
+                </button>
+
+                {/* Fire Emergency */}
+                <button className="w-full text-left p-4 rounded-2xl bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-400 hover:to-yellow-300 shadow-lg transition-all">
+                  <p className="text-lg font-semibold">Fire Emergency</p>
+                  <p className="text-sm text-slate-100/80">Fire department and rescue</p>
+                </button>
+
+                {/* Crime/Safety */}
+                <button className="w-full text-left p-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-500 hover:to-purple-400 shadow-lg transition-all">
+                  <p className="text-lg font-semibold">Crime/Safety</p>
+                  <p className="text-sm text-slate-100/80">Police and security assistance</p>
+                </button>
+
+                {/* Natural Disaster */}
+                <button className="w-full text-left p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-lg transition-all">
+                  <p className="text-lg font-semibold">Natural Disaster</p>
+                  <p className="text-sm text-slate-100/80">Disaster response and evacuation</p>
+                </button>
+
+                {/* Accident/Injury */}
+                <button className="w-full text-left p-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-400 hover:from-yellow-400 hover:to-amber-300 shadow-lg transition-all">
+                  <p className="text-lg font-semibold">Accident/Injury</p>
+                  <p className="text-sm text-slate-100/80">Emergency medical response</p>
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-slate-700/50 my-4"></div>
+
+              {/* Contact Buttons */}
+              <p className="text-center text-slate-400 mb-3">
+                Contact emergency services directly
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
-                  className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl
-                  bg-gradient-to-r from-red-600 to-red-500
-                  hover:from-red-500 hover:to-red-400
-                  border border-red-400/40 text-white
-                  text-base sm:text-lg font-semibold shadow-lg transition-all"
+                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-lg font-semibold shadow-lg transition-all"
                   onClick={() => {
                     window.open('tel:911', '_self')
                     setEmergencyModalOpen(false)
                   }}
                 >
-                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  {t('emergency.call911')}
+                  <Phone className="mr-2 h-5 w-5" /> Call 911
                 </Button>
-                <p className="text-sm text-slate-400 ml-1">National emergency hotline</p>
-              </div>
-
-              {/* Call 143 */}
-              <div className="space-y-1">
                 <Button
-                  className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl
-                  bg-gradient-to-r from-blue-600 to-blue-500
-                  hover:from-blue-500 hover:to-blue-400
-                  border border-blue-400/40 text-white
-                  text-base sm:text-lg font-semibold shadow-lg transition-all"
+                  className="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white text-lg font-semibold shadow-lg transition-all"
                   onClick={() => {
                     window.open('tel:143', '_self')
                     setEmergencyModalOpen(false)
                   }}
                 >
-                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  {t('emergency.call143')}
+                  <Phone className="mr-2 h-5 w-5" /> Call 143
                 </Button>
-                <p className="text-sm text-slate-400 ml-1">Philippine Red Cross hotline</p>
-              </div>
-
-              {/* Call 117 */}
-              <div className="space-y-1">
-                <Button
-                  className="w-full py-3 sm:py-4 justify-start rounded-xl sm:rounded-2xl
-                  bg-gradient-to-r from-orange-600 to-orange-500
-                  hover:from-orange-500 hover:to-orange-400
-                  border border-orange-400/40 text-white
-                  text-base sm:text-lg font-semibold shadow-lg transition-all"
-                  onClick={() => {
-                    window.open('tel:117', '_self')
-                    setEmergencyModalOpen(false)
-                  }}
-                >
-                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  {t('emergency.call117')}
-                </Button>
-                <p className="text-sm text-slate-400 ml-1">Police and public safety hotline</p>
               </div>
             </div>
           </DialogContent>
