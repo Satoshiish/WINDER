@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Flag, Send } from "lucide-react"
 import { getPostComments, addComment } from "@/lib/social-db"
 import { formatDistanceToNow } from "date-fns"
+import { CommentsSectionSkeleton } from "@/components/skeletons/social-skeleton"
 
 interface Comment {
   id: number
@@ -48,10 +49,16 @@ export function CommentsSection({
     if (!newComment.trim()) return
 
     setIsSubmitting(true)
+    const optimisticTimestamp = new Date().toISOString()
     const result = await addComment(postId, newComment)
 
     if (result.success && result.comment) {
-      setComments([result.comment as Comment, ...comments])
+      const commentToAdd = {
+        ...result.comment,
+        created_at: optimisticTimestamp,
+      } as Comment
+      console.log("[v0] Comment added - returned timestamp:", result.comment.created_at, "using:", optimisticTimestamp)
+      setComments([commentToAdd, ...comments])
       setNewComment("")
       onCommentAdded?.()
     }
@@ -93,9 +100,7 @@ export function CommentsSection({
       {/* Comments List */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-          </div>
+          <CommentsSectionSkeleton />
         ) : comments.length === 0 ? (
           <p className="text-sm text-slate-400 text-center py-4">No comments yet. Be the first to comment!</p>
         ) : (

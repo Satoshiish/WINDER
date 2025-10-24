@@ -9,6 +9,7 @@ import { PostDetailModal } from "@/components/social/post-detail-modal"
 import { LocationFilter } from "@/components/social/location-filter"
 import { getSocialFeed, createSocialPost } from "@/lib/social-db"
 import { Plus, AlertCircle } from "lucide-react"
+import { SocialFeedSkeleton } from "@/components/skeletons/social-skeleton"
 
 interface Post {
   id: number
@@ -122,9 +123,7 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
 
       {/* Feed Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
+        <SocialFeedSkeleton />
       ) : posts.length === 0 ? (
         <div className="text-center py-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl border border-slate-600/30 backdrop-blur-sm">
           <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />

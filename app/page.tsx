@@ -57,6 +57,7 @@ import { SMSSettings } from "@/components/sms-settings"
 import { sendSMS } from "@/lib/sms-service" // Add sendSMS import at the top with other imports
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
+import { searchLocations, OLONGAPO_LOCATIONS } from "@/lib/location-search"
 
 interface WeatherData {
   temperature: number
@@ -246,6 +247,15 @@ export default function Home() {
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(true) // Controls the initial emergency prompt
   const [quickActionsModalOpen, setQuickActionsModalOpen] = useState(false)
   const [isQuickActionsFlow, setIsQuickActionsFlow] = useState(false)
+
+  const [emergencyLocationSearch, setEmergencyLocationSearch] = useState("")
+  const [emergencyShowLocationDropdown, setEmergencyShowLocationDropdown] = useState(false)
+  const [emergencyFilteredLocations, setEmergencyFilteredLocations] = useState(OLONGAPO_LOCATIONS)
+  const [emergencySelectedLocation, setEmergencySelectedLocation] = useState<{
+    name: string
+    lat: number
+    lng: number
+  } | null>(null)
 
   const [smsPreferences, setSmsPreferences] = useState<any>(null)
   useEffect(() => {
@@ -2733,17 +2743,6 @@ export default function Home() {
   }
 
   const handleEmergencyReport = async (emergencyType: string, description: string) => {
-    if (!navigator.geolocation) {
-      // Always show emergency-related toasts regardless of notification settings
-      toast({
-        title: "Location Error",
-        description: "Geolocation is not supported by this browser",
-        variant: "destructive",
-        duration: 5000,
-      })
-      return
-    }
-
     if (!emergencyFormData.senderName.trim() || !emergencyFormData.senderPhone.trim()) {
       toast({
         title: "Missing Information",
@@ -2754,120 +2753,104 @@ export default function Home() {
       return
     }
 
+    if (!emergencySelectedLocation) {
+      toast({
+        title: "Location Required",
+        description: "Please select a location in Olongapo City",
+        variant: "destructive",
+        duration: 5000,
+      })
+      return
+    }
+
     // Show loading toast
     toast({
       title: "Sending Report",
-      description: "Getting your location and sending emergency report...",
+      description: "Sending emergency report...",
       variant: "default",
       duration: 3000,
     })
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords
-        const locationName = reverseGeocode(latitude, longitude)
+    const { lat, lng } = emergencySelectedLocation
+    const locationName = emergencySelectedLocation.name
 
-        // Get device info
-        const deviceInfo = navigator.userAgent.includes("iPhone")
-          ? "iPhone"
-          : navigator.userAgent.includes("Android")
-            ? "Android Device"
-            : navigator.userAgent.includes("Windows")
-              ? "Windows Device"
-              : "Unknown Device"
+    // Get device info
+    const deviceInfo = navigator.userAgent.includes("iPhone")
+      ? "iPhone"
+      : navigator.userAgent.includes("Android")
+        ? "Android Device"
+        : navigator.userAgent.includes("Windows")
+          ? "Windows Device"
+          : "Unknown Device"
 
-        let priority: "critical" | "high" | "medium" | "low" = "medium"
-        if (emergencyType === "medical") {
-          priority = "critical"
-        } else if (emergencyType === "fire" || emergencyType === "accident") {
-          priority = "high"
-        } else if (emergencyType === "crime" || emergencyType === "natural-disaster") {
-          priority = "high"
-        }
+    let priority: "critical" | "high" | "medium" | "low" = "medium"
+    if (emergencyType === "medical") {
+      priority = "critical"
+    } else if (emergencyType === "fire" || emergencyType === "accident") {
+      priority = "high"
+    } else if (emergencyType === "crime" || emergencyType === "natural-disaster") {
+      priority = "high"
+    }
 
-        const emergencyReportData = {
-          userId: user?.id || "anonymous",
-          userName: emergencyFormData.senderName,
-          userEmail: user?.email || "anonymous@example.com",
-          emergencyType,
-          location: { lat: latitude, lng: longitude },
-          address: locationName,
-          contactNumber: emergencyFormData.senderPhone,
-          peopleCount: emergencyFormData.peopleCount,
-          additionalInfo: description,
-          status: "pending" as const,
-          priority,
-          assignedTo: undefined,
-          responseTime: undefined,
-          notes: [],
-          deviceInfo, // Add device info
-          accuracy: position.coords.accuracy || 10,
-        }
+    const emergencyReportData = {
+      userId: user?.id || "anonymous",
+      userName: emergencyFormData.senderName,
+      userEmail: user?.email || "anonymous@example.com",
+      emergencyType,
+      location: { lat, lng },
+      address: locationName,
+      contactNumber: emergencyFormData.senderPhone,
+      peopleCount: emergencyFormData.peopleCount,
+      additionalInfo: description,
+      status: "pending" as const,
+      priority,
+      assignedTo: undefined,
+      responseTime: undefined,
+      notes: [],
+      deviceInfo,
+      accuracy: 10, // Fixed accuracy since we're using predefined locations
+    }
 
-        try {
-          const result = await saveEmergencyReport(emergencyReportData)
-          if (result.success) {
-            console.log("[v0] Emergency report saved to database successfully:", result.id)
+    try {
+      const result = await saveEmergencyReport(emergencyReportData)
+      if (result.success) {
+        console.log("[v0] Emergency report saved to database successfully:", result.id)
 
-            // Show detailed success toast - always visible for emergency reports
-            const emergencyTypeFormatted = emergencyType.charAt(0).toUpperCase() + emergencyType.slice(1)
-            toast({
-              title: "✅ Emergency Report Sent",
-              description: `${emergencyTypeFormatted} emergency reported at ${locationName}. Report ID: ${result.id?.slice(-6)}. Emergency services have been notified.`,
-              variant: "default",
-              duration: 8000,
-            })
-
-            setEmergencyFormData({
-              senderName: "",
-              senderPhone: "",
-              emergencyType: "",
-              description: "",
-              peopleCount: 1,
-            })
-            setShowEmergencyForm(false)
-            setLocationSharingModalOpen(false)
-
-            // Also share location with admin
-            handleShareLocationWithAdmin("emergency")
-          } else {
-            throw new Error("Failed to save emergency report")
-          }
-        } catch (error) {
-          console.error("[v0] Error storing emergency report:", error)
-          toast({
-            title: "Error",
-            description: "Failed to send emergency report. Please try again.",
-            variant: "destructive",
-            duration: 5000,
-          })
-        }
-      },
-      (error) => {
-        console.error("[v0] Geolocation error:", error)
-        // Show specific error messages based on error type - always visible for emergency reports
-        let errorMessage = "Unable to access your location for emergency report"
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMessage = "Location access denied. Please enable location services and try again."
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMessage = "Location information unavailable. Please check your GPS settings."
-        } else if (error.code === error.TIMEOUT) {
-          errorMessage = "Location request timed out. Please try again."
-        }
-
+        // Show detailed success toast
+        const emergencyTypeFormatted = emergencyType.charAt(0).toUpperCase() + emergencyType.slice(1)
         toast({
-          title: "Location Error",
-          description: errorMessage,
-          variant: "destructive",
+          title: "✅ Emergency Report Sent",
+          description: `${emergencyTypeFormatted} emergency reported at ${locationName}. Report ID: ${result.id?.slice(-6)}. Emergency services have been notified.`,
+          variant: "default",
           duration: 8000,
         })
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0, // Always try to get the latest location for emergencies
-      },
-    )
+
+        setEmergencyFormData({
+          senderName: "",
+          senderPhone: "",
+          emergencyType: "",
+          description: "",
+          peopleCount: 1,
+        })
+        setEmergencySelectedLocation(null)
+        setEmergencyLocationSearch("")
+        setShowEmergencyForm(false)
+        setLocationSharingModalOpen(false)
+
+        // Also share location with admin
+        handleShareLocationWithAdmin("emergency")
+      } else {
+        throw new Error("Failed to save emergency report")
+      }
+    } catch (error) {
+      console.error("[v0] Error storing emergency report:", error)
+      toast({
+        title: "Error",
+        description: "Failed to send emergency report. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
   }
 
   const handleEmergencyTypeSelect = (type: string, description: string) => {
@@ -2955,6 +2938,158 @@ export default function Home() {
     updateRecentSearches(location.name)
     setTimeout(() => handleLocationSearch(location.name), 100)
   }
+
+  useEffect(() => {
+    setEmergencyFilteredLocations(searchLocations(emergencyLocationSearch))
+  }, [emergencyLocationSearch])
+
+  const handleSelectEmergencyLocation = (location: { name: string; lat: number; lng: number }) => {
+    setEmergencySelectedLocation(location)
+    setEmergencyLocationSearch(location.name)
+    setEmergencyShowLocationDropdown(false)
+  }
+
+  const renderEmergencyForm = () => (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Full Name *</label>
+        <input
+          type="text"
+          value={emergencyFormData.senderName}
+          onChange={(e) => setEmergencyFormData({ ...emergencyFormData, senderName: e.target.value })}
+          placeholder="Your full name"
+          className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Phone Number *</label>
+        <input
+          type="tel"
+          value={emergencyFormData.senderPhone}
+          onChange={(e) => setEmergencyFormData({ ...emergencyFormData, senderPhone: e.target.value })}
+          placeholder="Your contact number"
+          className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="emergencyLocation" className="text-slate-300 text-sm font-medium">
+          Location *
+        </Label>
+        <div className="relative mt-1">
+          <Input
+            id="emergencyLocation"
+            type="text"
+            placeholder="Search barangay..."
+            value={emergencyLocationSearch}
+            onChange={(e) => {
+              setEmergencyLocationSearch(e.target.value)
+              const filtered = searchLocations(e.target.value)
+              setEmergencyFilteredLocations(filtered)
+              setEmergencyShowLocationDropdown(true)
+            }}
+            onFocus={() => setEmergencyShowLocationDropdown(true)}
+            className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+          />
+          {emergencySelectedLocation && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-400 font-medium">
+              ✓
+            </div>
+          )}
+        </div>
+
+        {emergencyShowLocationDropdown && emergencyFilteredLocations.length > 0 && (
+          <div
+            className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <style>{`
+              #emergencyLocationDropdown::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            <div id="emergencyLocationDropdown" className="w-full">
+              {emergencyFilteredLocations.map((location) => (
+                <button
+                  key={location.name}
+                  onClick={() => {
+                    setEmergencySelectedLocation(location)
+                    setEmergencyLocationSearch(location.name)
+                    setEmergencyShowLocationDropdown(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-700 text-slate-200 text-sm border-b border-slate-700/50 last:border-b-0 transition"
+                >
+                  {location.name}, Olongapo City
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Emergency Type *</label>
+        <select
+          value={emergencyFormData.emergencyType}
+          onChange={(e) => setEmergencyFormData({ ...emergencyFormData, emergencyType: e.target.value })}
+          className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          <option value="">Select emergency type</option>
+          <option value="medical">Medical Emergency</option>
+          <option value="fire">Fire</option>
+          <option value="accident">Accident</option>
+          <option value="crime">Crime</option>
+          <option value="natural-disaster">Natural Disaster</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">People Affected</label>
+        <input
+          type="number"
+          min="1"
+          value={emergencyFormData.peopleCount}
+          onChange={(e) =>
+            setEmergencyFormData({ ...emergencyFormData, peopleCount: Number.parseInt(e.target.value) || 1 })
+          }
+          className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
+        <textarea
+          value={emergencyFormData.description}
+          onChange={(e) => setEmergencyFormData({ ...emergencyFormData, description: e.target.value })}
+          placeholder="Describe the emergency situation..."
+          className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+          rows={3}
+        />
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <Button
+          onClick={() => handleEmergencyReport(emergencyFormData.emergencyType, emergencyFormData.description)}
+          className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+        >
+          Send Emergency Report
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowEmergencyForm(false)
+            setEmergencySelectedLocation(null)
+            setEmergencyLocationSearch("")
+          }}
+          className="border-slate-600 text-slate-300 hover:bg-slate-800"
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
@@ -3125,7 +3260,7 @@ export default function Home() {
 
         {mobileSearchOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-            <div className="fixed inset-x-0 top-0 bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-md border-b border-slate-700/50 p-6">
+            <div className="fixed inset-x-0 top-0 bg-gradient-to-r from-slate-900 to-slate-800 backdrop-blur-md border-b border-slate-700/50 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
@@ -3783,12 +3918,12 @@ export default function Home() {
                   border border-red-400/40 text-white
                   text-base sm:text-lg font-semibold shadow-lg transition-all"
                   onClick={() => {
-                    window.open('tel:911', '_self')
+                    window.open("tel:911", "_self")
                     setEmergencyModalOpen(false)
                   }}
                 >
                   <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  {t('emergency.call911')}
+                  {t("emergency.call911")}
                 </Button>
                 <p className="text-sm text-slate-400 ml-1 mt-2">National emergency hotline</p>
               </div>
@@ -3802,12 +3937,12 @@ export default function Home() {
                   border border-blue-400/40 text-white
                   text-base sm:text-lg font-semibold shadow-lg transition-all"
                   onClick={() => {
-                    window.open('tel:143', '_self')
+                    window.open("tel:143", "_self")
                     setEmergencyModalOpen(false)
                   }}
                 >
                   <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  {t('emergency.call143')}
+                  {t("emergency.call143")}
                 </Button>
                 <p className="text-sm text-slate-400 ml-1 mt-2">Philippine Red Cross hotline</p>
               </div>
@@ -3821,12 +3956,12 @@ export default function Home() {
                   border border-orange-400/40 text-white
                   text-base sm:text-lg font-semibold shadow-lg transition-all"
                   onClick={() => {
-                    window.open('tel:117', '_self')
+                    window.open("tel:117", "_self")
                     setEmergencyModalOpen(false)
                   }}
                 >
                   <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  {t('emergency.call117')}
+                  {t("emergency.call117")}
                 </Button>
                 <p className="text-sm text-slate-400 ml-1 mt-2">Police and public safety hotline</p>
               </div>
@@ -4189,9 +4324,7 @@ export default function Home() {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-                          <div className="flex-shrink-0 mt-1">
-                            {getWeatherIcon(entry.condition, entry.icon)}
-                          </div>
+                          <div className="flex-shrink-0 mt-1">{getWeatherIcon(entry.condition, entry.icon)}</div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -4267,7 +4400,7 @@ export default function Home() {
           <DialogContent
             className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg
             mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
-            border border-slate-700/60 rounded-2xl sm:rounded-3xl shadow-2xl
+            border border-slate-700/60 rounded-2xl shadow-2xl
             p-0 overflow-hidden animate-fadeInScale"
           >
             {/* Header */}
@@ -4283,69 +4416,118 @@ export default function Home() {
             <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[60vh] sm:max-h-[70vh]">
               {showEmergencyForm ? (
                 <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-slate-300 leading-relaxed">{t("reportEmergency.contactInfoPrompt")}</p>
+                  <div>
+                    <Label htmlFor="senderName" className="text-slate-300 text-sm font-medium">
+                      {t("reportEmergency.fullName")} *
+                    </Label>
+                    <Input
+                      id="senderName"
+                      type="text"
+                      placeholder={t("reportEmergency.fullNamePlaceholder")}
+                      value={emergencyFormData.senderName}
+                      onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderName: e.target.value }))}
+                      className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                      required
+                    />
                   </div>
 
-                  <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="senderName" className="text-slate-300 text-sm font-medium">
-                        {t("reportEmergency.fullName")} *
-                      </Label>
+                  <div>
+                    <Label htmlFor="senderPhone" className="text-slate-300 text-sm font-medium">
+                      {t("reportEmergency.phoneNumber")} *
+                    </Label>
+                    <Input
+                      id="senderPhone"
+                      type="tel"
+                      placeholder="+63 XXX XXX XXXX"
+                      value={emergencyFormData.senderPhone}
+                      onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderPhone: e.target.value }))}
+                      className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                      required
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Label htmlFor="emergencyLocation" className="text-slate-300 text-sm font-medium">
+                      Location *
+                    </Label>
+                    <div className="relative mt-1">
                       <Input
-                        id="senderName"
+                        id="emergencyLocation"
                         type="text"
-                        placeholder={t("reportEmergency.fullNamePlaceholder")}
-                        value={emergencyFormData.senderName}
-                        onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderName: e.target.value }))}
-                        className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-                        required
+                        placeholder="Search barangay..."
+                        value={emergencyLocationSearch}
+                        onChange={(e) => {
+                          setEmergencyLocationSearch(e.target.value)
+                          const filtered = searchLocations(e.target.value)
+                          setEmergencyFilteredLocations(filtered)
+                          setEmergencyShowLocationDropdown(true)
+                        }}
+                        onFocus={() => setEmergencyShowLocationDropdown(true)}
+                        className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
                       />
+                      {emergencySelectedLocation && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-400 font-medium">
+                          ✓
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <Label htmlFor="senderPhone" className="text-slate-300 text-sm font-medium">
-                        {t("reportEmergency.phoneNumber")} *
-                      </Label>
-                      <Input
-                        id="senderPhone"
-                        type="tel"
-                        placeholder="+63 XXX XXX XXXX"
-                        value={emergencyFormData.senderPhone}
-                        onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderPhone: e.target.value }))}
-                        className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-                        required
-                      />
-                    </div>
+                    {emergencyShowLocationDropdown && emergencyFilteredLocations.length > 0 && (
+                      <div
+                        className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"
+                        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                      >
+                        <style>{`
+                          #emergencyLocationDropdown::-webkit-scrollbar {
+                            display: none;
+                          }
+                        `}</style>
+                        <div id="emergencyLocationDropdown" className="w-full">
+                          {emergencyFilteredLocations.map((location) => (
+                            <button
+                              key={location.name}
+                              onClick={() => {
+                                setEmergencySelectedLocation(location)
+                                setEmergencyLocationSearch(location.name)
+                                setEmergencyShowLocationDropdown(false)
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-slate-700 text-slate-200 text-sm border-b border-slate-700/50 last:border-b-0 transition"
+                            >
+                              {location.name}, Olongapo City
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                    <div>
-                      <Label htmlFor="peopleCount" className="text-slate-300 text-sm font-medium">
-                        {t("reportEmergency.peopleAffected")}
-                      </Label>
-                      <Input
-                        id="peopleCount"
-                        type="number"
-                        min="1"
-                        placeholder="1"
-                        value={emergencyFormData.peopleCount}
-                        onChange={(e) =>
-                          setEmergencyFormData((prev) => ({
-                            ...prev,
-                            peopleCount: Number.parseInt(e.target.value) || 1,
-                          }))
-                        }
-                        className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="peopleCount" className="text-slate-300 text-sm font-medium">
+                      {t("reportEmergency.peopleAffected")}
+                    </Label>
+                    <Input
+                      id="peopleCount"
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                      value={emergencyFormData.peopleCount}
+                      onChange={(e) =>
+                        setEmergencyFormData((prev) => ({
+                          ...prev,
+                          peopleCount: Number.parseInt(e.target.value) || 1,
+                        }))
+                      }
+                      className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                    />
+                  </div>
 
-                    <div className="bg-slate-800/30 p-3 rounded-lg">
-                      <p className="text-sm text-slate-300">
-                        <strong>{t("reportEmergency.typeLabel")}:</strong>{" "}
-                        {emergencyFormData.emergencyType.charAt(0).toUpperCase() +
-                          emergencyFormData.emergencyType.slice(1)}
-                      </p>
-                      <p className="text-sm text-slate-400 mt-1">{emergencyFormData.description}</p>
-                    </div>
+                  <div className="bg-slate-800/30 p-3 rounded-lg">
+                    <p className="text-sm text-slate-300">
+                      <strong>{t("reportEmergency.typeLabel")}:</strong>{" "}
+                      {emergencyFormData.emergencyType.charAt(0).toUpperCase() +
+                        emergencyFormData.emergencyType.slice(1)}
+                    </p>
+                    <p className="text-sm text-slate-400 mt-1">{emergencyFormData.description}</p>
                   </div>
 
                   <div className="flex gap-2 pt-2">
@@ -4361,7 +4543,11 @@ export default function Home() {
                         handleEmergencyReport(emergencyFormData.emergencyType, emergencyFormData.description)
                       }
                       className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white"
-                      disabled={!emergencyFormData.senderName.trim() || !emergencyFormData.senderPhone.trim()}
+                      disabled={
+                        !emergencyFormData.senderName.trim() ||
+                        !emergencyFormData.senderPhone.trim() ||
+                        !emergencySelectedLocation
+                      }
                     >
                       {t("reportEmergency.sendReportButton")}
                     </Button>

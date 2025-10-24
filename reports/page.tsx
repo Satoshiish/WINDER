@@ -23,7 +23,9 @@ import {
   Car,
   Zap,
   Users,
+  ChevronDown,
 } from "lucide-react"
+import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/lib/location-search"
 
 interface Report {
   id: string
@@ -51,8 +53,9 @@ export default function ReportsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [reports, setReports] = useState<Report[]>([])
   const [language, setLanguage] = useState<"en" | "tl">("en")
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
-  const [locationError, setLocationError] = useState<string | null>(null)
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [locationSearch, setLocationSearch] = useState("")
+  const [filteredLocations, setFilteredLocations] = useState(OLONGAPO_LOCATIONS)
 
   // New report form state
   const [newReport, setNewReport] = useState({
@@ -199,6 +202,10 @@ export default function ReportsPage() {
     setReports(sampleReports)
   }, [])
 
+  useEffect(() => {
+    setFilteredLocations(searchLocations(locationSearch))
+  }, [locationSearch])
+
   const filteredReports = reports.filter((report) => filter === "all" || report.type === filter)
 
   const getTimeAgo = (timestamp: Date) => {
@@ -240,72 +247,27 @@ export default function ReportsPage() {
     }
   }
 
-  const detectLocation = async () => {
-    setIsDetectingLocation(true)
-    setLocationError(null)
-
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation not supported")
-      setIsDetectingLocation(false)
-      return
+  const handleSelectLocation = (locationName: string) => {
+    const selectedLocation = getLocationByName(locationName)
+    if (selectedLocation) {
+      setNewReport({
+        ...newReport,
+        location: locationName,
+      })
+      setLocationSearch("")
+      setShowLocationDropdown(false)
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude
-        const lng = position.coords.longitude
-        console.log(`[v0] Report location detected: ${lat}, ${lng}`)
-
-        try {
-          const { getBarangayFromCoordinates } = await import("@/lib/barangay-lookup")
-          const barangay = await getBarangayFromCoordinates(lat, lng)
-          setNewReport({
-            ...newReport,
-            location: barangay,
-          })
-        } catch (error) {
-          console.error("[v0] Error detecting barangay:", error)
-          setNewReport({
-            ...newReport,
-            location: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-          })
-        }
-
-        setIsDetectingLocation(false)
-      },
-      (error) => {
-        console.error("[v0] Geolocation error:", error)
-        setLocationError("Unable to detect location. Please enter manually.")
-        setIsDetectingLocation(false)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      },
-    )
   }
 
   const handleSubmitReport = () => {
-    if (!newReport.title || !newReport.description) return
+    if (!newReport.title || !newReport.description || !newReport.location) return
 
-    let coordinates: [number, number] = [14.5995, 121.0509] // Fallback
+    const selectedLocation = getLocationByName(newReport.location)
+    const coordinates: [number, number] = selectedLocation
+      ? [selectedLocation.lat, selectedLocation.lng]
+      : [14.8436, 120.3089] // Fallback to Olongapo center
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          coordinates = [position.coords.latitude, position.coords.longitude]
-          createReport(coordinates)
-        },
-        () => {
-          // Use fallback if geolocation fails
-          createReport(coordinates)
-        },
-        { enableHighAccuracy: true, timeout: 5000 },
-      )
-    } else {
-      createReport(coordinates)
-    }
+    createReport(coordinates)
   }
 
   const createReport = (coordinates: [number, number]) => {
@@ -389,25 +351,52 @@ export default function ReportsPage() {
         <div>
           <Label htmlFor="location" className="flex items-center justify-between">
             <span>{t.reportLocation}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={detectLocation}
-              disabled={isDetectingLocation}
-              className="text-xs h-6 px-2"
-            >
-              {isDetectingLocation ? "Detecting..." : "Detect Location"}
-            </Button>
           </Label>
-          <Input
-            id="location"
-            value={newReport.location}
-            onChange={(e) => setNewReport({ ...newReport, location: e.target.value })}
-            placeholder="Street, Barangay, City"
-            className="mt-1"
-          />
-          {locationError && <p className="text-xs text-red-500 mt-1">{locationError}</p>}
+          <div className="relative mt-1">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 relative">
+                <Input
+                  type="text"
+                  placeholder="Search location in Olongapo..."
+                  value={locationSearch}
+                  onChange={(e) => setLocationSearch(e.target.value)}
+                  onFocus={() => setShowLocationDropdown(true)}
+                  className="flex-1 bg-muted/50 border-border/50 text-foreground placeholder-muted-foreground pr-8"
+                />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Dropdown */}
+            {showLocationDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                {filteredLocations.length > 0 ? (
+                  filteredLocations.map((loc) => (
+                    <button
+                      key={loc.name}
+                      onClick={() => handleSelectLocation(loc.name)}
+                      className="w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors text-sm text-foreground border-b border-border/20 last:border-b-0"
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
+                        <span>{loc.name}</span>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">No locations found</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Selected location display */}
+          {newReport.location && (
+            <div className="flex items-center gap-2 p-2 mt-2 bg-primary/10 border border-primary/30 rounded-lg">
+              <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-sm text-foreground">{newReport.location}</span>
+            </div>
+          )}
         </div>
 
         <div>
@@ -428,7 +417,11 @@ export default function ReportsPage() {
         </div>
 
         <div className="flex gap-3 pt-2">
-          <Button onClick={handleSubmitReport} className="flex-1" disabled={!newReport.title || !newReport.description}>
+          <Button
+            onClick={handleSubmitReport}
+            className="flex-1"
+            disabled={!newReport.title || !newReport.description || !newReport.location}
+          >
             <Send className="h-4 w-4 mr-2" />
             {t.submit}
           </Button>

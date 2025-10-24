@@ -73,7 +73,6 @@ export async function createSocialPost(
       content: content.trim(),
       image_url: options?.image_url || null,
       location_name: options?.location_name || null,
-      address: options?.address || null,
       latitude: options?.latitude || null,
       longitude: options?.longitude || null,
       comments_count: 0,

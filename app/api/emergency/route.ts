@@ -5,6 +5,19 @@ export async function POST(request: Request) {
   try {
     const report = await request.json()
 
+    console.log("[v0] Emergency report data received:", JSON.stringify(report, null, 2))
+
+    const latitude = report.location?.lat
+    const longitude = report.location?.lng
+
+    // This allows coordinates like 0 to be valid
+    if (latitude === undefined || latitude === null || longitude === undefined || longitude === null) {
+      console.log("[v0] Location validation failed - lat:", latitude, "lng:", longitude)
+      return NextResponse.json({ success: false, error: "Location coordinates are required" }, { status: 400 })
+    }
+
+    console.log("[v0] Location validation passed - lat:", latitude, "lng:", longitude)
+
     const { data, error } = await supabase
       .from("emergency_reports")
       .insert([
@@ -16,8 +29,8 @@ export async function POST(request: Request) {
           priority: report.priority,
           people_count: report.peopleCount,
           address: report.address,
-          location_lat: report.location.lat.toString(), // Convert to string to preserve precision
-          location_lng: report.location.lng.toString(), // Convert to string to preserve precision
+          location_lat: latitude.toString(),
+          location_lng: longitude.toString(),
           additional_info: report.additionalInfo,
           status: report.status,
           assigned_to: report.assignedTo,
@@ -33,6 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
+    console.log("[v0] Emergency report saved successfully with ID:", data[0].id)
     return NextResponse.json({ success: true, id: data[0].id.toString() })
   } catch (error) {
     console.error("Error saving emergency report:", error)

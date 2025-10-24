@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { X, MapPin, Loader } from "lucide-react"
-import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
+import { X, MapPin, ChevronDown } from "lucide-react"
+import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/lib/location-search"
 
 interface CreatePostModalProps {
   isOpen: boolean
@@ -20,59 +20,34 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
   const [postType, setPostType] = useState<"post" | "donation">("post")
   const [latitude, setLatitude] = useState<number | null>(null)
   const [longitude, setLongitude] = useState<number | null>(null)
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
-  const [locationError, setLocationError] = useState<string | null>(null)
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [locationSearch, setLocationSearch] = useState("")
+  const [filteredLocations, setFilteredLocations] = useState(OLONGAPO_LOCATIONS)
 
   useEffect(() => {
-    if (isOpen && !latitude && !longitude) {
-      detectLocation()
+    if (isOpen) {
+      setLocationSearch("")
+      setFilteredLocations(OLONGAPO_LOCATIONS)
     }
   }, [isOpen])
 
-  const detectLocation = async () => {
-    setIsDetectingLocation(true)
-    setLocationError(null)
+  useEffect(() => {
+    setFilteredLocations(searchLocations(locationSearch))
+  }, [locationSearch])
 
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation not supported")
-      setIsDetectingLocation(false)
-      return
+  const handleSelectLocation = (locationName: string) => {
+    const selectedLocation = getLocationByName(locationName)
+    if (selectedLocation) {
+      setLocation(locationName)
+      setLatitude(selectedLocation.lat)
+      setLongitude(selectedLocation.lng)
+      setLocationSearch("")
+      setShowLocationDropdown(false)
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude
-        const lng = position.coords.longitude
-
-        setLatitude(lat)
-        setLongitude(lng)
-
-        try {
-          const barangay = await getBarangayFromCoordinates(lat, lng)
-          const formattedBarangay = formatBarangay(barangay)
-          setLocation(formattedBarangay)
-        } catch (error) {
-          console.error("[v0] Error detecting barangay:", error)
-          setLocation("Location detected")
-        }
-
-        setIsDetectingLocation(false)
-      },
-      (error) => {
-        console.error("[v0] Geolocation error:", error)
-        setLocationError("Unable to detect location. You can enter it manually.")
-        setIsDetectingLocation(false)
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 0,
-      },
-    )
   }
 
   const handleSubmit = () => {
-    if (content.trim()) {
+    if (content.trim() && location) {
       onSubmit(content, {
         location_name: location || undefined,
         address: address || undefined,
@@ -86,7 +61,7 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
       setPostType("post")
       setLatitude(null)
       setLongitude(null)
-      setLocationError(null)
+      setLocationSearch("")
     }
   }
 
@@ -97,7 +72,8 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
     setPostType("post")
     setLatitude(null)
     setLongitude(null)
-    setLocationError(null)
+    setLocationSearch("")
+    setShowLocationDropdown(false)
     onClose()
   }
 
@@ -154,41 +130,66 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
           />
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">Location</label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={detectLocation}
-                disabled={isDetectingLocation}
-                className="text-xs h-6 px-2"
-              >
-                {isDetectingLocation ? (
-                  <>
-                    <Loader className="w-3 h-3 mr-1 animate-spin" />
-                    Detecting...
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-3 h-3 mr-1" />
-                    Detect
-                  </>
-                )}
-              </Button>
+            <label className="text-sm font-medium text-foreground">Location</label>
+
+            <div className="relative">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 relative">
+                  <Input
+                    type="text"
+                    placeholder="Search location in Olongapo..."
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                    onFocus={() => setShowLocationDropdown(true)}
+                    className="flex-1 bg-muted/50 border-border/50 text-foreground placeholder-muted-foreground pr-8"
+                  />
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Dropdown */}
+              {showLocationDropdown && (
+                <div
+                  className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"
+                  style={{
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                  }}
+                >
+                  <style>{`
+                    div[style*="scrollbarWidth"] {
+                      -webkit-scrollbar: none;
+                    }
+                    div[style*="scrollbarWidth"]::-webkit-scrollbar {
+                      display: none;
+                    }
+                  `}</style>
+                  {filteredLocations.length > 0 ? (
+                    filteredLocations.map((loc) => (
+                      <button
+                        key={loc.name}
+                        onClick={() => handleSelectLocation(loc.name)}
+                        className="w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors text-sm text-foreground border-b border-border/20 last:border-b-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
+                          <span>{loc.name}</span>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">No locations found</div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Detected location display */}
+            {/* Selected location display */}
             {location && (
               <div className="flex items-center gap-2 p-2 bg-primary/10 border border-primary/30 rounded-lg">
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-sm text-foreground">{location}</span>
               </div>
-            )}
-
-            {/* Location error */}
-            {locationError && (
-              <div className="text-xs text-destructive p-2 bg-destructive/10 rounded-lg">{locationError}</div>
             )}
 
             {/* Manual address input */}
@@ -208,7 +209,7 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!content.trim() || isLoading}
+              disabled={!content.trim() || !location || isLoading}
               className={
                 postType === "donation"
                   ? "bg-green-600 hover:bg-green-700 text-white"
