@@ -239,7 +239,7 @@ const translations: Record<Language, Record<string, string>> = {
     "quick.responderAccess": "Access ng Responder",
     "quick.responderAccessDesc": "Emergency responder tools",
 
-    "suggested.locations": "Isinasaad na Lokasyon",
+    "suggested.locations": "Inirerekomendang Lokasyon",
 
     // Settings Modal
     "settings.title": "Mga Setting",
