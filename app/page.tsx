@@ -4413,6 +4413,16 @@ export default function Home() {
               </DialogTitle>
             </DialogHeader>
 
+            {/* Transparency / Privacy Message */}
+            <div className="px-4 sm:px-6 pt-3 pb-2 border-b border-slate-700/50 bg-slate-900/30">
+              <p className="text-xs sm:text-sm text-slate-400 text-center leading-relaxed">
+                ⚠️ Your real-time location will be automatically sent to responders.{" "}
+                <br className="hidden sm:block" />
+                This is for privacy, transparency, and ethical purposes. It also helps avoid confusion for
+                non-techy users who might wonder why they don’t need to manually send their location details.
+              </p>
+            </div>
+
             <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[60vh] sm:max-h-[70vh]">
               {showEmergencyForm ? (
                 <div className="space-y-4">
