@@ -3295,7 +3295,7 @@ export default function Home() {
                   disabled={searchLoading || !searchLocation.trim()}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
                 >
-                  {searchLoading ? <SearchSkeleton /> : t("search.button")}
+                  {searchLoading ? <SearchSkeleton /> : <Search className="w-4 h-4" />}
                 </Button>
 
                 {/* Search Suggestions */}
@@ -3481,7 +3481,7 @@ export default function Home() {
                     disabled={searchLoading || !searchLocation.trim()}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
                   >
-                    {searchLoading ? <SearchSkeleton /> : t("search.button")}
+                    {searchLoading ? <SearchSkeleton /> : <Search className="w-4 h-4" />}
                   </Button>
 
                   {/* Search Suggestions */}
@@ -4387,281 +4387,296 @@ export default function Home() {
       )}
 
       {/* Report Emergency Modal */}
-{locationSharingModalOpen && (
-  <Dialog
-    open={locationSharingModalOpen}
-    onOpenChange={(open) => {
-      setLocationSharingModalOpen(open)
-      if (!open && isQuickActionsFlow) {
-        setTimeout(() => setQuickActionsModalOpen(true), 100)
-      }
-    }}
-  >
-    <DialogContent
-      className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg
-      mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
-      border border-slate-700/60 rounded-2xl shadow-2xl
-      p-0 overflow-hidden animate-fadeInScale"
-    >
-      {/* Header */}
-      <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
-        <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold text-white">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
-          </div>
-          <span>{t("reportEmergency.title")}</span>
-        </DialogTitle>
-      </DialogHeader>
+      {locationSharingModalOpen && (
+        <Dialog
+          open={locationSharingModalOpen}
+          onOpenChange={(open) => {
+            setLocationSharingModalOpen(open)
+            if (!open && isQuickActionsFlow) {
+              setTimeout(() => setQuickActionsModalOpen(true), 100)
+            }
+          }}
+        >
+          <DialogContent
+            className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg
+            mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+            border border-slate-700/60 rounded-2xl shadow-2xl
+            p-0 overflow-hidden animate-fadeInScale"
+          >
+            {/* Header */}
+            <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
+              <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+                </div>
+                <span>{t("reportEmergency.title")}</span>
+              </DialogTitle>
+            </DialogHeader>
 
-      <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[60vh] sm:max-h-[70vh] text-white">
-        {showEmergencyForm ? (
-          /* ---------------------- Emergency Form ---------------------- */
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="senderName" className="text-slate-300 text-sm font-medium">
-                {t("reportEmergency.fullName")} *
-              </Label>
-              <Input
-                id="senderName"
-                type="text"
-                placeholder={t("reportEmergency.fullNamePlaceholder")}
-                value={emergencyFormData.senderName}
-                onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderName: e.target.value }))}
-                className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="senderPhone" className="text-slate-300 text-sm font-medium">
-                {t("reportEmergency.phoneNumber")} *
-              </Label>
-              <Input
-                id="senderPhone"
-                type="tel"
-                placeholder="+63 XXX XXX XXXX"
-                value={emergencyFormData.senderPhone}
-                onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderPhone: e.target.value }))}
-                className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-                required
-              />
-            </div>
-
-            {/* Location Input */}
-            <div className="relative">
-              <Label htmlFor="emergencyLocation" className="text-slate-300 text-sm font-medium">
-                Location *
-              </Label>
-              <div className="relative mt-1">
-                <Input
-                  id="emergencyLocation"
-                  type="text"
-                  placeholder="Search barangay..."
-                  value={emergencyLocationSearch}
-                  onChange={(e) => {
-                    setEmergencyLocationSearch(e.target.value)
-                    const filtered = searchLocations(e.target.value)
-                    setEmergencyFilteredLocations(filtered)
-                    setEmergencyShowLocationDropdown(true)
-                  }}
-                  onFocus={() => setEmergencyShowLocationDropdown(true)}
-                  className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-                />
-                {emergencySelectedLocation && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-400 font-medium">
-                    ✓
+            <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[60vh] sm:max-h-[70vh]">
+              {showEmergencyForm ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="senderName" className="text-slate-300 text-sm font-medium">
+                      {t("reportEmergency.fullName")} *
+                    </Label>
+                    <Input
+                      id="senderName"
+                      type="text"
+                      placeholder={t("reportEmergency.fullNamePlaceholder")}
+                      value={emergencyFormData.senderName}
+                      onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderName: e.target.value }))}
+                      className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                      required
+                    />
                   </div>
-                )}
-              </div>
 
-              {emergencyShowLocationDropdown && emergencyFilteredLocations.length > 0 && (
-                <div
-                  className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"
-                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                >
-                  <div id="emergencyLocationDropdown" className="w-full">
-                    {emergencyFilteredLocations.map((location) => (
-                      <button
-                        key={location.name}
-                        onClick={() => {
-                          setEmergencySelectedLocation(location)
-                          setEmergencyLocationSearch(location.name)
-                          setEmergencyShowLocationDropdown(false)
+                  <div>
+                    <Label htmlFor="senderPhone" className="text-slate-300 text-sm font-medium">
+                      {t("reportEmergency.phoneNumber")} *
+                    </Label>
+                    <Input
+                      id="senderPhone"
+                      type="tel"
+                      placeholder="+63 XXX XXX XXXX"
+                      value={emergencyFormData.senderPhone}
+                      onChange={(e) => setEmergencyFormData((prev) => ({ ...prev, senderPhone: e.target.value }))}
+                      className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                      required
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Label htmlFor="emergencyLocation" className="text-slate-300 text-sm font-medium">
+                      Location *
+                    </Label>
+                    <div className="relative mt-1">
+                      <Input
+                        id="emergencyLocation"
+                        type="text"
+                        placeholder="Search barangay..."
+                        value={emergencyLocationSearch}
+                        onChange={(e) => {
+                          setEmergencyLocationSearch(e.target.value)
+                          const filtered = searchLocations(e.target.value)
+                          setEmergencyFilteredLocations(filtered)
+                          setEmergencyShowLocationDropdown(true)
                         }}
-                        className="w-full text-left px-3 py-2 hover:bg-slate-700 text-slate-200 text-sm border-b border-slate-700/50 last:border-b-0 transition"
+                        onFocus={() => setEmergencyShowLocationDropdown(true)}
+                        className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                      />
+                      {emergencySelectedLocation && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-green-400 font-medium">
+                          ✓
+                        </div>
+                      )}
+                    </div>
+
+                    {emergencyShowLocationDropdown && emergencyFilteredLocations.length > 0 && (
+                      <div
+                        className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"
+                        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                       >
-                        {location.name}, Olongapo City
-                      </button>
-                    ))}
+                        <style>{`
+                          #emergencyLocationDropdown::-webkit-scrollbar {
+                            display: none;
+                          }
+                        `}</style>
+                        <div id="emergencyLocationDropdown" className="w-full">
+                          {emergencyFilteredLocations.map((location) => (
+                            <button
+                              key={location.name}
+                              onClick={() => {
+                                setEmergencySelectedLocation(location)
+                                setEmergencyLocationSearch(location.name)
+                                setEmergencyShowLocationDropdown(false)
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-slate-700 text-slate-200 text-sm border-b border-slate-700/50 last:border-b-0 transition"
+                            >
+                              {location.name}, Olongapo City
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="peopleCount" className="text-slate-300 text-sm font-medium">
+                      {t("reportEmergency.peopleAffected")}
+                    </Label>
+                    <Input
+                      id="peopleCount"
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                      value={emergencyFormData.peopleCount}
+                      onChange={(e) =>
+                        setEmergencyFormData((prev) => ({
+                          ...prev,
+                          peopleCount: Number.parseInt(e.target.value) || 1,
+                        }))
+                      }
+                      className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
+                    />
+                  </div>
+
+                  <div className="bg-slate-800/30 p-3 rounded-lg">
+                    <p className="text-sm text-slate-300">
+                      <strong>{t("reportEmergency.typeLabel")}:</strong>{" "}
+                      {emergencyFormData.emergencyType.charAt(0).toUpperCase() +
+                        emergencyFormData.emergencyType.slice(1)}
+                    </p>
+                    <p className="text-sm text-slate-400 mt-1">{emergencyFormData.description}</p>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowEmergencyForm(false)}
+                      className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
+                    >
+                      {t("common.back")}
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        handleEmergencyReport(emergencyFormData.emergencyType, emergencyFormData.description)
+                      }
+                      className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white"
+                      disabled={
+                        !emergencyFormData.senderName.trim() ||
+                        !emergencyFormData.senderPhone.trim() ||
+                        !emergencySelectedLocation
+                      }
+                    >
+                      {t("reportEmergency.sendReportButton")}
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                <>
+                  <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base">
+                    {t("reportEmergency.selectTypePrompt")}
+                  </p>
+
+                  <div className="space-y-2 sm:space-y-3">
+                    {/* Medical Emergency */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-red-500/20
+                      flex items-center justify-start gap-2 sm:gap-3 md:gap-4 group"
+                      onClick={() =>
+                        handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed")
+                      }
+                    >
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.medical")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.medicalDesc")}</div>
+                      </div>
+                    </Button>
+
+                    {/* Fire Emergency */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-orange-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
+                      onClick={() => handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed")}
+                    >
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.fire")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.fireDesc")}</div>
+                      </div>
+                    </Button>
+
+                    {/* Crime/Security */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-purple-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
+                      onClick={() => handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed")}
+                    >
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.crime")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.crimeDesc")}</div>
+                      </div>
+                    </Button>
+
+                    {/* Natural Disaster */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-blue-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
+                      onClick={() =>
+                        handleEmergencyTypeSelect(
+                          "natural-disaster",
+                          "Natural disaster - flood, typhoon, earthquake, or landslide",
+                        )
+                      }
+                    >
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <CloudRain className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.disaster")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.disasterDesc")}</div>
+                      </div>
+                    </Button>
+
+                    {/* Accident */}
+                    <Button
+                      className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400
+                      text-white rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 font-semibold shadow-lg transition hover:shadow-xl hover:shadow-yellow-500/20
+                      flex items-center gap-2 sm:gap-3 md:gap-4 group"
+                      onClick={() =>
+                        handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed")
+                      }
+                    >
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition">
+                        <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-semibold text-xs sm:text-sm md:text-base">{t("emergency.accident")}</div>
+                        <div className="text-xs opacity-90">{t("emergency.accidentDesc")}</div>
+                      </div>
+                    </Button>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-700/50">
+                    <p className="text-slate-400 text-sm text-center mb-3">{t("emergency.contactDirectly")}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500
+                        text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
+                        onClick={() => window.open("tel:911", "_self")}
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        {t("emergency.call911Button")}
+                      </Button>
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500
+                        text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
+                        onClick={() => window.open("tel:143", "_self")}
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        {t("emergency.call143Button")}
+                      </Button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
-
-            {/* People Count */}
-            <div>
-              <Label htmlFor="peopleCount" className="text-slate-300 text-sm font-medium">
-                {t("reportEmergency.peopleAffected")}
-              </Label>
-              <Input
-                id="peopleCount"
-                type="number"
-                min="1"
-                placeholder="1"
-                value={emergencyFormData.peopleCount}
-                onChange={(e) =>
-                  setEmergencyFormData((prev) => ({
-                    ...prev,
-                    peopleCount: Number.parseInt(e.target.value) || 1,
-                  }))
-                }
-                className="mt-1 bg-slate-800/50 border-slate-600 text-white placeholder-slate-400"
-              />
-            </div>
-
-            {/* Summary */}
-            <div className="bg-slate-800/30 p-3 rounded-lg leading-snug">
-              <p className="text-sm text-slate-300">
-                <strong>{t("reportEmergency.typeLabel")}:</strong>{" "}
-                {emergencyFormData.emergencyType.charAt(0).toUpperCase() +
-                  emergencyFormData.emergencyType.slice(1)}
-              </p>
-              <p className="text-sm text-slate-400 mt-1 break-words">{emergencyFormData.description}</p>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowEmergencyForm(false)}
-                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
-              >
-                {t("common.back")}
-              </Button>
-              <Button
-                onClick={() =>
-                  handleEmergencyReport(emergencyFormData.emergencyType, emergencyFormData.description)
-                }
-                className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white"
-                disabled={
-                  !emergencyFormData.senderName.trim() ||
-                  !emergencyFormData.senderPhone.trim() ||
-                  !emergencySelectedLocation
-                }
-              >
-                {t("reportEmergency.sendReportButton")}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          /* ---------------------- Emergency Type Buttons ---------------------- */
-          <>
-            <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base">
-              {t("reportEmergency.selectTypePrompt")}
-            </p>
-
-            <div className="space-y-3 sm:space-y-4">
-              {[
-                {
-                  id: "medical",
-                  colors: "from-red-600 to-red-500 hover:from-red-500 hover:to-red-400",
-                  icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
-                  title: t("emergency.medical"),
-                  desc: t("emergency.medicalDesc"),
-                  onClick: () =>
-                    handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed"),
-                },
-                {
-                  id: "fire",
-                  colors: "from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400",
-                  icon: <Flame className="w-5 h-5 sm:w-6 sm:h-6" />,
-                  title: t("emergency.fire"),
-                  desc: t("emergency.fireDesc"),
-                  onClick: () => handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed"),
-                },
-                {
-                  id: "crime",
-                  colors: "from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400",
-                  icon: <Shield className="w-5 h-5 sm:w-6 sm:h-6" />,
-                  title: t("emergency.crime"),
-                  desc: t("emergency.crimeDesc"),
-                  onClick: () => handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed"),
-                },
-                {
-                  id: "disaster",
-                  colors: "from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400",
-                  icon: <CloudRain className="w-5 h-5 sm:w-6 sm:h-6" />,
-                  title: t("emergency.disaster"),
-                  desc: t("emergency.disasterDesc"),
-                  onClick: () =>
-                    handleEmergencyTypeSelect(
-                      "natural-disaster",
-                      "Natural disaster - flood, typhoon, earthquake, or landslide"
-                    ),
-                },
-                {
-                  id: "accident",
-                  colors: "from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400",
-                  icon: <Car className="w-5 h-5 sm:w-6 sm:h-6" />,
-                  title: t("emergency.accident"),
-                  desc: t("emergency.accidentDesc"),
-                  onClick: () =>
-                    handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed"),
-                },
-              ].map(({ id, colors, icon, title, desc, onClick }) => (
-                <Button
-                  key={id}
-                  onClick={onClick}
-                  className={`w-full flex items-center gap-4 sm:gap-5 p-4 sm:p-5 rounded-xl sm:rounded-2xl
-                    bg-gradient-to-r ${colors} text-white shadow-lg transition-all duration-300
-                    hover:scale-[1.02]`}
-                >
-                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-white/30 transition">
-                    {icon}
-                  </div>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="font-semibold text-sm sm:text-base md:text-lg leading-snug truncate">
-                      {title}
-                    </span>
-                    <span className="text-xs sm:text-sm opacity-90 leading-tight break-words text-white/90">
-                      {desc}
-                    </span>
-                  </div>
-                </Button>
-              ))}
-            </div>
-
-            {/* Contact Directly */}
-            <div className="pt-4 border-t border-slate-700/50">
-              <p className="text-slate-400 text-sm text-center mb-3">
-                {t("emergency.contactDirectly")}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500
-                  text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
-                  onClick={() => window.open('tel:911', '_self')}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  {t("emergency.call911Button")}
-                </Button>
-                <Button
-                  className="flex-1 bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500
-                  text-white rounded-xl py-3 font-semibold shadow-lg transition hover:scale-[1.02]"
-                  onClick={() => window.open('tel:143', '_self')}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  {t("emergency.call143Button")}
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </DialogContent>
-  </Dialog>
-)}
-
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Quick Actions Modal */}
       {quickActionsModalOpen && (
