@@ -4387,186 +4387,196 @@ export default function Home() {
       )}
 
       {/* Report Emergency Modal */}
-      {locationSharingModalOpen && (
-        <Dialog
-          open={locationSharingModalOpen}
-          onOpenChange={(open) => {
-            setLocationSharingModalOpen(open)
-            if (!open && isQuickActionsFlow) {
-              setTimeout(() => setQuickActionsModalOpen(true), 100)
-            }
-          }}
-        >
-          <DialogContent
-            className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg
-            mx-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
-            border border-slate-700/60 rounded-2xl shadow-2xl
-            p-0 overflow-hidden animate-fadeInScale"
-          >
-            {/* Header */}
-            <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
-                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
-                </div>
-                <span>Report Emergency</span>
-              </DialogTitle>
-            </DialogHeader>
+{locationSharingModalOpen && (
+  <Dialog
+    open={locationSharingModalOpen}
+    onOpenChange={(open) => {
+      setLocationSharingModalOpen(open)
+      if (!open && isQuickActionsFlow) {
+        setTimeout(() => setQuickActionsModalOpen(true), 100)
+      }
+    }}
+  >
+    <DialogContent
+      className="w-[95vw] sm:w-[70vw] lg:w-[40vw] max-w-lg mx-2 
+      bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950
+      border border-slate-700/60 rounded-2xl shadow-2xl
+      p-0 overflow-hidden animate-fadeInScale"
+    >
+      {/* Header */}
+      <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
+        <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+          </div>
+          <span>Report Emergency</span>
+        </DialogTitle>
+      </DialogHeader>
 
-            <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[60vh] sm:max-h-[70vh]">
-              {showEmergencyForm ? (
-                <div className="space-y-4">
-                  {/* Form fields remain the same as your original code */}
-                  {/* ... */}
-                </div>
+      {/* Modal Body */}
+      <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto scrollbar-hide max-h-[70vh]">
+        {showEmergencyForm ? (
+          <div className="space-y-4">
+            {/* Description Input */}
+            <div>
+              <label className="block text-slate-300 text-sm font-medium mb-1">
+                Describe the emergency
+              </label>
+              <textarea
+                className="w-full p-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                rows={3}
+                placeholder="Please describe what happened..."
+                value={emergencyDescription}
+                onChange={(e) => setEmergencyDescription(e.target.value)}
+              />
+            </div>
+
+            {/* Upload Section (Improvement Feature) */}
+            <div>
+              <label className="block text-slate-300 text-sm font-medium mb-1">
+                Add Image/Video (Optional)
+              </label>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                onChange={handleMediaUpload}
+                className="w-full text-sm text-slate-400 bg-slate-800/40 border border-slate-700 rounded-lg cursor-pointer p-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                You can upload up to 3 files (max 5MB each)
+              </p>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              onClick={handleSubmitEmergency}
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 
+              text-white font-semibold rounded-lg shadow-lg transition-all duration-200 
+              hover:shadow-red-500/30 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm md:text-base">
-                    Select the type of emergency
-                  </p>
-                  <p className="text-slate-400 text-xs text-center -mt-2">
-                    Choose the type of emergency to get appropriate help
-                  </p>
-
-                  <div className="space-y-3">
-                    {/* Medical Emergency */}
-                    <Button
-                      className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400
-                      text-white rounded-lg p-3 font-semibold shadow-lg transition-all duration-200 
-                      hover:shadow-red-500/20
-                      flex items-center justify-start gap-3 group"
-                      onClick={() => handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed")}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
-                        <Heart className="w-4 h-4" />
-                      </div>
-                      <div className="text-left flex-1 min-w-0 space-y-0.5">
-                        <div className="font-semibold text-sm leading-tight">
-                          Medical Emergency
-                        </div>
-                        <div className="text-xs opacity-90 leading-tight font-normal">
-                          Ambulance and medical assistance
-                        </div>
-                      </div>
-                    </Button>
-
-                    {/* Fire Emergency */}
-                    <Button
-                      className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400
-                      text-white rounded-lg p-3 font-semibold shadow-lg transition-all duration-200 
-                      hover:shadow-orange-500/20
-                      flex items-center justify-start gap-3 group"
-                      onClick={() => handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed")}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
-                        <Flame className="w-4 h-4" />
-                      </div>
-                      <div className="text-left flex-1 min-w-0 space-y-0.5">
-                        <div className="font-semibold text-sm leading-tight">
-                          Fire Emergency
-                        </div>
-                        <div className="text-xs opacity-90 leading-tight font-normal">
-                          Fire department and rescue
-                        </div>
-                      </div>
-                    </Button>
-
-                    {/* Crime/Security */}
-                    <Button
-                      className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400
-                      text-white rounded-lg p-3 font-semibold shadow-lg transition-all duration-200 
-                      hover:shadow-purple-500/20
-                      flex items-center justify-start gap-3 group"
-                      onClick={() => handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed")}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
-                        <Shield className="w-4 h-4" />
-                      </div>
-                      <div className="text-left flex-1 min-w-0 space-y-0.5">
-                        <div className="font-semibold text-sm leading-tight">
-                          Crime/Safety
-                        </div>
-                        <div className="text-xs opacity-90 leading-tight font-normal">
-                          Police and security assistance
-                        </div>
-                      </div>
-                    </Button>
-
-                    {/* Natural Disaster */}
-                    <Button
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
-                      text-white rounded-lg p-3 font-semibold shadow-lg transition-all duration-200 
-                      hover:shadow-blue-500/20
-                      flex items-center justify-start gap-3 group"
-                      onClick={() => handleEmergencyTypeSelect("natural-disaster", "Natural disaster - flood, typhoon, earthquake, or landslide")}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
-                        <CloudRain className="w-4 h-4" />
-                      </div>
-                      <div className="text-left flex-1 min-w-0 space-y-0.5">
-                        <div className="font-semibold text-sm leading-tight">
-                          Natural Disaster
-                        </div>
-                        <div className="text-xs opacity-90 leading-tight font-normal">
-                          Disaster response and evacuation
-                        </div>
-                      </div>
-                    </Button>
-
-                    {/* Accident */}
-                    <Button
-                      className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400
-                      text-white rounded-lg p-3 font-semibold shadow-lg transition-all duration-200 
-                      hover:shadow-yellow-500/20
-                      flex items-center justify-start gap-3 group"
-                      onClick={() => handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed")}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
-                        <Car className="w-4 h-4" />
-                      </div>
-                      <div className="text-left flex-1 min-w-0 space-y-0.5">
-                        <div className="font-semibold text-sm leading-tight">
-                          Accident/Injury
-                        </div>
-                        <div className="text-xs opacity-90 leading-tight font-normal">
-                          Emergency medical response
-                        </div>
-                      </div>
-                    </Button>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-700/50">
-                    <p className="text-slate-400 text-sm text-center mb-3">
-                      Contact emergency services directly
-                    </p>
-                    <p className="text-slate-500 text-xs text-center mb-4 -mt-2">
-                      For immediate life-threatening emergencies
-                    </p>
-                    <div className="flex gap-3">
-                      <Button
-                        className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500
-                        text-white rounded-lg py-3 font-semibold shadow-lg transition-all duration-200 text-sm"
-                        onClick={() => window.open("tel:911", "_self")}
-                      >
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call 911
-                      </Button>
-                      <Button
-                        className="flex-1 bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500
-                        text-white rounded-lg py-3 font-semibold shadow-lg transition-all duration-200 text-sm"
-                        onClick={() => window.open("tel:143", "_self")}
-                      >
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call 143
-                      </Button>
-                    </div>
-                  </div>
+                  <Send className="w-4 h-4" />
+                  Submit Report
                 </>
               )}
+            </Button>
+
+            {/* Disclosure Text */}
+            <p className="text-xs text-slate-500 text-center leading-snug mt-3">
+              📍 Your real-time location will be automatically sent to responders.
+              This ensures faster response while keeping your privacy protected.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-slate-300 leading-relaxed text-center text-xs sm:text-sm">
+              Select the type of emergency
+            </p>
+            <p className="text-slate-400 text-xs text-center -mt-2">
+              Choose the type of emergency to get appropriate help
+            </p>
+
+            {/* Emergency Type Buttons */}
+            <div className="space-y-3">
+              {[
+                {
+                  color: "red",
+                  icon: <Heart className="w-4 h-4" />,
+                  label: "Medical Emergency",
+                  desc: "Ambulance and medical assistance",
+                  onClick: () =>
+                    handleEmergencyTypeSelect("medical", "Medical emergency - immediate assistance needed"),
+                },
+                {
+                  color: "orange",
+                  icon: <Flame className="w-4 h-4" />,
+                  label: "Fire Emergency",
+                  desc: "Fire department and rescue",
+                  onClick: () =>
+                    handleEmergencyTypeSelect("fire", "Fire emergency - fire department needed"),
+                },
+                {
+                  color: "purple",
+                  icon: <Shield className="w-4 h-4" />,
+                  label: "Crime/Safety",
+                  desc: "Police and security assistance",
+                  onClick: () =>
+                    handleEmergencyTypeSelect("crime", "Crime emergency - police assistance needed"),
+                },
+                {
+                  color: "blue",
+                  icon: <CloudRain className="w-4 h-4" />,
+                  label: "Natural Disaster",
+                  desc: "Disaster response and evacuation",
+                  onClick: () =>
+                    handleEmergencyTypeSelect("natural-disaster", "Natural disaster - flood, typhoon, earthquake, or landslide"),
+                },
+                {
+                  color: "yellow",
+                  icon: <Car className="w-4 h-4" />,
+                  label: "Accident/Injury",
+                  desc: "Emergency medical response",
+                  onClick: () =>
+                    handleEmergencyTypeSelect("accident", "Traffic accident - emergency response needed"),
+                },
+              ].map(({ color, icon, label, desc, onClick }) => (
+                <Button
+                  key={label}
+                  className={`w-full bg-gradient-to-r from-${color}-600 to-${color}-500 hover:from-${color}-500 hover:to-${color}-400
+                    text-white rounded-lg p-3 font-semibold shadow-lg transition-all duration-200 
+                    hover:shadow-${color}-500/25 flex items-center justify-start gap-3 group`}
+                  onClick={onClick}
+                >
+                  <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
+                    {icon}
+                  </div>
+                  <div className="text-left flex-1 min-w-0 space-y-0.5">
+                    <div className="font-semibold text-sm leading-tight">{label}</div>
+                    <div className="text-xs opacity-90 leading-tight font-normal">{desc}</div>
+                  </div>
+                </Button>
+              ))}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
+            {/* Direct Call Section */}
+            <div className="pt-4 border-t border-slate-700/50">
+              <p className="text-slate-400 text-sm text-center mb-3">
+                Contact emergency services directly
+              </p>
+              <p className="text-slate-500 text-xs text-center mb-4 -mt-2">
+                For immediate life-threatening emergencies
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500
+                  text-white rounded-lg py-3 font-semibold shadow-lg transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                  onClick={() => window.open("tel:911", "_self")}
+                >
+                  <Phone className="w-4 h-4" />
+                  Call 911
+                </Button>
+                <Button
+                  className="flex-1 bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500
+                  text-white rounded-lg py-3 font-semibold shadow-lg transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                  onClick={() => window.open("tel:143", "_self")}
+                >
+                  <Phone className="w-4 h-4" />
+                  Call 143
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </DialogContent>
+  </Dialog>
+)}
+
 
       {/* Quick Actions Modal */}
       {quickActionsModalOpen && (
