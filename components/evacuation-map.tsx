@@ -188,6 +188,11 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         const centersRaw = evacuationData.evacuationCenters || []
         const routesRaw = evacuationData.safeRoutes || []
 
+        console.log(
+          "[v0] Flood zones received from API (first 5):",
+          floodZonesRaw.slice(0, 5).map((z: any) => z.name),
+        )
+
         const floodZones = floodZonesRaw.map((zone: any) => {
           const id = String(zone.id || zone.zone_id || zone.zoneId || "").toLowerCase()
           return {
@@ -210,6 +215,11 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             lastUpdated: new Date().toISOString().split("T")[0],
           } as FloodZone
         })
+
+        console.log(
+          "[v0] Flood zones after mapping (first 5):",
+          floodZones.slice(0, 5).map((z) => z.name),
+        )
 
         const evacuationCenters = centersRaw.map((center: any) => {
           const id = String(center.id || center.center_id || "").toLowerCase()
@@ -250,8 +260,13 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           } as SafeRoute
         })
 
-        // sort by distance
         setNearbyZones(floodZones)
+
+        console.log(
+          "[v0] Flood zones set to state (first 5):",
+          floodZones.slice(0, 5).map((z) => z.name),
+        )
+
         setNearbyCenters(
           evacuationCenters.sort(
             (a, b) => (a.distance ?? Number.POSITIVE_INFINITY) - (b.distance ?? Number.POSITIVE_INFINITY),
