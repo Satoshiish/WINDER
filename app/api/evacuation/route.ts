@@ -9,9 +9,12 @@ export async function GET(request: NextRequest) {
     const lngParam = searchParams.get("lng")
     const action = searchParams.get("action")?.toLowerCase()
 
+    console.log("[v0] Evacuation API called with params:", { lat: latParam, lng: lngParam, action })
+
     // action=cities -> only list of city names
     if (action === "cities") {
       const cities = await getAvailableCities()
+      console.log("[v0] Available cities:", cities)
       return NextResponse.json({ success: true, cities })
     }
 
@@ -31,12 +34,15 @@ export async function GET(request: NextRequest) {
     const cityParam = searchParams.get("city")
     if (cityParam) {
       // Reuse existing getEvacuationDataForLocation by finding city's coords first would be extra.
-      // If you want direct city lookup, add getEvacuationDataForCity(cityName) in evacuation-db.
-      return NextResponse.json({
-        success: false,
-        error:
-          "Direct city lookup not implemented on this endpoint. Use lat/lng or add getEvacuationDataForCity in lib/evacuation-db.",
-      }, { status: 400 })
+      // If you want direct city lookup, add getEvacuationDataForCity(cityName) in lib/evacuation-db.
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Direct city lookup not implemented on this endpoint. Use lat/lng or add getEvacuationDataForCity in lib/evacuation-db.",
+        },
+        { status: 400 },
+      )
     }
 
     // lat & lng -> nearest city data
@@ -48,7 +54,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ success: false, error: "Invalid coordinates" }, { status: 400 })
       }
 
+      console.log("[v0] Fetching evacuation data for coordinates:", { lat, lng })
       const evacuationData = await getEvacuationDataForLocation(lat, lng)
+
+      console.log("[v0] Evacuation data returned:", {
+        city: evacuationData?.city,
+        floodZonesCount: evacuationData?.floodZones?.length || 0,
+        centersCount: evacuationData?.evacuationCenters?.length || 0,
+        routesCount: evacuationData?.safeRoutes?.length || 0,
+      })
+
       // Defensive: ensure structure always present
       const safeData = {
         city: evacuationData?.city || "Unknown",
@@ -61,9 +76,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: safeData })
     }
 
-    return NextResponse.json({ success: false, error: "Missing required parameters (lat & lng or action)" }, { status: 400 })
+    return NextResponse.json(
+      { success: false, error: "Missing required parameters (lat & lng or action)" },
+      { status: 400 },
+    )
   } catch (error) {
-    console.error("Error in evacuation API:", error)
+    console.error("[v0] Error in evacuation API:", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }

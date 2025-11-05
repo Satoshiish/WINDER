@@ -31,13 +31,19 @@ export interface LocationEvacuationData {
   }>
 }
 
-export async function getEvacuationDataForLocation(city: string): Promise<LocationEvacuationData> {
+export async function getEvacuationDataForLocation(lat: number, lng: number): Promise<LocationEvacuationData> {
   try {
+    const city = "Olongapo City"
+
+    console.log("[v0] Fetching evacuation data for city:", city, "at coordinates:", lat, lng)
+
     // Fetch ALL flood zones
     const { data: floodZonesData, error: floodError } = await supabase.from("flood_zones").select("*").eq("city", city)
 
+    console.log("[v0] Flood zones query result:", { count: floodZonesData?.length || 0, error: floodError })
+
     if (floodError) {
-      console.error("Error fetching flood zones:", floodError)
+      console.error("[v0] Error fetching flood zones:", floodError)
       return getDefaultEvacuationData(city)
     }
 
@@ -47,16 +53,20 @@ export async function getEvacuationDataForLocation(city: string): Promise<Locati
       .select("*")
       .eq("city", city)
 
+    console.log("[v0] Evacuation centers query result:", { count: centersData?.length || 0, error: centersError })
+
     if (centersError) {
-      console.error("Error fetching evacuation centers:", centersError)
+      console.error("[v0] Error fetching evacuation centers:", centersError)
       return getDefaultEvacuationData(city)
     }
 
     // Fetch ALL safe routes
     const { data: routesData, error: routesError } = await supabase.from("safe_routes").select("*").eq("city", city)
 
+    console.log("[v0] Safe routes query result:", { count: routesData?.length || 0, error: routesError })
+
     if (routesError) {
-      console.error("Error fetching safe routes:", routesError)
+      console.error("[v0] Error fetching safe routes:", routesError)
       return getDefaultEvacuationData(city)
     }
 
@@ -91,6 +101,13 @@ export async function getEvacuationDataForLocation(city: string): Promise<Locati
       routeMapImage: route.route_map_image || "/placeholder.svg",
     }))
 
+    console.log("[v0] Mapped evacuation data:", {
+      city,
+      floodZonesCount: floodZones.length,
+      centersCount: evacuationCenters.length,
+      routesCount: safeRoutes.length,
+    })
+
     return {
       city,
       floodZones,
@@ -98,12 +115,13 @@ export async function getEvacuationDataForLocation(city: string): Promise<Locati
       safeRoutes,
     }
   } catch (error) {
-    console.error("Error fetching evacuation data:", error)
+    console.error("[v0] Error fetching evacuation data:", error)
     return getDefaultEvacuationData("Olongapo City")
   }
 }
 
 function getDefaultEvacuationData(city: string): LocationEvacuationData {
+  console.log("[v0] Returning default (empty) evacuation data for city:", city)
   return {
     city,
     floodZones: [],
