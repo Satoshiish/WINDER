@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   AlertTriangle,
   Droplets,
@@ -18,90 +18,80 @@ import {
   Building,
   ArrowLeft,
   X,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  EvacuationMapSkeleton,
-  EvacuationZoneDetailSkeleton,
-} from "@/components/skeletons/weather-skeleton";
+} from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { EvacuationMapSkeleton, EvacuationZoneDetailSkeleton } from "@/components/skeletons/weather-skeleton"
 
 interface FloodZone {
-  id: string;
-  name: string;
-  riskLevel: "high" | "medium" | "low";
-  area: string;
-  affectedPopulation: number;
-  coordinates: [number, number];
-  distance?: number;
-  mapImage?: string;
-  description?: string;
-  lastUpdated?: string;
+  id: string
+  name: string
+  riskLevel: "high" | "medium" | "low"
+  area: string
+  affectedPopulation: number
+  coordinates: [number, number]
+  distance?: number
+  mapImage?: string
+  description?: string
+  lastUpdated?: string
 }
 
 interface SafeRoute {
-  id: string;
-  name: string;
-  from: string;
-  to: string;
-  distance: number;
-  estimatedTime: number;
-  hazards: string[];
-  status: "clear" | "congested" | "blocked";
+  id: string
+  name: string
+  from: string
+  to: string
+  distance: number
+  estimatedTime: number
+  hazards: string[]
+  status: "clear" | "congested" | "blocked"
 }
 
 interface EvacuationCenter {
-  id: string;
-  name: string;
-  capacity: number;
-  currentOccupancy: number;
-  coordinates: [number, number];
-  address: string;
-  distance?: number;
-  image?: string;
-  facilities: string[];
-  contact: string;
+  id: string
+  name: string
+  capacity: number
+  currentOccupancy: number
+  coordinates: [number, number]
+  address: string
+  distance?: number
+  image?: string
+  facilities: string[]
+  contact: string
 }
 
 interface EvacuationMapProps {
-  userLat?: number;
-  userLon?: number;
+  userLat?: number
+  userLon?: number
 }
 
 export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
-  const [selectedZone, setSelectedZone] = useState<FloodZone | null>(null);
-  const [selectedCenter, setSelectedCenter] = useState<EvacuationCenter | null>(
-    null
-  );
-  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
-  const [weatherData, setWeatherData] = useState<any>(null);
-  const [riskAssessment, setRiskAssessment] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedZone, setSelectedZone] = useState<FloodZone | null>(null)
+  const [selectedCenter, setSelectedCenter] = useState<EvacuationCenter | null>(null)
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
+  const [weatherData, setWeatherData] = useState<any>(null)
+  const [riskAssessment, setRiskAssessment] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [locationData, setLocationData] = useState<{
-    lat: number;
-    lon: number;
-  } | null>(null);
-  const [nearbyZones, setNearbyZones] = useState<FloodZone[]>([]);
-  const [allRoutes, setAllRoutes] = useState<SafeRoute[]>([]);
-  const [nearbyRoutes, setNearbyRoutes] = useState<SafeRoute[]>([]);
-  const [nearbyCenters, setNearbyCenters] = useState<EvacuationCenter[]>([]);
-  const [apiLoading, setApiLoading] = useState(false);
+    lat: number
+    lon: number
+  } | null>(null)
+  const [nearbyZones, setNearbyZones] = useState<FloodZone[]>([])
+  const [allRoutes, setAllRoutes] = useState<SafeRoute[]>([])
+  const [nearbyRoutes, setNearbyRoutes] = useState<SafeRoute[]>([])
+  const [nearbyCenters, setNearbyCenters] = useState<EvacuationCenter[]>([])
+  const [apiLoading, setApiLoading] = useState(false)
   const [fullScreenImage, setFullScreenImage] = useState<{
-    url: string;
-    title: string;
-  } | null>(null);
+    url: string
+    title: string
+  } | null>(null)
+  const [selectedRouteImage, setSelectedRouteImage] = useState<string | null>(null)
 
   // --- image maps (normalize lookup keys) ---
   const zoneMapImages: Record<string, string> = {
     "olongapo-1": "/barreto-district-flood-map-evacuation-routes.jpg",
     "olongapo-2": "/kalaklan-district-flood-map-evacuation-routes.jpg",
     "olongapo-3": "/mabayuan-district-flood-map-evacuation-routes.jpg",
-    "olongapo-4": "/gordon-heights-flood-map-evacuation-routes.jpg",
+    "olongapo-4": "GordonHeights-SBFZSportsComplex.png",
     "olongapo-5": "/santa-rita-district-flood-map-evacuation-routes.jpg",
     "olongapo-6": "/east-bajac-bajac-flood-map-evacuation-routes.jpg",
     "olongapo-7": "/west-bajac-bajac-flood-map-evacuation-routes.jpg",
@@ -113,14 +103,14 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     "olongapo-13": "/asinan-flood-map-evacuation-routes.jpg",
     "olongapo-14": "/west-tapinac-flood-map-evacuation-routes.jpg",
     "olongapo-15": "/pag-asa-flood-map-evacuation-routes.jpg",
-  };
+  }
 
   const centerImages: Record<string, string> = {
-    "olongapo-ec-1": "/placeholder.svg?height=400&width=200",
-    "olongapo-ec-2": "/placeholder.svg?height=400&width=200",
-    "olongapo-ec-3": "/placeholder.svg?height=400&width=200",
-    "olongapo-ec-4": "/placeholder.svg?height=400&width=200",
-  };
+    "olongapo-ec-1": "/evacuation-center-1.jpg",
+    "olongapo-ec-2": "/evacuation-center-2.jpg",
+    "olongapo-ec-3": "/evacuation-center-3.jpg",
+    "olongapo-ec-4": "/evacuation-center-4.jpg",
+  }
 
   // -------------------------
   // Location effect (use == null to allow 0 coords)
@@ -128,115 +118,102 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   useEffect(() => {
     const getLocation = async () => {
       try {
-        let lat = userLat;
-        let lon = userLon;
+        let lat = userLat
+        let lon = userLon
 
         if (lat == null || lon == null) {
           // try browser geolocation
           if (typeof navigator !== "undefined" && navigator.geolocation) {
             try {
-              const position = await new Promise<GeolocationPosition>(
-                (resolve, reject) => {
-                  navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    timeout: 10000,
-                  });
-                }
-              );
-              lat = position.coords.latitude;
-              lon = position.coords.longitude;
+              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  timeout: 10000,
+                })
+              })
+              lat = position.coords.latitude
+              lon = position.coords.longitude
             } catch (err) {
-              console.warn(
-                "Geolocation not available or blocked by user.",
-                err
-              );
+              console.warn("Geolocation not available or blocked by user.", err)
             }
           }
         }
 
         if (lat != null && lon != null) {
-          setLocationData({ lat, lon });
+          setLocationData({ lat, lon })
         } else {
           // fallback to Manila if nothing available
-          setLocationData({ lat: 14.5995, lon: 120.9842 });
+          setLocationData({ lat: 14.5995, lon: 120.9842 })
         }
       } catch (error) {
-        console.error("Error getting location:", error);
-        setLocationData({ lat: 14.5995, lon: 120.9842 });
+        console.error("Error getting location:", error)
+        setLocationData({ lat: 14.5995, lon: 120.9842 })
       }
-    };
+    }
 
-    getLocation();
-  }, [userLat, userLon]);
+    getLocation()
+  }, [userLat, userLon])
 
   // -------------------------
   // Weather fetch (unchanged)
   // -------------------------
   useEffect(() => {
     const fetchWeatherData = async () => {
-      if (!locationData) return;
+      if (!locationData) return
       try {
-        const response = await fetch(
-          `/api/weather/current?lat=${locationData.lat}&lon=${locationData.lon}`
-        );
-        if (!response.ok) throw new Error("Weather API error");
-        const data = await response.json();
-        setWeatherData(data);
+        const response = await fetch(`/api/weather/current?lat=${locationData.lat}&lon=${locationData.lon}`)
+        if (!response.ok) throw new Error("Weather API error")
+        const data = await response.json()
+        setWeatherData(data)
       } catch (error) {
-        console.warn("Error fetching weather, using fallback sample:", error);
+        console.warn("Error fetching weather, using fallback sample:", error)
         setWeatherData({
           windSpeed: 45,
           humidity: 75,
           temperature: 28,
-        });
+        })
       }
-    };
-    fetchWeatherData();
-  }, [locationData]);
+    }
+    fetchWeatherData()
+  }, [locationData])
 
   // -------------------------
   // Evacuation data fetch (defensive)
   // -------------------------
   useEffect(() => {
     const fetchEvacuationData = async () => {
-      if (!locationData) return;
+      if (!locationData) return
       // avoid double set
-      setApiLoading(true);
+      setApiLoading(true)
       try {
-        const res = await fetch(
-          `/api/evacuation?lat=${locationData.lat}&lng=${locationData.lon}`
-        );
-        const result = await res.json();
-        console.log("Evacuation API response:", result);
+        const res = await fetch(`/api/evacuation?lat=${locationData.lat}&lng=${locationData.lon}`)
+        const result = await res.json()
+        console.log("Evacuation API response:", result)
 
         if (!result || !result.success || !result.data) {
           // If no data, ensure we clear and stop loading
-          setNearbyZones([]);
-          setNearbyCenters([]);
-          setAllRoutes([]);
-          setNearbyRoutes([]);
-          return;
+          setNearbyZones([])
+          setNearbyCenters([])
+          setAllRoutes([])
+          setNearbyRoutes([])
+          return
         }
 
-        const evacuationData = result.data;
+        const evacuationData = result.data
 
         // Defensive defaults
-        const floodZonesRaw = evacuationData.floodZones || [];
-        const centersRaw = evacuationData.evacuationCenters || [];
-        const routesRaw = evacuationData.safeRoutes || [];
+        const floodZonesRaw = evacuationData.floodZones || []
+        const centersRaw = evacuationData.evacuationCenters || []
+        const routesRaw = evacuationData.safeRoutes || []
 
         const floodZones = floodZonesRaw.map((zone: any) => {
-          const id = String(
-            zone.id || zone.zone_id || zone.zoneId || ""
-          ).toLowerCase();
-          const mapKey = id; // normalized for lookup
+          const id = String(zone.id || zone.zone_id || zone.zoneId || "").toLowerCase()
+          const mapKey = id // normalized for lookup
           return {
             id,
             name: zone.name || zone.zone_name || "Unknown",
             riskLevel: zone.riskLevel || zone.risk_level || "low",
             area: zone.area || zone.size || "Unknown",
-            affectedPopulation: Number(
-              zone.affectedPopulation ?? zone.affected_population ?? 0
-            ),
+            affectedPopulation: Number(zone.affectedPopulation ?? zone.affected_population ?? 0),
             coordinates: [
               Number(zone.coordinates?.[0] ?? zone.latitude),
               Number(zone.coordinates?.[1] ?? zone.longitude),
@@ -245,23 +222,21 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               locationData.lat,
               locationData.lon,
               Number(zone.latitude ?? zone.coordinates?.[0] ?? 0),
-              Number(zone.longitude ?? zone.coordinates?.[1] ?? 0)
+              Number(zone.longitude ?? zone.coordinates?.[1] ?? 0),
             ),
             mapImage: zoneMapImages[mapKey] || "/placeholder.svg",
             lastUpdated: new Date().toISOString().split("T")[0],
-          } as FloodZone;
-        });
+          } as FloodZone
+        })
 
         const evacuationCenters = centersRaw.map((center: any) => {
-          const id = String(center.id || center.center_id || "").toLowerCase();
-          const imageKey = id;
+          const id = String(center.id || center.center_id || "").toLowerCase()
+          const imageKey = id
           return {
             id,
             name: center.name || "Evacuation Center",
             capacity: Number(center.capacity ?? 0),
-            currentOccupancy: Number(
-              center.currentOccupancy ?? center.current_occupancy ?? 0
-            ),
+            currentOccupancy: Number(center.currentOccupancy ?? center.current_occupancy ?? 0),
             coordinates: [
               Number(center.latitude ?? center.coordinates?.[0] ?? 0),
               Number(center.longitude ?? center.coordinates?.[1] ?? 0),
@@ -271,193 +246,160 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               locationData.lat,
               locationData.lon,
               Number(center.latitude ?? 0),
-              Number(center.longitude ?? 0)
+              Number(center.longitude ?? 0),
             ),
             image: centerImages[imageKey] || "/placeholder.svg",
-            facilities: center.facilities || [
-              "Medical",
-              "Food",
-              "Shelter",
-              "Sanitation",
-            ],
+            facilities: center.facilities || ["Medical", "Food", "Shelter", "Sanitation"],
             contact: center.contact || "+63 912 345 6789",
-          } as EvacuationCenter;
-        });
+          } as EvacuationCenter
+        })
 
         const safeRoutes = routesRaw.map((route: any) => {
           return {
             id: String(route.id || route.route_id || ""),
-            name:
-              route.name ||
-              `${route.from_location || route.from} → ${
-                route.to_location || route.to
-              }`,
+            name: route.name || `${route.from_location || route.from} → ${route.to_location || route.to}`,
             from: route.from || route.from_location || "Unknown",
             to: route.to || route.to_location || "Unknown",
             distance: Number(route.distance ?? 0),
-            estimatedTime: Number(
-              route.estimatedTime ?? route.estimated_time ?? 0
-            ),
-            hazards: Array.isArray(route.hazards)
-              ? route.hazards
-              : route.hazards
-              ? [route.hazards]
-              : [],
+            estimatedTime: Number(route.estimatedTime ?? route.estimated_time ?? 0),
+            hazards: Array.isArray(route.hazards) ? route.hazards : route.hazards ? [route.hazards] : [],
             status: (route.status as SafeRoute["status"]) || "clear",
-          } as SafeRoute;
-        });
+          } as SafeRoute
+        })
 
         // sort by distance
         setNearbyZones(
           floodZones.sort(
-            (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity)
-          )
-        );
+            (a, b) => (a.distance ?? Number.POSITIVE_INFINITY) - (b.distance ?? Number.POSITIVE_INFINITY),
+          ),
+        )
         setNearbyCenters(
           evacuationCenters.sort(
-            (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity)
-          )
-        );
-        setAllRoutes(safeRoutes);
-        setNearbyRoutes(safeRoutes);
+            (a, b) => (a.distance ?? Number.POSITIVE_INFINITY) - (b.distance ?? Number.POSITIVE_INFINITY),
+          ),
+        )
+        setAllRoutes(safeRoutes)
+        setNearbyRoutes(safeRoutes)
       } catch (error) {
-        console.error("Error fetching evacuation data:", error);
-        setNearbyZones([]);
-        setNearbyCenters([]);
-        setAllRoutes([]);
-        setNearbyRoutes([]);
+        console.error("Error fetching evacuation data:", error)
+        setNearbyZones([])
+        setNearbyCenters([])
+        setAllRoutes([])
+        setNearbyRoutes([])
       } finally {
-        setApiLoading(false);
-        setLoading(false);
+        setApiLoading(false)
+        setLoading(false)
       }
-    };
+    }
 
-    fetchEvacuationData();
-  }, [locationData]);
+    fetchEvacuationData()
+  }, [locationData])
 
   // Haversine (good)
-  const calculateDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
-    if (!lat2 || !lon2) return Infinity;
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    if (!lat2 || !lon2) return Number.POSITIVE_INFINITY
+    const R = 6371
+    const dLat = ((lat2 - lat1) * Math.PI) / 180
+    const dLon = ((lon2 - lon1) * Math.PI) / 180
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+  }
 
   // Relaxed matching for routes
   const getFilteredSafeRoutes = (districtName?: string): SafeRoute[] => {
-    let routes = allRoutes || [];
-    if (!districtName || districtName.trim() === "") return routes;
+    const routes = allRoutes || []
+    if (!districtName || districtName.trim() === "") return routes
 
     const dn = districtName
       .toLowerCase()
       .replace(/^(brgy\.?|barangay)\s*/i, "")
-      .trim();
+      .trim()
     return routes.filter((route) => {
-      const from = (route.from || "").toLowerCase();
-      const to = (route.to || "").toLowerCase();
+      const from = (route.from || "").toLowerCase()
+      const to = (route.to || "").toLowerCase()
       // remove common prefixes to improve match reliability
-      const fromClean = from.replace(/^(brgy\.?|barangay)\s*/i, "").trim();
-      const toClean = to.replace(/^(brgy\.?|barangay)\s*/i, "").trim();
+      const fromClean = from.replace(/^(brgy\.?|barangay)\s*/i, "").trim()
+      const toClean = to.replace(/^(brgy\.?|barangay)\s*/i, "").trim()
 
-      return (
-        fromClean.includes(dn) ||
-        toClean.includes(dn) ||
-        dn.includes(fromClean) ||
-        dn.includes(toClean)
-      );
-    });
-  };
+      return fromClean.includes(dn) || toClean.includes(dn) || dn.includes(fromClean) || dn.includes(toClean)
+    })
+  }
 
   // Update nearbyRoutes when district selection or allRoutes change
   useEffect(() => {
     if (!apiLoading) {
-      const safeRoutes = getFilteredSafeRoutes(selectedDistrict || undefined);
-      setNearbyRoutes(safeRoutes);
+      const safeRoutes = getFilteredSafeRoutes(selectedDistrict || undefined)
+      setNearbyRoutes(safeRoutes)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDistrict, apiLoading, allRoutes]);
+  }, [selectedDistrict, apiLoading, allRoutes])
 
   // Risk assessment
   useEffect(() => {
     if (weatherData && nearbyZones.length > 0) {
-      const highRiskZones = nearbyZones.filter(
-        (z) => z.riskLevel === "high"
-      ).length;
-      const totalAffected = nearbyZones.reduce(
-        (sum, z) => sum + (z.affectedPopulation || 0),
-        0
-      );
+      const highRiskZones = nearbyZones.filter((z) => z.riskLevel === "high").length
+      const totalAffected = nearbyZones.reduce((sum, z) => sum + (z.affectedPopulation || 0), 0)
 
       setRiskAssessment({
         overallRisk:
           weatherData.windSpeed > 60 || weatherData.humidity > 80
             ? "high"
             : weatherData.windSpeed > 40
-            ? "medium"
-            : "low",
+              ? "medium"
+              : "low",
         affectedPopulation: totalAffected,
         highRiskZones: highRiskZones,
         rainfall: weatherData.humidity || 0,
         windSpeed: weatherData.windSpeed || 0,
-      });
+      })
     }
-  }, [weatherData, nearbyZones]);
+  }, [weatherData, nearbyZones])
 
   // small helpers for UI classes (unchanged)
   const getRiskColor = (level: string) => {
     switch (level) {
       case "high":
-        return "bg-red-500/20 text-red-600 border-red-300";
+        return "bg-red-500/20 text-red-600 border-red-300"
       case "medium":
-        return "bg-yellow-500/20 text-yellow-600 border-yellow-300";
+        return "bg-yellow-500/20 text-yellow-600 border-yellow-300"
       case "low":
-        return "bg-green-500/20 text-green-600 border-green-300";
+        return "bg-green-500/20 text-green-600 border-green-300"
       default:
-        return "bg-gray-500/20 text-gray-600";
+        return "bg-gray-500/20 text-gray-600"
     }
-  };
+  }
 
   const getRiskIcon = (level: string) => {
     switch (level) {
       case "high":
-        return <AlertTriangle className="h-4 w-4" />;
+        return <AlertTriangle className="h-4 w-4" />
       case "medium":
-        return <TrendingUp className="h-4 w-4" />;
+        return <TrendingUp className="h-4 w-4" />
       case "low":
-        return <Shield className="h-4 w-4" />;
+        return <Shield className="h-4 w-4" />
       default:
-        return <MapPin className="h-4 w-4" />;
+        return <MapPin className="h-4 w-4" />
     }
-  };
+  }
 
   const getRouteStatusColor = (status: string) => {
     switch (status) {
       case "clear":
-        return "bg-green-500/20 text-green-600";
+        return "bg-green-500/20 text-green-600"
       case "congested":
-        return "bg-yellow-500/20 text-yellow-600";
+        return "bg-yellow-500/20 text-yellow-600"
       case "blocked":
-        return "bg-red-500/20 text-red-600";
+        return "bg-red-500/20 text-red-600"
       default:
-        return "bg-gray-500/20 text-gray-600";
+        return "bg-gray-500/20 text-gray-600"
     }
-  };
+  }
 
   if (loading || apiLoading) {
-    return <EvacuationMapSkeleton />;
+    return <EvacuationMapSkeleton />
   }
 
   if (fullScreenImage) {
@@ -479,22 +421,18 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               className="w-full h-auto max-h-[80vh] object-contain"
             />
             <div className="p-4 bg-slate-800 border-t border-slate-700">
-              <p className="text-white text-sm font-semibold">
-                {fullScreenImage.title}
-              </p>
-              <p className="text-slate-400 text-xs mt-1">
-                Click the X button or press Escape to close
-              </p>
+              <p className="text-white text-sm font-semibold">{fullScreenImage.title}</p>
+              <p className="text-slate-400 text-xs mt-1">Click the X button or press Escape to close</p>
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (selectedZone) {
     if (apiLoading) {
-      return <EvacuationZoneDetailSkeleton />;
+      return <EvacuationZoneDetailSkeleton />
     }
 
     return (
@@ -503,9 +441,10 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         <Button
           variant="outline"
           onClick={() => {
-            setSelectedZone(null);
-            setSelectedDistrict(null);
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            setSelectedZone(null)
+            setSelectedDistrict(null)
+            setSelectedRouteImage(null)
+            window.scrollTo({ top: 0, behavior: "smooth" })
           }}
           className="border-slate-600 text-slate-300 hover:bg-slate-800"
         >
@@ -517,17 +456,11 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${getRiskColor(
-                    selectedZone.riskLevel
-                  )}`}
-                >
+                <div className={`p-2 rounded-lg ${getRiskColor(selectedZone.riskLevel)}`}>
                   {getRiskIcon(selectedZone.riskLevel)}
                 </div>
                 <div>
-                  <CardTitle className="text-white text-lg">
-                    {selectedZone.name}
-                  </CardTitle>
+                  <CardTitle className="text-white text-lg">{selectedZone.name}</CardTitle>
                   <p className="text-slate-300 text-sm">{selectedZone.area}</p>
                 </div>
               </div>
@@ -540,15 +473,17 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             <div
               onClick={() =>
                 setFullScreenImage({
-                  url: selectedZone.mapImage || "/placeholder.svg",
-                  title: `${selectedZone.name} - Flood Map & Evacuation Routes`,
+                  url: selectedRouteImage || selectedZone.mapImage || "/placeholder.svg",
+                  title: selectedRouteImage
+                    ? `${selectedZone.name} - Selected Route`
+                    : `${selectedZone.name} - Flood Map & Evacuation Routes`,
                 })
               }
               className="rounded-lg overflow-hidden border border-slate-600 h-96 cursor-pointer hover:opacity-90 transition-opacity bg-slate-800"
             >
               <img
-                src={selectedZone.mapImage || "/placeholder.svg"}
-                alt={`${selectedZone.name} flood map`}
+                src={selectedRouteImage || selectedZone.mapImage || "/placeholder.svg"}
+                alt={`${selectedZone.name} ${selectedRouteImage ? "route" : "flood map"}`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -563,21 +498,15 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               </div>
               <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="text-slate-300 text-sm">Area Size</p>
-                <p className="text-white font-semibold text-lg">
-                  {selectedZone.area}
-                </p>
+                <p className="text-white font-semibold text-lg">{selectedZone.area}</p>
               </div>
               <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="text-slate-300 text-sm">Distance</p>
-                <p className="text-white font-semibold text-lg">
-                  {selectedZone.distance?.toFixed(1)}km
-                </p>
+                <p className="text-white font-semibold text-lg">{selectedZone.distance?.toFixed(1)}km</p>
               </div>
               <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="text-slate-300 text-sm">Last Updated</p>
-                <p className="text-white font-semibold text-sm">
-                  {selectedZone.lastUpdated}
-                </p>
+                <p className="text-white font-semibold text-sm">{selectedZone.lastUpdated}</p>
               </div>
             </div>
 
@@ -591,20 +520,19 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                 {nearbyRoutes.map((route) => (
                   <div
                     key={route.id}
-                    className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400 backdrop-blur-sm"
+                    onClick={() => {
+                      setSelectedRouteImage(selectedZone.mapImage || "/placeholder.svg")
+                    }}
+                    className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400 backdrop-blur-sm cursor-pointer hover:bg-slate-700/60 transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-white text-sm">
-                          {route.name}
-                        </h4>
+                        <h4 className="font-semibold text-white text-sm">{route.name}</h4>
                         <p className="text-slate-300 text-xs">
                           {route.from} → {route.to}
                         </p>
                       </div>
-                      <Badge className={getRouteStatusColor(route.status)}>
-                        {route.status}
-                      </Badge>
+                      <Badge className={getRouteStatusColor(route.status)}>{route.status}</Badge>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-slate-300">
                       <div className="flex items-center gap-1">
@@ -642,30 +570,21 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               </h3>
               <div className="space-y-3">
                 {nearbyCenters.slice(0, 3).map((center) => {
-                  const occupancyPercent =
-                    (center.currentOccupancy / Math.max(center.capacity, 1)) *
-                    100;
+                  const occupancyPercent = (center.currentOccupancy / Math.max(center.capacity, 1)) * 100
                   return (
-                    <div
-                      key={center.id}
-                      className="bg-slate-800/50 p-4 rounded-lg border border-slate-700"
-                    >
+                    <div key={center.id} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h4 className="font-semibold text-white text-sm">
-                            {center.name}
-                          </h4>
-                          <p className="text-slate-300 text-xs">
-                            {center.address}
-                          </p>
+                          <h4 className="font-semibold text-white text-sm">{center.name}</h4>
+                          <p className="text-slate-300 text-xs">{center.address}</p>
                         </div>
                         <Badge
                           className={`text-xs ${
                             occupancyPercent > 80
                               ? "bg-red-500/20 text-red-400"
                               : occupancyPercent > 50
-                              ? "bg-yellow-500/20 text-yellow-400"
-                              : "bg-green-500/20 text-green-400"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : "bg-green-500/20 text-green-400"
                           }`}
                         >
                           {occupancyPercent.toFixed(0)}% full
@@ -677,30 +596,26 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                             occupancyPercent > 80
                               ? "bg-red-400"
                               : occupancyPercent > 50
-                              ? "bg-yellow-400"
-                              : "bg-green-400"
+                                ? "bg-yellow-400"
+                                : "bg-green-400"
                           }`}
                           style={{
-                            width: `${Math.min(
-                              Math.max(occupancyPercent, 0),
-                              100
-                            )}%`,
+                            width: `${Math.min(Math.max(occupancyPercent, 0), 100)}%`,
                           }}
                         />
                       </div>
                       <p className="text-xs text-slate-300 mt-2">
-                        {center.currentOccupancy} / {center.capacity} people •{" "}
-                        {center.distance?.toFixed(1)}km away
+                        {center.currentOccupancy} / {center.capacity} people • {center.distance?.toFixed(1)}km away
                       </p>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   // Main list view
@@ -712,24 +627,14 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
           <CardContent className="p-6">
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="col-span-2">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Risk Assessment
-                </h3>
+                <h3 className="text-lg font-semibold text-white mb-2">Risk Assessment</h3>
                 <div className="flex items-center gap-2">
-                  <div
-                    className={`p-2 rounded-lg ${getRiskColor(
-                      riskAssessment.overallRisk
-                    )}`}
-                  >
+                  <div className={`p-2 rounded-lg ${getRiskColor(riskAssessment.overallRisk)}`}>
                     {getRiskIcon(riskAssessment.overallRisk)}
                   </div>
                   <div>
-                    <p className="text-white font-semibold">
-                      Overall Risk: {riskAssessment.overallRisk.toUpperCase()}
-                    </p>
-                    <p className="text-slate-300 text-sm">
-                      {riskAssessment.highRiskZones} high risk zones detected
-                    </p>
+                    <p className="text-white font-semibold">Overall Risk: {riskAssessment.overallRisk.toUpperCase()}</p>
+                    <p className="text-slate-300 text-sm">{riskAssessment.highRiskZones} high risk zones detected</p>
                   </div>
                 </div>
               </div>
@@ -737,18 +642,14 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                 <p className="text-xs text-slate-300 mb-1">Wind Speed</p>
                 <div className="flex items-center gap-2">
                   <Wind className="h-4 w-4 text-cyan-400" />
-                  <span className="font-semibold text-white">
-                    {riskAssessment.windSpeed}km/h
-                  </span>
+                  <span className="font-semibold text-white">{riskAssessment.windSpeed}km/h</span>
                 </div>
               </div>
               <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="text-xs text-slate-300 mb-1">Humidity</p>
                 <div className="flex items-center gap-2">
                   <Droplets className="h-4 w-4 text-blue-400" />
-                  <span className="font-semibold text-white">
-                    {riskAssessment.rainfall}%
-                  </span>
+                  <span className="font-semibold text-white">{riskAssessment.rainfall}%</span>
                 </div>
               </div>
               <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
@@ -776,27 +677,19 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             <div
               key={zone.id}
               onClick={() => {
-                setSelectedZone(zone);
-                setSelectedDistrict(zone.name);
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                setSelectedZone(zone)
+                setSelectedDistrict(zone.name)
+                window.scrollTo({ top: 0, behavior: "smooth" })
               }}
               className={`p-4 rounded-lg cursor-pointer transition-all hover:scale-105 border-2 ${getRiskColor(
-                zone.riskLevel
+                zone.riskLevel,
               )} backdrop-blur-sm bg-gradient-to-r from-slate-800/50 to-slate-700/50`}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`p-2 rounded-lg ${getRiskColor(zone.riskLevel)}`}
-                >
-                  {getRiskIcon(zone.riskLevel)}
-                </div>
+                <div className={`p-2 rounded-lg ${getRiskColor(zone.riskLevel)}`}>{getRiskIcon(zone.riskLevel)}</div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-sm text-white">
-                    {zone.name}
-                  </h4>
-                  <p className="text-xs opacity-75 text-slate-300">
-                    {zone.area}
-                  </p>
+                  <h4 className="font-semibold text-sm text-white">{zone.name}</h4>
+                  <p className="text-xs opacity-75 text-slate-300">{zone.area}</p>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-slate-300">
@@ -836,23 +729,14 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
 
         {/* District Selector */}
         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 space-y-2">
-          <label className="text-sm text-slate-300 block">
-            Select a district to view evacuation routes:
-          </label>
-          <Select
-            value={selectedDistrict || ""}
-            onValueChange={(value) => setSelectedDistrict(value || null)}
-          >
+          <label className="text-sm text-slate-300 block">Select a district to view evacuation routes:</label>
+          <Select value={selectedDistrict || ""} onValueChange={(value) => setSelectedDistrict(value || null)}>
             <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
               <SelectValue placeholder="Choose a district..." />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-700 max-h-60 overflow-y-auto">
               {nearbyZones.map((zone) => (
-                <SelectItem
-                  key={zone.id}
-                  value={zone.name}
-                  className="text-white"
-                >
+                <SelectItem key={zone.id} value={zone.name} className="text-white">
                   {zone.name}
                 </SelectItem>
               ))}
@@ -876,16 +760,12 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-white text-sm">
-                          {route.name}
-                        </h4>
+                        <h4 className="font-semibold text-white text-sm">{route.name}</h4>
                         <p className="text-slate-300 text-xs">
                           {route.from} → {route.to}
                         </p>
                       </div>
-                      <Badge className={getRouteStatusColor(route.status)}>
-                        {route.status}
-                      </Badge>
+                      <Badge className={getRouteStatusColor(route.status)}>{route.status}</Badge>
                     </div>
 
                     <div className="flex items-center gap-4 text-xs text-slate-300">
@@ -917,9 +797,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               </div>
             </>
           ) : (
-            <p className="text-slate-400 text-sm italic">
-              No evacuation routes available for this district.
-            </p>
+            <p className="text-slate-400 text-sm italic">No evacuation routes available for this district.</p>
           )}
         </div>
       </div>
