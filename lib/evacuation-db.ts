@@ -37,10 +37,23 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
 
     console.log("[v0] Fetching evacuation data for city:", city, "at coordinates:", lat, lng)
 
-    // Fetch ALL flood zones
-    const { data: floodZonesData, error: floodError } = await supabase.from("flood_zones").select("*").eq("city", city)
+    const { data: floodZonesData, error: floodError } = await supabase
+      .from("flood_zones")
+      .select("*")
+      .eq("city", city)
+      .order("name", { ascending: true })
 
     console.log("[v0] Flood zones query result:", { count: floodZonesData?.length || 0, error: floodError })
+    if (floodZonesData && floodZonesData.length > 0) {
+      console.log("[v0] Sample flood zone data:", {
+        id: floodZonesData[0].id,
+        name: floodZonesData[0].name,
+        hasImageColumn: "evacuation_route_image" in floodZonesData[0],
+        imageValue: floodZonesData[0].evacuation_route_image,
+        hasFloodMapColumn: "flood_zone_map" in floodZonesData[0],
+        floodMapValue: floodZonesData[0].flood_zone_map,
+      })
+    }
 
     if (floodError) {
       console.error("[v0] Error fetching flood zones:", floodError)
@@ -64,6 +77,16 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
     const { data: routesData, error: routesError } = await supabase.from("safe_routes").select("*").eq("city", city)
 
     console.log("[v0] Safe routes query result:", { count: routesData?.length || 0, error: routesError })
+    if (routesData && routesData.length > 0) {
+      console.log("[v0] Sample route data:", {
+        id: routesData[0].id,
+        name: routesData[0].name,
+        from: routesData[0].from_location,
+        to: routesData[0].to_location,
+        hasImageColumn: "route_map_image" in routesData[0],
+        imageValue: routesData[0].route_map_image,
+      })
+    }
 
     if (routesError) {
       console.error("[v0] Error fetching safe routes:", routesError)
@@ -78,7 +101,8 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       area: zone.area,
       affectedPopulation: zone.affected_population,
       coordinates: [zone.latitude, zone.longitude] as [number, number],
-      mapImage: zone.evacuation_route_image || "/placeholder.svg",
+      // Use flood_zone_map (static flood area image) as primary, fallback to evacuation_route_image
+      mapImage: zone.flood_zone_map || zone.evacuation_route_image || "/placeholder.svg",
     }))
 
     const evacuationCenters = (centersData || []).map((center: any) => ({
