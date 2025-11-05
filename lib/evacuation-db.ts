@@ -9,6 +9,7 @@ export interface LocationEvacuationData {
     area: string
     affectedPopulation: number
     coordinates: [number, number]
+    mapImage?: string
   }>
   evacuationCenters: Array<{
     id: string
@@ -26,19 +27,14 @@ export interface LocationEvacuationData {
     distance: number
     estimatedTime: number
     hazards: string[]
+    routeMapImage?: string
   }>
 }
 
-export async function getEvacuationDataForLocation(): Promise<LocationEvacuationData> {
+export async function getEvacuationDataForLocation(city: string): Promise<LocationEvacuationData> {
   try {
-    // Instead of finding closest city, fetch everything in DB (Olongapo only)
-    const city = "Olongapo City"
-
     // Fetch ALL flood zones
-    const { data: floodZonesData, error: floodError } = await supabase
-      .from("flood_zones")
-      .select("*")
-      .eq("city", city)
+    const { data: floodZonesData, error: floodError } = await supabase.from("flood_zones").select("*").eq("city", city)
 
     if (floodError) {
       console.error("Error fetching flood zones:", floodError)
@@ -57,10 +53,7 @@ export async function getEvacuationDataForLocation(): Promise<LocationEvacuation
     }
 
     // Fetch ALL safe routes
-    const { data: routesData, error: routesError } = await supabase
-      .from("safe_routes")
-      .select("*")
-      .eq("city", city)
+    const { data: routesData, error: routesError } = await supabase.from("safe_routes").select("*").eq("city", city)
 
     if (routesError) {
       console.error("Error fetching safe routes:", routesError)
@@ -75,6 +68,7 @@ export async function getEvacuationDataForLocation(): Promise<LocationEvacuation
       area: zone.area,
       affectedPopulation: zone.affected_population,
       coordinates: [zone.latitude, zone.longitude] as [number, number],
+      mapImage: zone.evacuation_route_image || "/placeholder.svg",
     }))
 
     const evacuationCenters = (centersData || []).map((center: any) => ({
@@ -94,6 +88,7 @@ export async function getEvacuationDataForLocation(): Promise<LocationEvacuation
       distance: route.distance,
       estimatedTime: route.estimated_time,
       hazards: route.hazards || [],
+      routeMapImage: route.route_map_image || "/placeholder.svg",
     }))
 
     return {

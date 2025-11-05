@@ -44,6 +44,7 @@ interface SafeRoute {
   estimatedTime: number
   hazards: string[]
   status: "clear" | "congested" | "blocked"
+  routeMapImage?: string
 }
 
 interface EvacuationCenter {
@@ -87,24 +88,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   const [selectedRouteImage, setSelectedRouteImage] = useState<string | null>(null)
 
   // --- image maps (normalize lookup keys) ---
-  const zoneMapImages: Record<string, string> = {
-    "olongapo-1": "/barreto-district-flood-map-evacuation-routes.jpg",
-    "olongapo-2": "/kalaklan-district-flood-map-evacuation-routes.jpg",
-    "olongapo-3": "/mabayuan-district-flood-map-evacuation-routes.jpg",
-    "olongapo-4": "GordonHeights-SBFZSportsComplex.png",
-    "olongapo-5": "/santa-rita-district-flood-map-evacuation-routes.jpg",
-    "olongapo-6": "/east-bajac-bajac-flood-map-evacuation-routes.jpg",
-    "olongapo-7": "/west-bajac-bajac-flood-map-evacuation-routes.jpg",
-    "olongapo-8": "/new-cabalan-flood-map-evacuation-routes.jpg",
-    "olongapo-9": "/old-cabalan-flood-map-evacuation-routes.jpg",
-    "olongapo-10": "/east-tapinac-flood-map-evacuation-routes.jpg",
-    "olongapo-11": "/new-kalalake-flood-map-evacuation-routes.jpg",
-    "olongapo-12": "/banicain-flood-map-evacuation-routes.jpg",
-    "olongapo-13": "/asinan-flood-map-evacuation-routes.jpg",
-    "olongapo-14": "/west-tapinac-flood-map-evacuation-routes.jpg",
-    "olongapo-15": "/pag-asa-flood-map-evacuation-routes.jpg",
-  }
-
   const centerImages: Record<string, string> = {
     "olongapo-ec-1": "/evacuation-center-1.jpg",
     "olongapo-ec-2": "/evacuation-center-2.jpg",
@@ -207,7 +190,6 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
 
         const floodZones = floodZonesRaw.map((zone: any) => {
           const id = String(zone.id || zone.zone_id || zone.zoneId || "").toLowerCase()
-          const mapKey = id // normalized for lookup
           return {
             id,
             name: zone.name || zone.zone_name || "Unknown",
@@ -224,7 +206,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               Number(zone.latitude ?? zone.coordinates?.[0] ?? 0),
               Number(zone.longitude ?? zone.coordinates?.[1] ?? 0),
             ),
-            mapImage: zoneMapImages[mapKey] || "/placeholder.svg",
+            mapImage: zone.mapImage || "/placeholder.svg",
             lastUpdated: new Date().toISOString().split("T")[0],
           } as FloodZone
         })
@@ -264,6 +246,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
             estimatedTime: Number(route.estimatedTime ?? route.estimated_time ?? 0),
             hazards: Array.isArray(route.hazards) ? route.hazards : route.hazards ? [route.hazards] : [],
             status: (route.status as SafeRoute["status"]) || "clear",
+            routeMapImage: route.routeMapImage || "/placeholder.svg",
           } as SafeRoute
         })
 
@@ -521,7 +504,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                   <div
                     key={route.id}
                     onClick={() => {
-                      setSelectedRouteImage(selectedZone.mapImage || "/placeholder.svg")
+                      setSelectedRouteImage(route.routeMapImage || "/placeholder.svg")
                     }}
                     className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-400 backdrop-blur-sm cursor-pointer hover:bg-slate-700/60 transition-all"
                   >
