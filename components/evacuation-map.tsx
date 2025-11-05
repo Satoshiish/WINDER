@@ -251,11 +251,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         })
 
         // sort by distance
-        setNearbyZones(
-          floodZones.sort(
-            (a, b) => (a.distance ?? Number.POSITIVE_INFINITY) - (b.distance ?? Number.POSITIVE_INFINITY),
-          ),
-        )
+        setNearbyZones(floodZones)
         setNearbyCenters(
           evacuationCenters.sort(
             (a, b) => (a.distance ?? Number.POSITIVE_INFINITY) - (b.distance ?? Number.POSITIVE_INFINITY),
