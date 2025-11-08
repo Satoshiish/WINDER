@@ -49,15 +49,15 @@ import { useRouter } from "next/navigation" // Import useRouter
 import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
 // import {useUser} from "@clerk/nextjs" // Import useUser
 import { useLocationSharing } from "@/contexts/location-sharing-context"
-import { saveEmergencyReport } from "@/lib/emergency-db"
+import { saveEmergencyReport } from "@/services/emergencyService" // Updated import to use services directory
 import { EvacuationMap } from "@/components/evacuation-map"
 import { MapView } from "@/components/map-view"
 import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
 import { SMSSettings } from "@/components/sms-settings"
-import { sendSMS } from "@/lib/sms-service" // Add sendSMS import at the top with other imports
+import { sendSMS } from "@/services/smsService"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
-import { searchLocations, OLONGAPO_LOCATIONS } from "@/lib/location-search"
+import { searchLocations, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
 
 interface WeatherData {
   temperature: number
@@ -262,7 +262,7 @@ export default function Home() {
     // Dynamically import to avoid server-side rendering issues if the service is client-only
     const initializeSmsPreferences = async () => {
       try {
-        const smsService = await import("@/lib/sms-service")
+        const smsService = await import("@/services/smsService")
         if (smsService && smsService.getSMSPreferences) {
           setSmsPreferences(smsService.getSMSPreferences())
         } else {
@@ -4417,8 +4417,8 @@ export default function Home() {
             <div className="px-4 sm:px-6 pt-3 pb-2 border-b border-slate-700/50 bg-slate-900/30">
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <p className="text-xs text-blue-300 leading-relaxed">
-                  <strong>Privacy Notice:</strong> Your real-time location will be automatically sent to responders
-                  to help them reach you faster and more accurately.
+                  <strong>Privacy Notice:</strong> Your real-time location will be automatically sent to responders to
+                  help them reach you faster and more accurately.
                 </p>
               </div>
             </div>
