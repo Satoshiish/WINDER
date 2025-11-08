@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X, MapPin, ChevronDown } from "lucide-react"
-import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/lib/location-search"
+import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
 
 interface CreatePostModalProps {
   isOpen: boolean

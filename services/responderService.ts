@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface Emergency {
   id: number
@@ -74,7 +74,6 @@ export async function assignTeamToEmergency(emergencyId: string, teamId: string 
   try {
     console.log("🔄 [DEBUG] assignTeamToEmergency called:", { emergencyId, teamId })
 
-    // Convert teamId to number if it's a string
     const teamIdNum = typeof teamId === "string" ? Number.parseInt(teamId) : teamId
 
     const team = await getTeamInfo(teamIdNum)

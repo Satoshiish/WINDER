@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MessageSquare, Phone, AlertCircle, CheckCircle } from "lucide-react"
-import { getSMSPreferences, saveSMSPreferences, validatePhoneNumber, formatPhoneNumber } from "@/lib/sms-service"
+import { getSMSPreferences, saveSMSPreferences, validatePhoneNumber, formatPhoneNumber } from "@/services/smsService"
 
 interface SMSSettingsProps {
   onSave?: (preferences: any) => void

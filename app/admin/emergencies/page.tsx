@@ -296,109 +296,112 @@ export default function EmergencyManagement() {
   }
 
   const handleStatusChange = async (requestId: string, newStatus: string) => {
-  console.log('[Component] handleStatusChange called:', { requestId, newStatus })
-  
-  const success = await updateEmergencyReport(requestId, {
-    status: newStatus as EmergencyReport["status"],
-    responseTime: newStatus === "in-progress" ? new Date().toISOString() : undefined,
-  })
+    console.log("[Component] handleStatusChange called:", { requestId, newStatus })
 
-  console.log('[Component] updateEmergencyReport result:', success)
-
-  if (success) {
-    await loadStoredReports()
-    toast({
-      title: "Status Updated",
-      description: `Emergency status changed to ${capitalizeText(newStatus.replace('-', ' '))}`,
-      duration: 3000,
+    const success = await updateEmergencyReport(requestId, {
+      status: newStatus as EmergencyReport["status"],
+      responseTime: newStatus === "in-progress" ? new Date().toISOString() : undefined,
     })
-  } else {
-    toast({
-      title: "Update Failed",
-      description: "Failed to update emergency status",
-      variant: "destructive",
-      duration: 3000,
-    })
-  }
-}
 
-  const handleAssignTeam = async (requestId: string, teamId: string) => {
-  console.log('[Component] handleAssignTeam called:', { requestId, teamId })
-  
-  if (!teamId) return
-
-  setIsAssigningTeam(requestId)
-  
-  try {
-    const success = await assignTeamToEmergency(requestId, teamId)
-    console.log('[Component] assignTeamToEmergency result:', success)
+    console.log("[Component] updateEmergencyReport result:", success)
 
     if (success) {
-      // Get the team name for display
-      const team = responseTeams.find((t) => t.id.toString() === teamId)
-      const teamName = team?.team_name || "Unknown Team"
-      
-      // Update the local state immediately for better UX
-      setEmergencyRequests(prev => 
-        prev.map(request => 
-          request.id === requestId 
-            ? { 
-                ...request, 
-                assignedTo: teamName,
-                assigned_team_id: team?.id // Add this if you want to store the team ID as well
-              }
-            : request
-        )
-      )
-      
-      setFilteredRequests(prev => 
-        prev.map(request => 
-          request.id === requestId 
-            ? { 
-                ...request, 
-                assignedTo: teamName,
-                assigned_team_id: team?.id
-              }
-            : request
-        )
-      )
-
-      // Also update selected request if it's the one being assigned
-      if (selectedRequest && selectedRequest.id === requestId) {
-        setSelectedRequest(prev => 
-          prev ? {
-            ...prev,
-            assignedTo: teamName,
-            assigned_team_id: team?.id
-          } : null
-        )
-      }
-
+      // Reload reports to reflect the change
+      await loadStoredReports()
       toast({
-        title: "Team Assigned",
-        description: `${teamName} has been assigned and dispatched to this emergency`,
+        title: "Status Updated",
+        description: `Emergency status changed to ${capitalizeText(newStatus.replace("-", " "))}`,
         duration: 3000,
       })
     } else {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update emergency status",
+        variant: "destructive",
+        duration: 3000,
+      })
+    }
+  }
+
+  const handleAssignTeam = async (requestId: string, teamId: string) => {
+    console.log("[Component] handleAssignTeam called:", { requestId, teamId })
+
+    if (!teamId) return
+
+    setIsAssigningTeam(requestId)
+
+    try {
+      const success = await assignTeamToEmergency(requestId, teamId)
+      console.log("[Component] assignTeamToEmergency result:", success)
+
+      if (success) {
+        // Get the team name for display
+        const team = responseTeams.find((t) => t.id.toString() === teamId)
+        const teamName = team?.team_name || "Unknown Team"
+
+        // Update the local state immediately for better UX
+        setEmergencyRequests((prev) =>
+          prev.map((request) =>
+            request.id === requestId
+              ? {
+                  ...request,
+                  assignedTo: teamName,
+                  assigned_team_id: team?.id,
+                }
+              : request,
+          ),
+        )
+
+        setFilteredRequests((prev) =>
+          prev.map((request) =>
+            request.id === requestId
+              ? {
+                  ...request,
+                  assignedTo: teamName,
+                  assigned_team_id: team?.id,
+                }
+              : request,
+          ),
+        )
+
+        // Also update selected request if it's the one being assigned
+        if (selectedRequest && selectedRequest.id === requestId) {
+          setSelectedRequest((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  assignedTo: teamName,
+                  assigned_team_id: team?.id,
+                }
+              : null,
+          )
+        }
+
+        toast({
+          title: "Team Assigned",
+          description: `${teamName} has been assigned and dispatched to this emergency`,
+          duration: 3000,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to assign team to emergency",
+          variant: "destructive",
+          duration: 3000,
+        })
+      }
+    } catch (error) {
+      console.error("Error assigning team:", error)
       toast({
         title: "Error",
         description: "Failed to assign team to emergency",
         variant: "destructive",
         duration: 3000,
       })
+    } finally {
+      setIsAssigningTeam(null)
     }
-  } catch (error) {
-    console.error("Error assigning team:", error)
-    toast({
-      title: "Error",
-      description: "Failed to assign team to emergency",
-      variant: "destructive",
-      duration: 3000,
-    })
-  } finally {
-    setIsAssigningTeam(null)
   }
-}
 
   const handleAddNote = async (requestId: string, note: string) => {
     if (!note.trim()) return
@@ -871,8 +874,8 @@ export default function EmergencyManagement() {
                                           <SelectTrigger className="bg-slate-700/50 border-slate-600/50 text-white rounded-xl">
                                             <SelectValue
                                               placeholder={
-                                                isLoadingTeams || isAssigningTeam === selectedRequest.id 
-                                                  ? "Loading Teams..." 
+                                                isLoadingTeams || isAssigningTeam === selectedRequest.id
+                                                  ? "Loading Teams..."
                                                   : "Select Team"
                                               }
                                             />

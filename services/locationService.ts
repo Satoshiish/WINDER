@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface LocationShare {
   id: string

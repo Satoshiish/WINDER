@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface ModerationReport {
   id: number
@@ -14,7 +14,6 @@ export interface ModerationReport {
   updated_at: string
 }
 
-// Get all pending moderation reports
 export async function getPendingReports(limit = 20): Promise<ModerationReport[]> {
   try {
     const { data, error } = await supabase
@@ -36,7 +35,6 @@ export async function getPendingReports(limit = 20): Promise<ModerationReport[]>
   }
 }
 
-// Get all moderation reports with filters
 export async function getModerationReports(
   status?: string,
   contentType?: string,
@@ -67,7 +65,6 @@ export async function getModerationReports(
   }
 }
 
-// Create a moderation report
 export async function createModerationReport(
   contentType: "post" | "comment",
   contentId: number,
@@ -103,7 +100,6 @@ export async function createModerationReport(
   }
 }
 
-// Update moderation report status
 export async function updateModerationStatus(
   reportId: number,
   status: "reviewed" | "approved" | "rejected" | "removed",
@@ -126,7 +122,6 @@ export async function updateModerationStatus(
       return false
     }
 
-    // If approved for removal, delete the content
     if (status === "removed") {
       const report = await supabase.from("social_moderation").select("*").eq("id", reportId).single()
 
@@ -148,7 +143,6 @@ export async function updateModerationStatus(
   }
 }
 
-// Get moderation statistics
 export async function getModerationStats(): Promise<{
   total: number
   pending: number

@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface SocialPost {
   id: number
@@ -23,12 +23,10 @@ export interface SocialComment {
   updated_at: string
 }
 
-// Get all posts for feed
 export async function getSocialFeed(limit = 20, offset = 0, postType?: "post" | "donation"): Promise<SocialPost[]> {
   try {
     let query = supabase.from("social_posts").select("*").eq("status", "active")
 
-    // Filter by post_type if provided
     if (postType) {
       query = query.eq("post_type", postType)
     }
@@ -61,7 +59,6 @@ export async function createSocialPost(
   try {
     console.log("[v0] Creating anonymous social post")
 
-    // Validate content
     if (!content || !content.trim()) {
       console.error("[v0] Missing content")
       return { success: false, error: "Content is required" }
@@ -125,7 +122,6 @@ export async function addComment(
       return { success: false, error: "Failed to add comment" }
     }
 
-    // Update comments count
     const { data: post, error: fetchError } = await supabase
       .from("social_posts")
       .select("comments_count")
@@ -146,7 +142,6 @@ export async function addComment(
   }
 }
 
-// Get comments for a post
 export async function getPostComments(postId: number): Promise<SocialComment[]> {
   try {
     const { data, error } = await supabase

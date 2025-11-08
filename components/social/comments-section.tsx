@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Flag, Send } from "lucide-react"
-import { getPostComments, addComment } from "@/lib/social-db"
+import { getPostComments, addComment } from "@/services/socialService"
 import { formatDistanceToNow } from "date-fns"
 import { CommentsSectionSkeleton } from "@/components/skeletons/social-skeleton"
 

@@ -25,7 +25,7 @@ import {
   Users,
   ChevronDown,
 } from "lucide-react"
-import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/lib/location-search"
+import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
 
 interface Report {
   id: string

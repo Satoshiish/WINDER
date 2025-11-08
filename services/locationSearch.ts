@@ -7,7 +7,6 @@ export interface OlongapoLocation {
   lng: number
 }
 
-// All barangays in Olongapo City with their coordinates
 export const OLONGAPO_LOCATIONS: OlongapoLocation[] = [
   { name: "Sta Rita", city: "Olongapo City", lat: 14.853, lng: 120.2982 },
   { name: "Gordon Heights", city: "Olongapo City", lat: 14.8156, lng: 120.2689 },
@@ -28,11 +27,6 @@ export const OLONGAPO_LOCATIONS: OlongapoLocation[] = [
   { name: "Asinan Poblacion", city: "Olongapo City", lat: 14.8234, lng: 120.2712 },
 ]
 
-/**
- * Search for locations in Olongapo City
- * @param query - Search query (barangay name)
- * @returns Array of matching locations
- */
 export function searchLocations(query: string): OlongapoLocation[] {
   if (!query.trim()) return OLONGAPO_LOCATIONS
 
@@ -40,11 +34,6 @@ export function searchLocations(query: string): OlongapoLocation[] {
   return OLONGAPO_LOCATIONS.filter((location) => location.name.toLowerCase().includes(lowerQuery))
 }
 
-/**
- * Get location by name
- * @param name - Barangay name
- * @returns Location object or undefined
- */
 export function getLocationByName(name: string): OlongapoLocation | undefined {
   return OLONGAPO_LOCATIONS.find((location) => location.name.toLowerCase() === name.toLowerCase())
 }

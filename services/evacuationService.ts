@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface LocationEvacuationData {
   city: string
@@ -60,7 +60,6 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       return getDefaultEvacuationData(city)
     }
 
-    // Fetch ALL evacuation centers
     const { data: centersData, error: centersError } = await supabase
       .from("evacuation_centers")
       .select("*")
@@ -73,7 +72,6 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       return getDefaultEvacuationData(city)
     }
 
-    // Fetch ALL safe routes
     const { data: routesData, error: routesError } = await supabase.from("safe_routes").select("*").eq("city", city)
 
     console.log("[v0] Safe routes query result:", { count: routesData?.length || 0, error: routesError })
@@ -93,7 +91,6 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       return getDefaultEvacuationData(city)
     }
 
-    // Map DB results into the expected structure
     const floodZones = (floodZonesData || []).map((zone: any) => ({
       id: zone.id,
       name: zone.name,
@@ -101,7 +98,6 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       area: zone.area,
       affectedPopulation: zone.affected_population,
       coordinates: [zone.latitude, zone.longitude] as [number, number],
-      // Use flood_zone_map (static flood area image) as primary, fallback to evacuation_route_image
       mapImage: zone.flood_zone_map || zone.evacuation_route_image || "/placeholder.svg",
     }))
 
@@ -154,7 +150,6 @@ function getDefaultEvacuationData(city: string): LocationEvacuationData {
   }
 }
 
-// Keep these utility functions as-is for updating
 export async function updateEvacuationCenterOccupancy(centerId: string, currentOccupancy: number): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -221,7 +216,6 @@ export async function getAvailableCities(): Promise<string[]> {
 
     if (error) {
       console.error("Error fetching cities:", error)
-      // Fallback list
       return ["Olongapo City", "Manila", "Cebu City"]
     }
 

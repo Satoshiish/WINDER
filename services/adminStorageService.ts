@@ -3,7 +3,7 @@
  * Manages admin user accounts in Supabase database (max 10)
  */
 
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface AdminUser {
   id: string
@@ -16,9 +16,6 @@ export interface AdminUser {
 
 const MAX_ADMINS = 10
 
-/**
- * Load admin users from Supabase database
- */
 export async function loadAdminUsers(): Promise<AdminUser[]> {
   try {
     const { data, error } = await supabase
@@ -55,9 +52,6 @@ export async function loadAdminUsers(): Promise<AdminUser[]> {
   }
 }
 
-/**
- * Add a new admin user to Supabase database
- */
 export async function addAdminUser(
   email: string,
   name: string,
@@ -66,23 +60,19 @@ export async function addAdminUser(
   try {
     const users = await loadAdminUsers()
 
-    // Check max limit
     if (users.length >= MAX_ADMINS) {
       return { success: false, message: `Maximum of ${MAX_ADMINS} admin users reached` }
     }
 
-    // Check if email already exists
     if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
       return { success: false, message: "Email already exists" }
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return { success: false, message: "Invalid email format" }
     }
 
-    // Validate password length
     if (password.length < 6) {
       return { success: false, message: "Password must be at least 6 characters" }
     }
@@ -92,7 +82,7 @@ export async function addAdminUser(
       .insert([
         {
           email,
-          password, // Note: In production, this should be hashed on the backend
+          password,
           full_name: name,
           role: "admin",
           is_active: true,
@@ -123,14 +113,10 @@ export async function addAdminUser(
   }
 }
 
-/**
- * Remove an admin user from Supabase database
- */
 export async function removeAdminUser(userId: string): Promise<{ success: boolean; message: string }> {
   try {
     const users = await loadAdminUsers()
 
-    // Prevent removing the last admin
     if (users.length <= 1) {
       return { success: false, message: "Cannot remove the last admin user" }
     }
@@ -155,9 +141,6 @@ export async function removeAdminUser(userId: string): Promise<{ success: boolea
   }
 }
 
-/**
- * Update admin user's last login time
- */
 export async function updateLastLogin(email: string): Promise<void> {
   try {
     const { error } = await supabase
@@ -177,9 +160,6 @@ export async function updateLastLogin(email: string): Promise<void> {
   }
 }
 
-/**
- * Verify admin credentials against Supabase database
- */
 export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUser | null> {
   try {
     const { data, error } = await supabase
@@ -195,7 +175,6 @@ export async function verifyAdminCredentials(email: string, password: string): P
       return null
     }
 
-    // Check password (in production, use proper hashing)
     if (data.password === password) {
       await updateLastLogin(email)
 

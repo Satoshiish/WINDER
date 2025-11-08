@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { loadEmergencyReports } from "@/lib/emergency-db"
+import { loadEmergencyReports } from "@/services/emergencyService"
 
 export function AdminNotificationBadge() {
   const [pendingCount, setPendingCount] = useState(0)

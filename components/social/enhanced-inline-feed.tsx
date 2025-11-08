@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { EnhancedPostCard } from "@/components/social/enhanced-post-card"
 import { CreatePostModal } from "@/components/social/create-post-modal"
 import { LocationFilter } from "@/components/social/location-filter"
-import { getSocialFeed, createSocialPost } from "@/lib/social-db"
+import { getSocialFeed, createSocialPost } from "@/services/socialService"
 import { Plus, AlertCircle } from "lucide-react"
 
 interface Post {

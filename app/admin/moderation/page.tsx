@@ -48,7 +48,7 @@ export default function ModerationPage() {
       return
     }
     loadData()
-  }, [filterStatus])
+  }, [filterStatus, hasRole, router])
 
   const loadData = async () => {
     setIsLoading(true)

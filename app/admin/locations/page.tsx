@@ -70,7 +70,7 @@ export default function LocationManagement() {
     if (sharedLocations.length > 0) {
       fetchBarangayData()
     }
-  }, [sharedLocations])
+  }, [sharedLocations, barangayData])
 
   useEffect(() => {
     let filtered = sharedLocations
@@ -480,7 +480,7 @@ export default function LocationManagement() {
                                   onClick={() => setSelectedLocation(share)}
                                   className="bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 rounded-xl text-xs px-2 sm:px-3"
                                 >
-                                  <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                  <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
                                   <span className="hidden xs:inline">Details</span>
                                 </Button>
                               </DialogTrigger>

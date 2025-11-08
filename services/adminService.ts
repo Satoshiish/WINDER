@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface AdminUser {
   id: string
@@ -11,9 +11,6 @@ export interface AdminUser {
 
 const MAX_ADMINS = 10
 
-/**
- * Load admin users from database
- */
 export async function loadAdminUsers(): Promise<AdminUser[]> {
   try {
     const { data, error } = await supabase
@@ -41,39 +38,32 @@ export async function loadAdminUsers(): Promise<AdminUser[]> {
   }
 }
 
-/**
- * Add a new admin user to database
- */
 export async function addAdminUser(
   email: string,
   name: string,
   password: string,
 ): Promise<{ success: boolean; message: string; user?: AdminUser }> {
   try {
-    // Check max limit
     const existingUsers = await loadAdminUsers()
     if (existingUsers.length >= MAX_ADMINS) {
       return { success: false, message: `Maximum of ${MAX_ADMINS} admin users reached` }
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return { success: false, message: "Invalid email format" }
     }
 
-    // Validate password length
     if (password.length < 6) {
       return { success: false, message: "Password must be at least 6 characters" }
     }
 
-    // Insert new admin user
     const { data, error } = await supabase
       .from("admin_users")
       .insert({
         email,
         name,
-        password_hash: password, // In production, hash this properly
+        password_hash: password,
         role: "admin",
       })
       .select()
@@ -81,7 +71,6 @@ export async function addAdminUser(
 
     if (error) {
       if (error.code === "23505") {
-        // Unique constraint violation
         return { success: false, message: "Email already exists" }
       }
       console.error("[v0] Error adding admin user:", error)
@@ -104,19 +93,14 @@ export async function addAdminUser(
   }
 }
 
-/**
- * Remove an admin user (soft delete)
- */
 export async function removeAdminUser(userId: string): Promise<{ success: boolean; message: string }> {
   try {
     const users = await loadAdminUsers()
 
-    // Prevent removing the last admin
     if (users.length <= 1) {
       return { success: false, message: "Cannot remove the last admin user" }
     }
 
-    // Soft delete the user
     const { error } = await supabase
       .from("admin_users")
       .update({ deleted_at: new Date().toISOString() })
@@ -135,9 +119,6 @@ export async function removeAdminUser(userId: string): Promise<{ success: boolea
   }
 }
 
-/**
- * Update admin user's last login time
- */
 export async function updateLastLogin(email: string): Promise<void> {
   try {
     const { error } = await supabase
@@ -155,9 +136,6 @@ export async function updateLastLogin(email: string): Promise<void> {
   }
 }
 
-/**
- * Verify admin credentials
- */
 export async function verifyAdminCredentials(email: string, password: string): Promise<AdminUser | null> {
   try {
     const { data, error } = await supabase
@@ -171,7 +149,6 @@ export async function verifyAdminCredentials(email: string, password: string): P
       return null
     }
 
-    // In production, use proper password hashing comparison
     if (data.password_hash === password) {
       await updateLastLogin(email)
       return {

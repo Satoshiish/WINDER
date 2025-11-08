@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client"
+import { supabase } from "./supabaseClient"
 
 export interface EmergencyReport {
   id: string
@@ -16,7 +16,7 @@ export interface EmergencyReport {
   additionalInfo?: string
   status: "pending" | "in-progress" | "resolved" | "cancelled"
   assignedTo?: string
-  assigned_team_id?: number // Add this field
+  assigned_team_id?: number
   responseTime?: string
   notes: Array<{
     id: number
@@ -68,7 +68,7 @@ export async function loadEmergencyReports(): Promise<EmergencyReport[]> {
       additionalInfo: report.additional_info,
       status: report.status,
       assignedTo: report.assigned_to,
-      assigned_team_id: report.assigned_team_id, // Add this
+      assigned_team_id: report.assigned_team_id,
       responseTime: report.response_time,
       notes: report.notes || [],
       deletedAt: report.deleted_at,
@@ -113,7 +113,6 @@ export async function updateEmergencyReport(id: string, updates: Partial<Emergen
       updated_at: new Date().toISOString(),
     }
 
-    // Map the field names properly
     if (updates.userName !== undefined) updateData.user_name = updates.userName
     if (updates.contactNumber !== undefined) updateData.contact_number = updates.contactNumber
     if (updates.emergencyType !== undefined) updateData.emergency_type = updates.emergencyType
@@ -129,8 +128,7 @@ export async function updateEmergencyReport(id: string, updates: Partial<Emergen
     if (updates.notes !== undefined) updateData.notes = updates.notes
     if (updates.deletedAt !== undefined) updateData.deleted_at = updates.deletedAt
 
-    // Remove Number.parseInt() - use the string ID directly
-    const { error } = await supabase.from("emergency_reports").update(updateData).eq("id", id) // Use string ID directly
+    const { error } = await supabase.from("emergency_reports").update(updateData).eq("id", id)
 
     if (error) {
       console.error("Error updating emergency report:", error)
@@ -151,9 +149,9 @@ export async function deleteEmergencyReport(id: string): Promise<boolean> {
       .from("emergency_reports")
       .update({
         deleted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(), // Also update this timestamp
+        updated_at: new Date().toISOString(),
       })
-      .eq("id", id) // Use string ID directly
+      .eq("id", id)
 
     if (error) {
       console.error("Error deleting emergency report:", error)
@@ -174,9 +172,9 @@ export async function undoDeleteEmergencyReport(id: string): Promise<boolean> {
       .from("emergency_reports")
       .update({
         deleted_at: null,
-        updated_at: new Date().toISOString(), // Also update this timestamp
+        updated_at: new Date().toISOString(),
       })
-      .eq("id", id) // Use string ID directly
+      .eq("id", id)
 
     if (error) {
       console.error("Error undoing delete emergency report:", error)

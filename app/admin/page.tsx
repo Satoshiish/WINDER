@@ -51,8 +51,8 @@ import {
   FileText,
   MessageSquare,
 } from "lucide-react"
-import { getEmergencyStats } from "@/lib/emergency-db"
-import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/lib/admin-users-storage"
+import { getEmergencyStats } from "@/services/emergencyService"
+import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/services/adminStorageService"
 import { useToast } from "@/hooks/use-toast"
 import { formatAddress } from "@/lib/format-address"
 import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
@@ -61,7 +61,7 @@ import {
   getVolunteerUpdateStats,
   updateVolunteerUpdateStatus,
   type VolunteerUpdate,
-} from "@/lib/volunteer-db"
+} from "@/services/volunteerService"
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
