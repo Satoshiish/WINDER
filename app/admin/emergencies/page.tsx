@@ -48,10 +48,10 @@ import {
   undoDeleteEmergencyReport,
   cleanupOldReports,
   type EmergencyReport,
-} from "@/lib/emergency-db"
+} from "@/services/emergencyService"
 import { formatAddress } from "@/lib/format-address"
 import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
-import { getAllResponseTeams, assignTeamToEmergency, type ResponseTeam } from "@/lib/responder-db"
+import { getAllResponseTeams, assignTeamToEmergency, type ResponseTeam } from "@/services/responderService"
 
 const emergencyTypes = [
   { value: "medical", label: "Medical", icon: "🏥", color: "bg-red-500" },

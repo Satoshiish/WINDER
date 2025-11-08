@@ -1,6 +1,6 @@
 // app/api/evacuation/route.ts
 import { type NextRequest, NextResponse } from "next/server"
-import { getEvacuationDataForLocation, getAvailableCities } from "@/lib/evacuation-db"
+import { getEvacuationDataForLocation, getAvailableCities } from "@/services/evacuationService"
 
 export async function GET(request: NextRequest) {
   try {

@@ -25,7 +25,7 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react"
-import type { LocationShare } from "@/lib/location-db"
+import type { LocationShare } from "@/services/locationService"
 import { formatAddress } from "@/lib/format-address"
 import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 

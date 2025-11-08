@@ -43,7 +43,7 @@ import {
   getVolunteerUpdateStats,
   type VolunteerArea,
   type VolunteerUpdate,
-} from "@/lib/volunteer-db"
+} from "@/services/volunteerService"
 import { useToast } from "@/hooks/use-toast"
 
 export default function VolunteerDashboard() {

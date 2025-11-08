@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { addComment } from "@/lib/social-db"
+import { addComment } from "@/services/socialService"
 
 export async function POST(request: NextRequest) {
   try {

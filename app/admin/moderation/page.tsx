@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { RouteGuard } from "@/components/route-guard"
 import { Button } from "@/components/ui/button"
 import { ModerationReportCard } from "@/components/social/moderation-report-card"
-import { getModerationReports, updateModerationStatus, getModerationStats } from "@/lib/moderation-db"
+import { getModerationReports, updateModerationStatus, getModerationStats } from "@/services/moderationService"
 import { ArrowLeft, AlertCircle } from "lucide-react"
 
 interface ModerationReport {

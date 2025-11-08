@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { addAdminUser, removeAdminUser, loadAdminUsers } from "@/lib/admin-users-db"
+import { addAdminUser, removeAdminUser, loadAdminUsers } from "@/services/adminService"
 
 // GET - Load all admin users
 export async function GET() {

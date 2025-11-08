@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createModerationReport } from "@/lib/moderation-db"
+import { createModerationReport } from "@/services/moderationService"
 
 export async function POST(request: NextRequest) {
   try {
