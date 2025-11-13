@@ -68,7 +68,9 @@ import {
   updateVolunteer,
   deleteVolunteer,
   getOlongapoBarangays,
+  assignMultipleLocations,
   type Volunteer,
+  type VolunteerArea,
 } from "@/services/volunteerAdminService"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -118,6 +120,10 @@ export default function AdminDashboard() {
 
   // Volunteer management state
   const [volunteers, setVolunteers] = useState<Volunteer[]>([])
+  const [selectedVolunteerAreas, setSelectedVolunteerAreas] = useState<VolunteerArea[]>([])
+  const [isManageLocationsDialogOpen, setIsManageLocationsDialogOpen] = useState(false)
+  const [selectedVolunteerForLocations, setSelectedVolunteerForLocations] = useState<Volunteer | null>(null)
+  const [locationSelections, setLocationSelections] = useState<{ barangay: string; is_primary: boolean }[]>([])
   const [isLoadingVolunteers, setIsLoadingVolunteers] = useState(false)
   const [isAddVolunteerDialogOpen, setIsAddVolunteerDialogOpen] = useState(false)
   const [isEditVolunteerDialogOpen, setIsEditVolunteerDialogOpen] = useState(false)
@@ -415,6 +421,104 @@ export default function AdminDashboard() {
       is_active: volunteer.is_active,
     })
     setIsEditVolunteerDialogOpen(true)
+  }
+
+  const openManageLocationsDialog = (volunteer: any) => {
+    setSelectedVolunteerForLocations(volunteer)
+    const areas = volunteer.areas || []
+    setSelectedVolunteerAreas(areas)
+
+    // Pre-populate with existing assignments
+    if (areas.length > 0) {
+      setLocationSelections(
+        areas.map((area: VolunteerArea) => ({
+          barangay: area.barangay,
+          is_primary: area.is_primary,
+        })),
+      )
+    } else {
+      // Start with primary location if no areas exist
+      setLocationSelections(volunteer.barangay ? [{ barangay: volunteer.barangay, is_primary: true }] : [])
+    }
+
+    setIsManageLocationsDialogOpen(true)
+  }
+
+  const handleAddLocation = () => {
+    setLocationSelections([...locationSelections, { barangay: "", is_primary: false }])
+  }
+
+  const handleRemoveLocation = (index: number) => {
+    const newSelections = locationSelections.filter((_, i) => i !== index)
+    // If we removed the primary, make the first one primary
+    if (newSelections.length > 0 && !newSelections.some((loc) => loc.is_primary)) {
+      newSelections[0].is_primary = true
+    }
+    setLocationSelections(newSelections)
+  }
+
+  const handleLocationChange = (index: number, barangay: string) => {
+    const newSelections = [...locationSelections]
+    newSelections[index].barangay = barangay
+    setLocationSelections(newSelections)
+  }
+
+  const handlePrimaryChange = (index: number) => {
+    const newSelections = locationSelections.map((loc, i) => ({
+      ...loc,
+      is_primary: i === index,
+    }))
+    setLocationSelections(newSelections)
+  }
+
+  const handleSaveLocations = async () => {
+    if (!selectedVolunteerForLocations) return
+
+    // Validate that all locations have a barangay selected
+    if (locationSelections.some((loc) => !loc.barangay)) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a barangay for all locations",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Ensure at least one location is primary
+    if (!locationSelections.some((loc) => loc.is_primary)) {
+      toast({
+        title: "Validation Error",
+        description: "Please mark one location as primary",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const result = await assignMultipleLocations(selectedVolunteerForLocations.id, locationSelections)
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        })
+        setIsManageLocationsDialogOpen(false)
+        await loadVolunteers()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error saving locations:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleAddUser = async () => {
@@ -990,12 +1094,10 @@ export default function AdminDashboard() {
 
               <Card className="bg-slate-900 border-slate-800">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">All Volunteer Reports</CardTitle>
-                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                      {volunteerUpdates.length} Reports
-                    </Badge>
-                  </div>
+                  <CardTitle className="text-white">All Volunteer Reports</CardTitle>
+                  <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+                    {volunteerUpdates.length} Reports
+                  </Badge>
                 </CardHeader>
                 <CardContent>
                   {isLoadingVolunteerUpdates ? (
@@ -1358,7 +1460,7 @@ export default function AdminDashboard() {
                               <p className="text-slate-400">No volunteers added yet</p>
                             </div>
                           ) : (
-                            volunteers.map((volunteer) => (
+                            volunteers.map((volunteer: any) => (
                               <div
                                 key={volunteer.id}
                                 className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-800"
@@ -1377,13 +1479,30 @@ export default function AdminDashboard() {
                                       )}
                                     </div>
                                     <p className="text-xs text-slate-400 truncate">{volunteer.email}</p>
-                                    <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                                       <MapPin className="w-3 h-3" />
-                                      {volunteer.barangay}
+                                      <span>{volunteer.barangay || "No primary location"}</span>
+                                      {volunteer.areas && volunteer.areas.length > 1 && (
+                                        <Badge
+                                          variant="secondary"
+                                          className="bg-blue-500/10 text-blue-400 text-[10px] px-1"
+                                        >
+                                          +{volunteer.areas.length - 1} more
+                                        </Badge>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openManageLocationsDialog(volunteer)}
+                                    className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                                    title="Manage locations"
+                                  >
+                                    <MapPin className="w-4 h-4" />
+                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -1506,6 +1625,86 @@ export default function AdminDashboard() {
                             disabled={isAddingVolunteer}
                           >
                             {isAddingVolunteer ? "Adding..." : "Add Volunteer"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isManageLocationsDialogOpen} onOpenChange={setIsManageLocationsDialogOpen}>
+                      <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Manage Volunteer Locations</DialogTitle>
+                          <DialogDescription className="text-slate-400">
+                            Assign {selectedVolunteerForLocations?.full_name} to multiple barangays. One must be marked
+                            as primary.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+                          {locationSelections.map((location, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700"
+                            >
+                              <div className="flex-1">
+                                <Select
+                                  value={location.barangay}
+                                  onValueChange={(value) => handleLocationChange(index, value)}
+                                >
+                                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                                    <SelectValue placeholder="Select barangay" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-slate-800 border-slate-700">
+                                    {getOlongapoBarangays().map((barangay) => (
+                                      <SelectItem key={barangay} value={barangay} className="text-white">
+                                        {barangay}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name="primary-location"
+                                    checked={location.is_primary}
+                                    onChange={() => handlePrimaryChange(index)}
+                                    className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600"
+                                  />
+                                  <span className="text-sm text-slate-300">Primary</span>
+                                </label>
+                                {locationSelections.length > 1 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveLocation(index)}
+                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            onClick={handleAddLocation}
+                            className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                          >
+                            <MapPin className="w-4 h-4 mr-2" />
+                            Add Another Location
+                          </Button>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsManageLocationsDialogOpen(false)}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                          >
+                            Cancel
+                          </Button>
+                          <Button onClick={handleSaveLocations} className="bg-blue-600 hover:bg-blue-700">
+                            Save Locations
                           </Button>
                         </DialogFooter>
                       </DialogContent>
