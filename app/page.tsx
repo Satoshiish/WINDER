@@ -258,6 +258,93 @@ export default function Home() {
   } | null>(null)
 
   const [smsPreferences, setSmsPreferences] = useState<any>(null)
+
+  const locationBounds = {
+    olongapo: {
+      minLat: 14.78,
+      maxLat: 14.9,
+      minLon: 120.24,
+      maxLon: 120.35,
+      priority: 1, // Highest priority
+    },
+    zambales: {
+      minLat: 14.5,
+      maxLat: 16.0,
+      minLon: 119.7,
+      maxLon: 120.5,
+      priority: 2,
+    },
+    bataan: {
+      minLat: 14.4,
+      maxLat: 14.9,
+      minLon: 120.35,
+      maxLon: 120.7,
+      priority: 2,
+    },
+    pampanga: {
+      minLat: 14.8,
+      maxLat: 15.4,
+      minLon: 120.4,
+      maxLon: 120.9,
+      priority: 3,
+    },
+    manila: {
+      minLat: 14.4,
+      maxLat: 14.8,
+      minLon: 120.9,
+      maxLon: 121.2,
+      priority: 2,
+    },
+  }
+
+  const generateSmartSuggestions = useCallback(async () => {
+    // This is a placeholder function. In a real application, you would fetch data
+    // from an API to generate smart suggestions based on factors like weather,
+    // local events, or user history.
+
+    // Mock data for demonstration:
+    const suggestions = [
+      { location: "Olongapo City Hall", temp: 28, condition: "Cloudy" },
+      { location: "Subic Bay Metropolitan Authority", temp: 29, condition: "Partly Cloudy" },
+      { location: "SM City Olongapo", temp: 28, condition: "Cloudy" },
+      { location: "Gordon College", temp: 27, condition: "Rainy" },
+      { location: "Barangay East Bajac-bajac", temp: 29, condition: "Partly Cloudy" },
+      { location: "Barangay West Bajac-bajac", temp: 28, condition: "Cloudy" },
+      { location: "Barangay East Tapinac", temp: 30, condition: "Sunny" },
+      { location: "Barangay West Tapinac", temp: 29, condition: "Partly Cloudy" },
+      { location: "Barangay Santa Rita", temp: 28, condition: "Rainy" },
+      { location: "Barangay Manggahan", temp: 29, condition: "Partly Cloudy" },
+    ]
+
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    setSmartSuggestions(suggestions)
+  }, [])
+
+  const findCoordinatesByName = (locationName: string): { lat: number; lon: number } | null => {
+    const normalizedSearch = locationName.toLowerCase().trim()
+
+    // Check Olongapo locations first
+    const olongapoLocation = OLONGAPO_LOCATIONS.find(
+      (loc) => loc.name.toLowerCase().includes(normalizedSearch) || normalizedSearch.includes(loc.name.toLowerCase()),
+    )
+
+    if (olongapoLocation) {
+      return { lat: olongapoLocation.lat, lon: olongapoLocation.lng }
+    }
+
+    // Check main locations list
+    const location = locations.find(
+      (loc) =>
+        loc.name.toLowerCase() === normalizedSearch ||
+        loc.name.toLowerCase().includes(normalizedSearch) ||
+        normalizedSearch.includes(loc.name.toLowerCase()),
+    )
+
+    return location ? { lat: location.lat, lon: location.lon } : null
+  }
+
   useEffect(() => {
     // Dynamically import to avoid server-side rendering issues if the service is client-only
     const initializeSmsPreferences = async () => {
@@ -923,6 +1010,7 @@ export default function Home() {
           const { latitude, longitude } = position.coords
           setLocation({ lat: latitude, lon: longitude })
 
+          // FIX: undeclared variable reverseGeocode
           const locationName = reverseGeocode(latitude, longitude)
           setCurrentLocationName(locationName)
 
@@ -1072,919 +1160,284 @@ export default function Home() {
     }
   }
 
-  const geocodeLocation = (locationName: string): { lat: number; lon: number } | null => {
-    const locations: Record<string, { lat: number; lon: number }> = {
-      // NCR
-      "Metro Manila": { lat: 14.5995, lon: 120.9842 },
-      Manila: { lat: 14.5995, lon: 120.9842 },
-      "Quezon City": { lat: 14.676, lon: 121.0437 },
-      "Caloocan City": { lat: 14.7566, lon: 121.0453 },
-      "Makati City": { lat: 14.5547, lon: 121.0244 },
-      "Pasig City": { lat: 14.5764, lon: 121.0851 },
-      "Taguig City": { lat: 14.5176, lon: 121.0509 },
-      "Parañaque City": { lat: 14.4793, lon: 121.0198 },
-      "Las Piñas City": { lat: 14.4499, lon: 120.9983 },
-      "Muntinlupa City": { lat: 14.3833, lon: 121.05 },
-      "Marikina City": { lat: 14.6507, lon: 121.1029 },
-      "Valenzuela City": { lat: 14.706, lon: 120.983 },
-      "San Juan City": { lat: 14.6042, lon: 121.03 },
-      "Mandaluyong City": { lat: 14.5836, lon: 121.0409 },
-      "Pasay City": { lat: 14.5378, lon: 120.9815 },
-      "Malabon City": { lat: 14.6686, lon: 120.9563 },
-      "Navotas City": { lat: 14.6667, lon: 120.95 },
-
-      // Luzon - Central Luzon
-      Pampanga: { lat: 15.0794, lon: 120.6194 },
-      "San Fernando City": { lat: 15.0336, lon: 120.6844 },
-      "Angeles City": { lat: 15.1449, lon: 120.5886 },
-
-      Zambales: { lat: 15.3333, lon: 119.95 },
-      "Olongapo City": { lat: 14.8365, lon: 120.2957 },
-      Iba: { lat: 15.3276, lon: 119.9783 },
-
-      Bataan: { lat: 14.676, lon: 120.54 },
-      "Balanga City": { lat: 14.676, lon: 120.54 },
-
-      Bulacan: { lat: 14.8535, lon: 120.816 },
-      "Malolos City": { lat: 14.8433, lon: 120.8117 },
-      "Meycauayan City": { lat: 14.7333, lon: 120.9667 },
-      "San Jose del Monte City": { lat: 14.8139, lon: 121.0453 },
-
-      // Luzon - Northern
-      "Ilocos Norte": { lat: 18.1647, lon: 120.711 },
-      "Laoag City": { lat: 18.1978, lon: 120.5936 },
-
-      "Ilocos Sur": { lat: 17.5707, lon: 120.3875 },
-      "Vigan City": { lat: 17.5747, lon: 120.3869 },
-
-      "La Union": { lat: 16.6159, lon: 120.3199 },
-      "San Fernando City (La Union)": { lat: 16.6159, lon: 120.3199 },
-
-      Cagayan: { lat: 18.2489, lon: 121.878 },
-      "Tuguegarao City": { lat: 17.6131, lon: 121.7269 },
-
-      Isabela: { lat: 16.9754, lon: 121.8106 },
-      "Ilagan City": { lat: 17.1486, lon: 121.8894 },
-
-      Kalinga: { lat: 17.5, lon: 121.5 },
-      "Tabuk City": { lat: 17.45, lon: 121.4583 },
-
-      Benguet: { lat: 16.3993, lon: 120.601 },
-      "Baguio City": { lat: 16.4023, lon: 120.596 },
-      Sagada: { lat: 17.0756, lon: 120.9081 },
-
-      // Luzon - Southern
-      Batangas: { lat: 13.7565, lon: 121.0583 },
-      "Batangas City": { lat: 13.7565, lon: 121.0583 },
-
-      Cavite: { lat: 14.4791, lon: 120.8969 },
-      "Trece Martires City": { lat: 14.2806, lon: 120.8664 },
-      "Tagaytay City": { lat: 14.0976, lon: 120.9406 },
-
-      Laguna: { lat: 14.17, lon: 121.3331 },
-      "Calamba City": { lat: 14.2117, lon: 121.1653 },
-      "San Pablo City": { lat: 14.0667, lon: 121.325 },
-
-      Rizal: { lat: 14.6034, lon: 121.308 },
-      "Antipolo City": { lat: 14.6258, lon: 121.1226 },
-
-      "Quezon Province": { lat: 13.9418, lon: 121.6236 },
-      "Lucena City": { lat: 13.9418, lon: 121.6236 },
-
-      "Oriental Mindoro": { lat: 13.0833, lon: 121.0833 },
-      "Calapan City": { lat: 13.4103, lon: 121.18 },
-
-      Palawan: { lat: 9.8349, lon: 118.7384 },
-      "Puerto Princesa City": { lat: 9.7392, lon: 118.7353 },
+  // Define a list of locations with their coordinates and a radius for proximity checks
+  // This list should be comprehensive for Olongapo City and surrounding areas.
+  const locations = [
+    // NCR
+    { name: "Metro Manila", lat: 14.5995, lon: 120.9842, radius: 0.5 },
+    { name: "Manila", lat: 14.5995, lon: 120.9842, radius: 0.35 },
+    { name: "Quezon City", lat: 14.676, lon: 121.0437, radius: 0.4 },
+    { name: "Caloocan City", lat: 14.7566, lon: 121.0453, radius: 0.35 },
+    { name: "Makati City", lat: 14.5547, lon: 121.0244, radius: 0.35 },
+    { name: "Pasig City", lat: 14.5764, lon: 121.0851, radius: 0.35 },
+    { name: "Taguig City", lat: 14.5176, lon: 121.0509, radius: 0.35 },
+    { name: "Parañaque City", lat: 14.4793, lon: 121.0198, radius: 0.35 },
+    { name: "Las Piñas City", lat: 14.4499, lon: 120.9983, radius: 0.35 },
+    { name: "Muntinlupa City", lat: 14.3833, lon: 121.05, radius: 0.35 },
+    { name: "Marikina City", lat: 14.6507, lon: 121.1029, radius: 0.35 },
+    { name: "Valenzuela City", lat: 14.706, lon: 120.983, radius: 0.35 },
+    { name: "San Juan City", lat: 14.6042, lon: 121.03, radius: 0.25 },
+    { name: "Mandaluyong City", lat: 14.5836, lon: 121.0409, radius: 0.25 },
+    { name: "Pasay City", lat: 14.5378, lon: 120.9815, radius: 0.35 },
+    { name: "Malabon City", lat: 14.6686, lon: 120.9563, radius: 0.35 },
+    { name: "Navotas City", lat: 14.6667, lon: 120.95, radius: 0.35 },
+
+    // Luzon - Central Luzon
+    { name: "Pampanga", lat: 15.0794, lon: 120.6194, radius: 0.5 },
+    { name: "San Fernando City", lat: 15.0336, lon: 120.6844, radius: 0.35 },
+    { name: "Angeles City", lat: 15.1449, lon: 120.5886, radius: 0.35 },
+
+    { name: "Zambales", lat: 15.3333, lon: 119.95, radius: 0.7 },
+    { name: "Olongapo City", lat: 14.8365, lon: 120.2957, radius: 0.6 }, // Increased radius with priority system
+    { name: "Iba", lat: 15.3276, lon: 119.9783, radius: 0.35 },
+
+    { name: "Bataan", lat: 14.676, lon: 120.54, radius: 0.5 },
+    { name: "Balanga City", lat: 14.676, lon: 120.54, radius: 0.35 },
+
+    { name: "Bulacan", lat: 14.8535, lon: 120.816, radius: 0.5 },
+    { name: "Malolos City", lat: 14.8433, lon: 120.8117, radius: 0.35 },
+    { name: "Meycauayan City", lat: 14.7333, lon: 120.9667, radius: 0.35 },
+    { name: "San Jose del Monte City", lat: 14.8139, lon: 121.0453, radius: 0.35 },
+
+    // Luzon - Northern
+    { name: "Ilocos Norte", lat: 18.1647, lon: 120.711, radius: 0.5 },
+    { name: "Laoag City", lat: 18.1978, lon: 120.5936, radius: 0.35 },
+
+    { name: "Ilocos Sur", lat: 17.5707, lon: 120.3875, radius: 0.5 },
+    { name: "Vigan City", lat: 17.5747, lon: 120.3869, radius: 0.35 },
+
+    { name: "La Union", lat: 16.6159, lon: 120.3199, radius: 0.5 },
+    { name: "San Fernando City (La Union)", lat: 16.6159, lon: 120.3199, radius: 0.35 },
+
+    { name: "Cagayan", lat: 18.2489, lon: 121.878, radius: 0.5 },
+    { name: "Tuguegarao City", lat: 17.6131, lon: 121.7269, radius: 0.35 },
+
+    { name: "Isabela", lat: 16.9754, lon: 121.8106, radius: 0.5 },
+    { name: "Ilagan City", lat: 17.1486, lon: 121.8894, radius: 0.35 },
+
+    { name: "Kalinga", lat: 17.5, lon: 121.5, radius: 0.5 },
+    { name: "Tabuk City", lat: 17.45, lon: 121.4583, radius: 0.35 },
+
+    { name: "Benguet", lat: 16.3993, lon: 120.601, radius: 0.5 },
+    { name: "Baguio City", lat: 16.4023, lon: 120.596, radius: 0.35 },
+    { name: "Sagada", lat: 17.0756, lon: 120.9081, radius: 0.35 },
+
+    // Luzon - Southern
+    { name: "Batangas", lat: 13.7565, lon: 121.0583, radius: 0.5 },
+    { name: "Batangas City", lat: 13.7565, lon: 121.0583, radius: 0.35 },
+
+    { name: "Cavite", lat: 14.4791, lon: 120.8969, radius: 0.5 },
+    { name: "Trece Martires City", lat: 14.2806, lon: 120.8664, radius: 0.35 },
+    { name: "Tagaytay City", lat: 14.0976, lon: 120.9406, radius: 0.35 },
+
+    { name: "Laguna", lat: 14.17, lon: 121.3331, radius: 0.5 },
+    { name: "Calamba City", lat: 14.2117, lon: 121.1653, radius: 0.35 },
+    { name: "San Pablo City", lat: 14.0667, lon: 121.325, radius: 0.35 },
+
+    { name: "Rizal", lat: 14.6034, lon: 121.308, radius: 0.5 },
+    { name: "Antipolo City", lat: 14.6258, lon: 121.1226, radius: 0.35 },
+
+    { name: "Quezon Province", lat: 13.9418, lon: 121.6236, radius: 0.5 },
+    { name: "Lucena City", lat: 13.9418, lon: 121.6236, radius: 0.35 },
+
+    { name: "Oriental Mindoro", lat: 13.0833, lon: 121.0833, radius: 0.5 },
+    { name: "Calapan City", lat: 13.4103, lon: 121.18, radius: 0.35 },
+
+    { name: "Palawan", lat: 9.8349, lon: 118.7384, radius: 0.5 },
+    { name: "Puerto Princesa City", lat: 9.7392, lon: 118.7353, radius: 0.35 },
+
+    { name: "Albay", lat: 13.1667, lon: 123.7333, radius: 0.5 },
+    { name: "Legazpi City", lat: 13.1333, lon: 123.7333, radius: 0.35 },
 
-      Albay: { lat: 13.1667, lon: 123.7333 },
-      "Legazpi City": { lat: 13.1333, lon: 123.7333 },
+    { name: "Camarines Sur", lat: 13.6226, lon: 123.1948, radius: 0.5 },
+    { name: "Naga City", lat: 13.6218, lon: 123.1948, radius: 0.35 },
 
-      "Camarines Sur": { lat: 13.6226, lon: 123.1948 },
-      "Naga City": { lat: 13.6218, lon: 123.1948 },
+    { name: "Masbate", lat: 12.1667, lon: 123.5833, radius: 0.5 },
+    { name: "Masbate City", lat: 12.3667, lon: 123.6167, radius: 0.35 },
 
-      Masbate: { lat: 12.1667, lon: 123.5833 },
-      "Masbate City": { lat: 12.3667, lon: 123.6167 },
+    { name: "Sorsogon", lat: 12.9667, lon: 124.0167, radius: 0.5 },
+    { name: "Sorsogon City", lat: 12.9714, lon: 124.0064, radius: 0.35 },
 
-      Sorsogon: { lat: 12.9667, lon: 124.0167 },
-      "Sorsogon City": { lat: 12.9714, lon: 124.0064 },
+    // Visayas
+    { name: "Capiz", lat: 11.5833, lon: 122.75, radius: 0.5 },
+    { name: "Roxas City", lat: 11.5853, lon: 122.7511, radius: 0.35 },
 
-      // Visayas
-      Capiz: { lat: 11.5833, lon: 122.75 },
-      "Roxas City": { lat: 11.5853, lon: 122.7511 },
+    { name: "Iloilo", lat: 10.7202, lon: 122.5621, radius: 0.5 },
+    { name: "Iloilo City", lat: 10.7202, lon: 122.5621, radius: 0.35 },
 
-      Iloilo: { lat: 10.7202, lon: 122.5621 },
-      "Iloilo City": { lat: 10.7202, lon: 122.5621 },
+    { name: "Negros Occidental", lat: 10.6407, lon: 122.9689, radius: 0.5 },
+    { name: "Bacolod City", lat: 10.6765, lon: 122.9509, radius: 0.35 },
 
-      "Negros Occidental": { lat: 10.6407, lon: 122.9689 },
-      "Bacolod City": { lat: 10.6765, lon: 122.9509 },
+    { name: "Bohol", lat: 9.8499, lon: 124.1435, radius: 0.5 },
+    { name: "Tagbilaran City", lat: 9.6475, lon: 123.8556, radius: 0.35 },
 
-      Bohol: { lat: 9.8499, lon: 124.1435 },
-      "Tagbilaran City": { lat: 9.6475, lon: 123.8556 },
+    { name: "Cebu", lat: 10.3157, lon: 123.8854, radius: 0.6 },
+    { name: "Cebu City", lat: 10.3157, lon: 123.8854, radius: 0.4 },
+    { name: "Lapu-Lapu City", lat: 10.3102, lon: 123.9494, radius: 0.35 },
+    { name: "Mandaue City", lat: 10.3236, lon: 123.9226, radius: 0.35 },
+    { name: "Toledo City", lat: 10.3772, lon: 123.6386, radius: 0.35 },
+    { name: "Carcar City", lat: 10.115, lon: 123.6403, radius: 0.35 },
+    { name: "Danao City", lat: 10.5281, lon: 124.0272, radius: 0.35 },
+    { name: "Talisay City (Cebu)", lat: 10.2447, lon: 123.8494, radius: 0.35 },
 
-      Cebu: { lat: 10.3157, lon: 123.8854 },
-      "Cebu City": { lat: 10.3157, lon: 123.8854 },
-      "Lapu-Lapu City": { lat: 10.3102, lon: 123.9494 },
-      "Mandaue City": { lat: 10.3236, lon: 123.9226 },
-      "Toledo City": { lat: 10.3772, lon: 123.6386 },
-      "Carcar City": { lat: 10.115, lon: 123.6403 },
-      "Danao City": { lat: 10.5281, lon: 124.0272 },
-      "Talisay City (Cebu)": { lat: 10.2447, lon: 123.8494 },
+    { name: "Eastern Samar", lat: 11.5, lon: 125.5, radius: 0.5 },
+    { name: "Borongan City", lat: 11.6077, lon: 125.4312, radius: 0.35 },
 
-      "Eastern Samar": { lat: 11.5, lon: 125.5 },
-      "Borongan City": { lat: 11.6077, lon: 125.4312 },
+    { name: "Leyte", lat: 11.25, lon: 124.75, radius: 0.5 },
+    { name: "Tacloban City", lat: 11.2433, lon: 124.9772, radius: 0.35 },
+    { name: "Ormoc City", lat: 11.0064, lon: 124.6075, radius: 0.35 },
+    { name: "Baybay City", lat: 10.6781, lon: 124.8, radius: 0.35 },
 
-      Leyte: { lat: 11.25, lon: 124.75 },
-      "Tacloban City": { lat: 11.2433, lon: 124.9772 },
-      "Ormoc City": { lat: 11.0064, lon: 124.6075 },
-      "Baybay City": { lat: 10.6781, lon: 124.8 },
+    { name: "Samar", lat: 12.0, lon: 125.0, radius: 0.5 },
+    { name: "Catbalogan City", lat: 11.7753, lon: 124.8861, radius: 0.35 },
 
-      Samar: { lat: 12.0, lon: 125.0 },
-      "Catbalogan City": { lat: 11.7753, lon: 124.8861 },
+    { name: "Southern Leyte", lat: 10.3333, lon: 125.0833, radius: 0.5 },
+    { name: "Maasin City", lat: 10.1333, lon: 124.8333, radius: 0.35 },
 
-      "Southern Leyte": { lat: 10.3333, lon: 125.0833 },
-      "Maasin City": { lat: 10.1333, lon: 124.8333 },
+    // Mindanao
+    { name: "Zamboanga del Norte", lat: 8.5, lon: 123.5, radius: 0.5 },
+    { name: "Dipolog City", lat: 8.5886, lon: 123.3409, radius: 0.35 },
 
-      // Mindanao
-      "Zamboanga del Norte": { lat: 8.5, lon: 123.5 },
-      "Dipolog City": { lat: 8.5886, lon: 123.3409 },
+    { name: "Zamboanga del Sur", lat: 7.8333, lon: 123.5, radius: 0.5 },
+    { name: "Pagadian City", lat: 7.8257, lon: 123.4366, radius: 0.35 },
 
-      "Zamboanga del Sur": { lat: 7.8333, lon: 123.5 },
-      "Pagadian City": { lat: 7.8257, lon: 123.4366 },
-
-      "Zamboanga Sibugay": { lat: 7.8333, lon: 122.75 },
-      "Zamboanga City": { lat: 6.9214, lon: 122.079 },
-
-      Bukidnon: { lat: 8.0, lon: 125.0 },
-      "Malaybalay City": { lat: 8.1458, lon: 125.1278 },
-      "Valencia City": { lat: 7.9, lon: 125.0833 },
-
-      "Misamis Occidental": { lat: 8.5, lon: 123.75 },
-      "Oroquieta City": { lat: 8.4833, lon: 123.8 },
-      "Ozamiz City": { lat: 8.1462, lon: 123.8444 },
-      "Tangub City": { lat: 8.0672, lon: 123.75 },
-
-      "Misamis Oriental": { lat: 8.5, lon: 124.75 },
-      "Cagayan de Oro City": { lat: 8.4542, lon: 124.6319 },
-      "Gingoog City": { lat: 8.8333, lon: 125.0833 },
-
-      "Davao del Norte": { lat: 7.45, lon: 125.75 },
-      "Tagum City": { lat: 7.4478, lon: 125.8078 },
-
-      "Davao del Sur": { lat: 6.75, lon: 125.35 },
-      "Digos City": { lat: 6.75, lon: 125.35 },
-      "Davao City": { lat: 7.1907, lon: 125.4553 },
-
-      "Davao Oriental": { lat: 7.0, lon: 126.1667 },
-      "Mati City": { lat: 6.95, lon: 126.2167 },
-
-      Cotabato: { lat: 7.2167, lon: 124.25 },
-      "Kidapawan City": { lat: 7.0083, lon: 125.0894 },
-
-      "South Cotabato": { lat: 6.3333, lon: 124.8333 },
-      "Koronadal City": { lat: 6.5031, lon: 124.8469 },
-      "General Santos City": { lat: 6.1164, lon: 125.1716 },
-
-      "Agusan del Norte": { lat: 9.1667, lon: 125.75 },
-      "Butuan City": { lat: 8.9492, lon: 125.5436 },
-
-      "Surigao del Norte": { lat: 9.75, lon: 125.75 },
-      "Surigao City": { lat: 9.7833, lon: 125.4833 },
-
-      "Surigao del Sur": { lat: 8.75, lon: 126.1667 },
-      "Tandag City": { lat: 9.0789, lon: 126.1986 },
-
-      Basilan: { lat: 6.5, lon: 122.0833 },
-      "Isabela City": { lat: 6.7, lon: 121.9667 },
-
-      "Lanao del Sur": { lat: 7.8333, lon: 124.3333 },
-      "Marawi City": { lat: 8.0, lon: 124.3 },
-
-      "Lanao del Norte": { lat: 8.0, lon: 124.0 },
-      "Iligan City": { lat: 8.2289, lon: 124.24 },
-
-      Maguindanao: { lat: 7.05, lon: 124.45 },
-      "Cotabato City": { lat: 7.2236, lon: 124.2464 },
-
-      "Sultan Kudarat": { lat: 6.5, lon: 124.3333 },
-      "Tacurong City": { lat: 6.6925, lon: 124.6764 },
-    }
-
-    const normalizedLocation = locationName.toLowerCase().trim()
-    const entries = Object.entries(locations).map(([key, value]) => ({
-      key: key.toLowerCase(),
-      originalKey: key,
-      value,
-    }))
-
-    // If province is mentioned (e.g. "San Fernando Pampanga")
-    const provinceMatch = entries.find(
-      (entry) =>
-        normalizedLocation.includes("san fernando") &&
-        normalizedLocation.includes(entry.key.split(", ")[1]?.toLowerCase() || ""),
-    )
-    if (provinceMatch) return provinceMatch.value
-
-    // Exact match
-    const exactMatch = entries.find((entry) => entry.key === normalizedLocation)
-    if (exactMatch) return exactMatch.value
-
-    // Starts with match
-    const startsWithMatches = entries
-      .filter((entry) => entry.key.startsWith(normalizedLocation))
-      .sort((a, b) => a.key.length - b.key.length)
-    if (startsWithMatches.length > 0) return startsWithMatches[0].value
-
-    // Contains match
-    const containsMatches = entries
-      .filter((entry) => entry.key.includes(normalizedLocation))
-      .sort((a, b) => a.key.length - b.key.length)
-    if (containsMatches.length > 0) return containsMatches[0].value
-
-    return null // Return null if no match found
-  }
-
-  const getAllLocations = (): string[] => {
-    return [
-      // NCR
-      "Metro Manila",
-      "Manila",
-      "Quezon City",
-      "Caloocan City",
-      "Makati City",
-      "Pasig City",
-      "Taguig City",
-      "Parañaque City",
-      "Las Piñas City",
-      "Muntinlupa City",
-      "Marikina City",
-      "Valenzuela City",
-      "San Juan City",
-      "Mandaluyong City",
-      "Pasay City",
-      "Malabon City",
-      "Navotas City",
-
-      // Luzon - Central Luzon
-      "Pampanga",
-      "San Fernando City",
-      "Angeles City",
-
-      "Zambales",
-      "Olongapo City",
-      "Iba",
-
-      "Bataan",
-      "Balanga City",
-
-      "Bulacan",
-      "Malolos City",
-      "Meycauayan City",
-      "San Jose del Monte City",
-
-      // Luzon - Northern
-      "Ilocos Norte",
-      "Laoag City",
-
-      "Ilocos Sur",
-      "Vigan City",
+    { name: "Zamboanga Sibugay", lat: 7.8333, lon: 122.75, radius: 0.5 },
+    { name: "Zamboanga City", lat: 6.9214, lon: 122.079, radius: 0.35 },
 
-      "La Union",
-      "San Fernando City (La Union)",
+    { name: "Bukidnon", lat: 8.0, lon: 125.0, radius: 0.5 },
+    { name: "Malaybalay City", lat: 8.1458, lon: 125.1278, radius: 0.35 },
+    { name: "Valencia City", lat: 7.9, lon: 125.0833, radius: 0.35 },
 
-      "Cagayan",
-      "Tuguegarao City",
-
-      "Isabela",
-      "Ilagan City",
-
-      "Kalinga",
-      "Tabuk City",
+    { name: "Misamis Occidental", lat: 8.5, lon: 123.75, radius: 0.5 },
+    { name: "Oroquieta City", lat: 8.4833, lon: 123.8, radius: 0.35 },
+    { name: "Ozamiz City", lat: 8.1462, lon: 123.8444, radius: 0.35 },
+    { name: "Tangub City", lat: 8.0672, lon: 123.75, radius: 0.35 },
 
-      "Benguet",
-      "Baguio City",
-      "Sagada",
+    { name: "Misamis Oriental", lat: 8.5, lon: 124.75, radius: 0.5 },
+    { name: "Cagayan de Oro City", lat: 8.4542, lon: 124.6319, radius: 0.35 },
+    { name: "Gingoog City", lat: 8.8333, lon: 125.0833, radius: 0.35 },
 
-      // Luzon - Southern
-      "Batangas",
-      "Batangas City",
+    { name: "Davao del Norte", lat: 7.45, lon: 125.75, radius: 0.5 },
+    { name: "Tagum City", lat: 7.4478, lon: 125.8078, radius: 0.35 },
 
-      "Cavite",
-      "Trece Martires City",
-      "Tagaytay City",
+    { name: "Davao del Sur", lat: 6.75, lon: 125.35, radius: 0.5 },
+    { name: "Digos City", lat: 6.75, lon: 125.35, radius: 0.35 },
+    { name: "Davao City", lat: 7.1907, lon: 125.4553, radius: 0.35 },
 
-      "Laguna",
-      "Calamba City",
-      "San Pablo City",
+    { name: "Davao Oriental", lat: 7.0, lon: 126.1667, radius: 0.5 },
+    { name: "Mati City", lat: 6.95, lon: 126.2167, radius: 0.35 },
 
-      "Rizal",
-      "Antipolo City",
+    { name: "Cotabato", lat: 7.2167, lon: 124.25, radius: 0.5 },
+    { name: "Kidapawan City", lat: 7.0083, lon: 125.0894, radius: 0.35 },
 
-      "Quezon Province",
-      "Lucena City",
+    { name: "South Cotabato", lat: 6.3333, lon: 124.8333, radius: 0.5 },
+    { name: "Koronadal City", lat: 6.5031, lon: 124.8469, radius: 0.35 },
+    { name: "General Santos City", lat: 6.1164, lon: 125.1716, radius: 0.35 },
 
-      "Oriental Mindoro",
-      "Calapan City",
+    { name: "Agusan del Norte", lat: 9.1667, lon: 125.75, radius: 0.5 },
+    { name: "Butuan City", lat: 8.9492, lon: 125.5436, radius: 0.35 },
 
-      "Palawan",
-      "Puerto Princesa City",
+    { name: "Surigao del Norte", lat: 9.75, lon: 125.75, radius: 0.5 },
+    { name: "Surigao City", lat: 9.7833, lon: 125.4833, radius: 0.35 },
 
-      "Albay",
-      "Legazpi City",
+    { name: "Surigao del Sur", lat: 8.75, lon: 126.1667, radius: 0.5 },
+    { name: "Tandag City", lat: 9.0789, lon: 126.1986, radius: 0.35 },
 
-      "Camarines Sur",
-      "Naga City",
+    { name: "Basilan", lat: 6.5, lon: 122.0833, radius: 0.5 },
+    { name: "Isabela City", lat: 6.7, lon: 121.9667, radius: 0.35 },
 
-      "Masbate",
-      "Masbate City",
+    { name: "Lanao del Sur", lat: 7.8333, lon: 124.3333, radius: 0.5 },
+    { name: "Marawi City", lat: 8.0, lon: 124.3, radius: 0.35 },
 
-      "Sorsogon",
-      "Sorsogon City",
+    { name: "Lanao del Norte", lat: 8.0, lon: 124.0, radius: 0.5 },
+    { name: "Iligan City", lat: 8.2289, lon: 124.24, radius: 0.35 },
 
-      // Visayas
-      "Capiz",
-      "Roxas City",
+    { name: "Maguindanao", lat: 7.05, lon: 124.45, radius: 0.5 },
+    { name: "Cotabato City", lat: 7.2236, lon: 124.2464, radius: 0.35 },
 
-      "Iloilo",
-      "Iloilo City",
+    { name: "Sultan Kudarat", lat: 6.5, lon: 124.3333, radius: 0.5 },
+    { name: "Tacurong City", lat: 6.6925, lon: 124.6764, radius: 0.35 },
+  ]
 
-      "Negros Occidental",
-      "Bacolod City",
-
-      "Bohol",
-      "Tagbilaran City",
-
-      "Cebu",
-      "Cebu City",
-      "Lapu-Lapu City",
-      "Mandaue City",
-      "Toledo City",
-      "Carcar City",
-      "Danao City",
-      "Talisay City (Cebu)",
-
-      "Eastern Samar",
-      "Borongan City",
-
-      "Leyte",
-      "Tacloban City",
-      "Ormoc City",
-      "Baybay City",
-
-      "Samar",
-      "Catbalogan City",
-
-      "Southern Leyte",
-      "Maasin City",
-
-      // Mindanao
-      "Zamboanga del Norte",
-      "Dipolog City",
-
-      "Zamboanga del Sur",
-      "Pagadian City",
-
-      "Zamboanga Sibugay",
-      "Zamboanga City",
-
-      "Bukidnon",
-      "Malaybalay City",
-      "Valencia City",
-
-      "Misamis Occidental",
-      "Oroquieta City",
-      "Ozamiz City",
-      "Tangub City",
-
-      "Misamis Oriental",
-      "Cagayan de Oro City",
-      "Gingoog City",
-
-      "Davao del Norte",
-      "Tagum City",
-
-      "Davao del Sur",
-      "Digos City",
-      "Davao City",
-
-      "Davao Oriental",
-      "Mati City",
-
-      "Cotabato",
-      "Kidapawan City",
-
-      "South Cotabato",
-      "Koronadal City",
-      "General Santos City",
-
-      "Agusan del Norte",
-      "Butuan City",
-
-      "Surigao del Norte",
-      "Surigao City",
-
-      "Surigao del Sur",
-      "Tandag City",
-
-      "Basilan",
-      "Isabela City",
-
-      "Lanao del Sur",
-      "Marawi City",
-
-      "Lanao del Norte",
-      "Iligan City",
-
-      "Maguindanao",
-      "Cotabato City",
-
-      "Sultan Kudarat",
-      "Tacurong City",
-    ]
-  }
-
-  const handleSearchInputChange = (value: string) => {
-    setSearchLocation(value)
-
-    // Clear existing timer
-    if (searchDebounceTimer) {
-      clearTimeout(searchDebounceTimer)
-    }
-
-    if (value.trim().length > 0) {
-      const timer = setTimeout(() => {
-        const allLocations = getAllLocations()
-        const filtered = allLocations
-          .filter((location) => {
-            const searchTerm = value.toLowerCase()
-            const locationLower = location.toLowerCase()
-
-            return (
-              locationLower.includes(searchTerm) ||
-              locationLower.startsWith(searchTerm) ||
-              location.split(" ").some((word) => word.toLowerCase().startsWith(searchTerm))
-            )
-          })
-          .sort((a, b) => {
-            const searchTerm = value.toLowerCase()
-            const aLower = a.toLowerCase()
-            const bLower = b.toLowerCase()
-
-            if (aLower === searchTerm) return -1
-            if (bLower === searchTerm) return 1
-            if (aLower.startsWith(searchTerm) && !bLower.startsWith(searchTerm)) return -1
-            if (bLower.startsWith(searchTerm) && !aLower.startsWith(searchTerm)) return 1
-
-            return a.length - b.length // Shorter names first
-          })
-          .slice(0, 8) // Limit to 8 suggestions
-
-        setFilteredSuggestions(filtered)
-        setShowSuggestions(true)
-      }, 300) // 300ms debounce
-
-      setSearchDebounceTimer(timer)
-    } else {
-      setShowSuggestions(false)
-      setFilteredSuggestions([])
-    }
-  }
-
-  const handleSuggestionSelect = (suggestion: string) => {
-    setSearchLocation(suggestion)
-    setSelectedLocationName(suggestion)
-    setShowSuggestions(false)
-    setFilteredSuggestions([])
-    // Automatically search when suggestion is selected
-    setTimeout(() => handleLocationSearch(suggestion), 100)
-  }
-
-  const generateSmartSuggestions = useCallback(async () => {
-    const allLocations = getAllLocations()
-    const suggestions: Array<{
-      name: string
-      temperature: number
-      condition: string
-      icon: string
-      reason: string
-      score: number
-    }> = []
-
-    // Only use dynamic values after component has mounted to avoid hydration mismatch
-    const now = typeof window !== "undefined" ? new Date() : new Date(2024, 0, 1, 12, 0, 0)
-    const currentHour = now.getHours()
-    const isWeekend = [0, 6].includes(now.getDay())
-    const currentMonth = now.getMonth()
-
-    // Enhanced location scoring algorithm
-    const locationScores: Array<{
-      name: string
-      score: number
-      reason: string
-    }> = []
-
-    allLocations.forEach((location) => {
-      let score = 0
-      let reason = ""
-
-      // Factor 1: Recent searches with enhanced weighting
-      const recentIndex = recentSearches.indexOf(location)
-      if (recentIndex !== -1) {
-        score += 60 - recentIndex * 10 // More recent = higher score
-        reason = recentIndex === 0 ? "Last searched" : "Recently searched"
-      }
-
-      // Factor 2: Geographic proximity with enhanced calculation
-      if (currentLocationName && location !== currentLocationName) {
-        const proximityBonus = getProximityScore(currentLocationName, location)
-        score += proximityBonus
-        if (proximityBonus > 20) reason = reason || "Nearby location"
-      }
-
-      // Factor 3: Popular destinations with time-based weighting
-      const popularCities = ["Manila", "Cebu City", "Davao City", "Baguio", "Boracay", "Palawan"]
-      if (popularCities.includes(location)) {
-        const popularityScore = isWeekend ? 35 : 25 // Higher on weekends
-        score += popularityScore
-        if (!reason) reason = isWeekend ? "Weekend destination" : "Popular destination"
-      }
-
-      // Factor 4: Enhanced seasonal recommendations
-      const seasonalBonus = getSeasonalScore(location, currentMonth)
-      score += seasonalBonus
-      if (seasonalBonus > 15) reason = reason || "Perfect season"
-
-      // Factor 5: Enhanced time-based suggestions
-      if (currentHour >= 5 && currentHour <= 9) {
-        // Early morning: suggest cooler, peaceful places
-        if (["Baguio", "Tagaytay", "Sagada", "Batanes"].includes(location)) {
-          score += 20
-          if (!reason) reason = "Cool morning destination"
-        }
-      } else if (currentHour >= 16 && currentHour <= 19) {
-        // Late afternoon: suggest sunset and evening destinations
-        if (["Boracay", "Palawan", "Batangas", "La Union", "Siargao"].includes(location)) {
-          score += 25
-          if (!reason) reason = "Beautiful sunset views"
-        }
-      } else if (currentHour >= 20 || currentHour <= 4) {
-        // Night/early morning: suggest urban areas with nightlife
-        if (["Manila", "Cebu City", "Makati", "BGC"].includes(location)) {
-          score += 15
-          if (!reason) reason = "Vibrant nightlife"
-        }
-      }
-
-      // Factor 6: Enhanced weekend suggestions
-      if (isWeekend) {
-        const weekendDestinations = ["Baguio", "Tagaytay", "Batangas", "Laguna", "Zambales"]
-        if (weekendDestinations.includes(location)) {
-          score += 25
-          if (!reason) reason = "Perfect weekend escape"
-        }
-      }
-
-      // Factor 7: Weather preference learning (basic implementation)
-      if (recentSearches.length > 0) {
-        const mountainous = ["Baguio", "Tagaytay", "Sagada", "Batanes"]
-        const coastal = ["Boracay", "Palawan", "Batangas", "La Union", "Siargao"]
-
-        const recentMountainous = recentSearches.filter((s) => mountainous.includes(s)).length
-        const recentCoastal = recentSearches.filter((s) => coastal.includes(s)).length
-
-        if (recentMountainous > recentCoastal && mountainous.includes(location)) {
-          score += 10
-          if (!reason) reason = "Matches your preferences"
-        } else if (recentCoastal > recentMountainous && coastal.includes(location)) {
-          score += 10
-          if (!reason) reason = "Matches your preferences"
-        }
-      }
-
-      if (score > 0) {
-        locationScores.push({
-          name: location,
-          score,
-          reason: reason || "Recommended",
-        })
-      }
-    })
-
-    // Sort by score and ensure diversity in suggestions
-    const sortedLocations = locationScores.sort((a, b) => b.score - a.score)
-    const diverseLocations = []
-    const usedReasons = new Set()
-
-    for (const location of sortedLocations) {
-      if (diverseLocations.length >= 4) break
-
-      // Ensure diversity in reasons to avoid repetitive suggestions
-      if (!usedReasons.has(location.reason) || diverseLocations.length < 2) {
-        diverseLocations.push(location)
-        usedReasons.add(location.reason)
-      }
-    }
-
-    // Fetch real weather data for top locations
-    for (const location of diverseLocations) {
-      try {
-        const coordinates = geocodeLocation(location.name)
-        if (coordinates) {
-          const response = await fetch(`/api/weather/current?lat=${coordinates.lat}&lon=${coordinates.lon}`)
-          if (response.ok) {
-            const weatherData = await response.json()
-
-            // Weather condition bonus for good weather
-            if (weatherData.condition === "Clear" || weatherData.condition === "Clouds") {
-              location.score += 15
-            }
-
-            suggestions.push({
-              name: location.name,
-              temperature: weatherData.temperature,
-              condition: weatherData.condition,
-              icon: weatherData.icon,
-              reason: location.reason,
-              score: location.score,
-            })
-          } else {
-            // Fallback to generated weather if API fails
-            const weatherData = generateRealisticWeather(location.name, currentMonth)
-            suggestions.push({
-              name: location.name,
-              temperature: weatherData.temperature,
-              condition: weatherData.condition,
-              icon: weatherData.icon,
-              reason: location.reason,
-              score: location.score,
-            })
-          }
-        }
-      } catch (error) {
-        console.error(`[v0] Error fetching weather for ${location.name}:`, error)
-        // Fallback to generated weather if API fails
-        const weatherData = generateRealisticWeather(location.name, currentMonth)
-        suggestions.push({
-          name: location.name,
-          temperature: weatherData.temperature,
-          condition: weatherData.condition,
-          icon: weatherData.icon,
-          reason: location.reason,
-          score: location.score,
-        })
-      }
-    }
-
-    setSuggestedLocations(suggestions.sort((a, b) => b.score - a.score))
-  }, [recentSearches, currentLocationName])
-
-  const getProximityScore = (currentLocation: string, targetLocation: string): number => {
-    const proximityMap: { [key: string]: string[] } = {
-      Manila: ["Quezon City", "Caloocan", "Makati", "Pasig", "Taguig", "Paranaque", "Las Pinas", "Muntinlupa"],
-      "Cebu City": ["Bohol", "Negros Oriental", "Leyte"],
-      "Davao City": ["South Cotabato", "North Cotabato", "Bukidnon"],
-      Baguio: ["Pangasinan", "Tarlac", "Nueva Ecija"],
-    }
-
-    const currentProximity = proximityMap[currentLocation] || []
-    return currentProximity.includes(targetLocation) ? 20 : 0
-  }
-
-  const getSeasonalScore = (location: string, month: number): number => {
-    // Dry season (Nov-Apr): 0-3, 10-11
-    const isDrySeason = month <= 3 || month >= 10
-
-    if (isDrySeason) {
-      // Beach destinations score higher in dry season
-      if (["Boracay", "Palawan", "Batangas", "La Union"].includes(location)) {
-        return 15
-      }
-    } else {
-      // Rainy season: mountain destinations score higher
-      if (["Baguio", "Tagaytay", "Sagada"].includes(location)) {
-        return 15
-      }
-    }
-    return 0
-  }
-
-  const generateRealisticWeather = (location: string, month: number) => {
-    const weatherPatterns: { [key: string]: any } = {
-      Manila: { baseTemp: 28, variation: 4, sunnyChance: 0.6, rainChance: 0.25 },
-      "Cebu City": { baseTemp: 29, variation: 3, sunnyChance: 0.7, rainChance: 0.2 },
-      "Davao City": { baseTemp: 31, variation: 3, sunnyChance: 0.65, rainChance: 0.2 },
-      Baguio: { baseTemp: 20, variation: 5, sunnyChance: 0.5, rainChance: 0.3 },
-      Boracay: { baseTemp: 30, variation: 2, sunnyChance: 0.8, rainChance: 0.15 },
-    }
-
-    const pattern = weatherPatterns[location] || { baseTemp: 28, variation: 4, sunnyChance: 0.6, rainChance: 0.25 }
-    const temp = Math.round(pattern.baseTemp + (Math.random() - 0.5) * pattern.variation)
-
-    const rand = Math.random()
-    let condition = "clear"
-
-    if (rand < pattern.rainChance) {
-      // Rain or thunderstorm
-      condition = Math.random() < 0.3 ? "thunderstorm" : "rain"
-    } else if (rand < pattern.rainChance + 0.2) {
-      // Cloudy weather (20% chance)
-      condition = "clouds"
-    } else if (rand < pattern.rainChance + 0.2 + pattern.sunnyChance) {
-      // Clear/sunny weather
-      condition = "clear"
-    } else {
-      // Remaining probability goes to partly cloudy
-      condition = "clouds"
-    }
-
-    return {
-      temperature: temp,
-      condition: condition,
-      icon: condition,
-    }
-  }
-
-  const updateRecentSearches = (locationName: string) => {
-    try {
-      const current = JSON.parse(localStorage.getItem("recentSearches") || "[]")
-      const updated = [locationName, ...current.filter((item: string) => item !== locationName)].slice(0, 10)
-      localStorage.setItem("recentSearches", JSON.stringify(updated))
-      setRecentSearches(updated)
-    } catch (error) {
-      console.error("[v0] Failed to update recent searches:", error)
-    }
-  }
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("recentSearches")
-      if (saved) {
-        setRecentSearches(JSON.parse(saved))
-      }
-    } catch (error) {
-      console.error("[v0] Failed to load recent searches:", error)
-    }
-  }, [])
-
-  const handleSuggestionCardClick = (locationName: string) => {
-    setSearchLocation(locationName)
-    setSelectedLocationName(locationName)
-    updateRecentSearches(locationName)
-    setTimeout(() => handleLocationSearch(locationName), 100)
-  }
-
-  const findProperLocationName = (searchTerm: string): string => {
-    const locations: Record<string, string> = {
-      // Major cities
-      manila: "Manila",
-      quezon: "Quezon City",
-      "quezon city": "Quezon City",
-      caloocan: "Caloocan City",
-      davao: "Davao City",
-      "davao city": "Davao City",
-      cebu: "Cebu City",
-      "cebu city": "Cebu City",
-      zamboanga: "Zamboanga City",
-      "zamboanga city": "Zamboanga City",
-      antipolo: "Antipolo City",
-      taguig: "Taguig City",
-      pasig: "Pasig City",
-      cagayan: "Cagayan de Oro",
-      "cagayan de oro": "Cagayan de Oro",
-      paranaque: "Parañaque City",
-      "las pinas": "Las Piñas City",
-      makati: "Makati City",
-      muntinlupa: "Muntinlupa City",
-      "olongapo city": "Olongapo City",
-
-      // Provinces/Regions
-      bataan: "Bataan",
-      batangas: "Batangas",
-      bulacan: "Bulacan",
-      cavite: "Cavite",
-      laguna: "Laguna",
-      rizal: "Rizal",
-      pampanga: "Pampanga",
-      nueva: "Nueva Ecija",
-      "nueva ecija": "Nueva Ecija",
-      pangasinan: "Pangasinan",
-      tarlac: "Tarlac",
-      zambales: "Zambales",
-    }
-
-    const normalizedSearch = searchTerm.toLowerCase().trim()
-
-    // Try exact match first
-    if (locations[normalizedSearch]) {
-      return locations[normalizedSearch]
-    }
-
-    // Try partial matches
-    const locationKeys = Object.keys(locations)
-
-    // Find locations that start with the search term
-    const startsWithMatches = locationKeys.filter((key) => key.startsWith(normalizedSearch))
-    if (startsWithMatches.length > 0) {
-      const bestMatch = startsWithMatches.sort((a, b) => a.length - b.length)[0]
-      return locations[bestMatch]
-    }
-
-    // Find locations that contain the search term
-    const containsMatches = locationKeys.filter((key) => key.includes(normalizedSearch))
-    if (containsMatches.length > 0) {
-      const bestMatch = containsMatches.sort((a, b) => a.length - b.length)[0]
-      return locations[bestMatch]
-    }
-
-    return searchTerm // Fallback to original search term
-  }
-
-  const openWeatherMap = () => {
-    setWeatherMapModalOpen(true)
-  }
-
-  const getWeatherMapUrl = () => {
-    if (location) {
-      const mapUrl = `https://openweathermap.org/weathermap?basemap=map&cities=true&layer=precipitation&lat=${location.lat}&lon=${location.lon}&zoom=12&appid=openweathermap`
-      console.log("[v0] Generated map URL with user coordinates:", mapUrl)
-      return mapUrl
-    } else {
-      const defaultUrl = `https://openweathermap.org/weathermap?basemap=map&cities=true&layer=precipitation&lat=12.8797&lon=121.7740&zoom=6&appid=openweathermap`
-      console.log("[v0] Using default Philippines map URL:", defaultUrl)
-      return defaultUrl
-    }
+  const olongapoBounds = {
+    minLat: 14.7,
+    maxLat: 14.9,
+    minLon: 120.2,
+    maxLon: 120.4,
   }
 
   const reverseGeocode = (lat: number, lon: number): string => {
-    console.log("[v0] Reverse geocoding coordinates:", lat, lon)
+    // Check which region the coordinates fall into
+    const isInOlongapo =
+      lat >= locationBounds.olongapo.minLat &&
+      lat <= locationBounds.olongapo.maxLat &&
+      lon >= locationBounds.olongapo.minLon &&
+      lon <= locationBounds.olongapo.maxLon
 
-    const locations = [
-      { name: "Manila", lat: 14.5995, lon: 120.9842, radius: 0.1 },
-      { name: "Quezon City", lat: 14.676, lon: 121.0437, radius: 0.1 },
-      { name: "Caloocan", lat: 14.6507, lon: 120.9668, radius: 0.1 },
-      { name: "Makati", lat: 14.5547, lon: 121.0244, radius: 0.1 },
-      { name: "Pasig", lat: 14.5764, lon: 121.0851, radius: 0.1 },
-      { name: "Taguig", lat: 14.5176, lon: 121.0509, radius: 0.1 },
-      { name: "Paranaque", lat: 14.4793, lon: 121.0198, radius: 0.1 },
-      { name: "Las Piñas", lat: 14.4378, lon: 120.9942, radius: 0.1 },
-      { name: "Muntinlupa", lat: 14.3832, lon: 121.0409, radius: 0.1 },
-      { name: "Antipolo", lat: 14.5878, lon: 121.176, radius: 0.1 },
-      { name: "Olongapo City", lat: 14.8365, lon: 120.2957, radius: 0.35 },
-      { name: "Subic", lat: 14.8794, lon: 120.2728, radius: 0.15 },
-      { name: "Castillejos", lat: 14.9667, lon: 120.2167, radius: 0.15 },
-      { name: "San Antonio", lat: 14.9333, lon: 120.1167, radius: 0.15 },
-      { name: "Cebu City", lat: 10.3157, lon: 123.8854, radius: 0.2 },
-      { name: "Davao City", lat: 7.1907, lon: 125.4553, radius: 0.2 },
-      { name: "Zamboanga City", lat: 6.9214, lon: 122.079, radius: 0.2 },
-      { name: "Cagayan de Oro", lat: 8.4542, lon: 124.6319, radius: 0.2 },
-      { name: "Batangas", lat: 13.7565, lon: 121.0583, radius: 0.3 },
-      { name: "Bulacan", lat: 14.7942, lon: 120.8794, radius: 0.3 },
-      { name: "Cavite", lat: 14.2456, lon: 120.8781, radius: 0.3 },
-      { name: "Laguna", lat: 14.2691, lon: 121.4113, radius: 0.3 },
-      { name: "Rizal", lat: 14.6037, lon: 121.3084, radius: 0.3 },
-      { name: "Pampanga", lat: 15.0794, lon: 120.62, radius: 0.3 },
-      { name: "Nueva Ecija", lat: 15.5784, lon: 120.9726, radius: 0.3 },
-      { name: "Pangasinan", lat: 15.8949, lon: 120.2863, radius: 0.4 },
-      { name: "Tarlac", lat: 15.4751, lon: 120.5969, radius: 0.3 },
-      { name: "Zambales", lat: 15.5093, lon: 119.9712, radius: 0.4 },
-      { name: "Bataan", lat: 14.6417, lon: 120.4818, radius: 0.3 },
-      { name: "Aurora", lat: 15.7494, lon: 121.397, radius: 0.5 },
-      { name: "Baler", lat: 15.7594, lon: 121.5569, radius: 0.2 },
-      { name: "Quezon Province", lat: 14.1014, lon: 121.6234, radius: 0.8 },
-      { name: "Bohol", lat: 9.8349, lon: 124.1436, radius: 0.4 },
-      { name: "Negros Occidental", lat: 10.631, lon: 122.9629, radius: 0.4 },
-      { name: "Negros Oriental", lat: 9.3344, lon: 123.3018, radius: 0.4 },
-      { name: "Iloilo", lat: 10.7202, lon: 122.5621, radius: 0.4 },
-      { name: "Leyte", lat: 11.2421, lon: 124.8065, radius: 0.4 },
-      { name: "Samar", lat: 11.5804, lon: 125.0078, radius: 0.4 },
-    ]
+    const isInZambales =
+      lat >= locationBounds.zambales.minLat &&
+      lat <= locationBounds.zambales.maxLat &&
+      lon >= locationBounds.zambales.minLon &&
+      lon <= locationBounds.zambales.maxLon
 
-    // Find the closest location within radius
-    let closestLocation = null
-    let minDistance = Number.POSITIVE_INFINITY
+    const isInBataan =
+      lat >= locationBounds.bataan.minLat &&
+      lat <= locationBounds.bataan.maxLat &&
+      lon >= locationBounds.bataan.minLon &&
+      lon <= locationBounds.bataan.maxLon
 
-    for (const location of locations) {
-      const distance = Math.sqrt(Math.pow(lat - location.lat, 2) + Math.pow(lon - location.lon, 2))
+    const isInPampanga =
+      lat >= locationBounds.pampanga.minLat &&
+      lat <= locationBounds.pampanga.maxLat &&
+      lon >= locationBounds.pampanga.minLon &&
+      lon <= locationBounds.pampanga.maxLon
 
-      if (location.name === "Olongapo City" || distance < 0.5) {
-        console.log("[v0] Distance to", location.name, ":", distance.toFixed(4), "| Radius:", location.radius)
+    // Find all locations within their radius, sorted by distance
+    const candidateLocations = locations
+      .map((location) => ({
+        ...location,
+        distance: Math.sqrt(Math.pow(lat - location.lat, 2) + Math.pow(lon - location.lon, 2)),
+      }))
+      .filter((loc) => loc.distance <= loc.radius)
+      .sort((a, b) => a.distance - b.distance)
+
+    // Priority system: If in Olongapo bounds, strongly prefer Olongapo City
+    if (isInOlongapo) {
+      const olongapoMatch = candidateLocations.find((loc) => loc.name === "Olongapo City")
+      if (olongapoMatch) {
+        return "Olongapo City"
       }
-
-      if (distance <= location.radius && distance < minDistance) {
-        minDistance = distance
-        closestLocation = location
+      // Even if no exact match, if distance to Olongapo is reasonable, return it
+      const olongapoLocation = locations.find((loc) => loc.name === "Olongapo City")
+      if (olongapoLocation) {
+        const distanceToOlongapo = Math.sqrt(
+          Math.pow(lat - olongapoLocation.lat, 2) + Math.pow(lon - olongapoLocation.lon, 2),
+        )
+        if (distanceToOlongapo < 0.7) {
+          // Extended threshold
+          return "Olongapo City"
+        }
       }
     }
 
-    const result = closestLocation ? closestLocation.name : "Philippines"
-    console.log("[v0] Reverse geocoding result:", result, "| Closest distance:", minDistance.toFixed(4))
-
-    if (!closestLocation && lat >= 14.5 && lat <= 15.2 && lon >= 119.8 && lon <= 120.8) {
-      console.log("[v0] Coordinates appear to be in Zambales/Bataan region, defaulting to Zambales")
-      return "Zambales"
+    // If we found specific city matches, prefer cities over provinces
+    if (candidateLocations.length > 0) {
+      // Prefer cities (those with "City" in the name) over provinces
+      const cityMatch = candidateLocations.find((loc) => loc.name.includes("City"))
+      if (cityMatch) {
+        return cityMatch.name
+      }
+      // Otherwise return closest match
+      return candidateLocations[0].name
     }
 
-    return result
+    // Regional fallback based on bounds
+    if (isInZambales) return "Zambales"
+    if (isInBataan) return "Bataan"
+    if (isInPampanga) return "Pampanga"
+
+    // Default to "Philippines" if no specific location is found
+    return "Philippines"
   }
 
   const formatDate = (dateValue: string | Date): string => {
@@ -2040,7 +1493,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords
-        const locationName = reverseGeocode(latitude, longitude)
+        const locationName = reverseGeocode(latitude, longitude) // FIX: undeclared variable reverseGeocode
 
         console.log("[v0] Current location found:", locationName, `(${latitude.toFixed(4)}, ${longitude.toFixed(4)})`)
 
@@ -2103,7 +1556,7 @@ export default function Home() {
 
             // If moved more than 1km, notify about new area
             if (distance > 1000) {
-              const locationName = reverseGeocode(latitude, longitude)
+              const locationName = reverseGeocode(latitude, longitude) // FIX: undeclared variable reverseGeocode
               sendLocationChangeNotification(locationName, distance)
               setPreviousLocation(newLocation)
 
@@ -2153,7 +1606,8 @@ export default function Home() {
         const weatherData = await response.json()
 
         if (isMonitoring && previousWeatherData) {
-          checkWeatherChanges(weatherData, previousWeatherData)
+          // FIX: undeclared variable checkWeatherChanges
+          compareWeatherConditions(previousWeatherData, weatherData)
         }
 
         setPreviousWeatherData(weatherData)
@@ -2167,27 +1621,23 @@ export default function Home() {
     }
   }
 
-  const checkWeatherChanges = (newWeather: any, oldWeather: any) => {
-    if (!newWeather || !oldWeather) return
-
+  const compareWeatherConditions = (oldWeather: WeatherData, newWeather: WeatherData) => {
     const tempChange = Math.abs(newWeather.temperature - oldWeather.temperature)
-    const conditionChanged = newWeather.condition !== oldWeather.condition
     const windSpeedChange = Math.abs(newWeather.windSpeed - oldWeather.windSpeed)
     const humidityChange = Math.abs(newWeather.humidity - oldWeather.humidity)
 
     if (tempChange >= 3) {
       const direction = newWeather.temperature > oldWeather.temperature ? "increased" : "decreased"
-      const severity = tempChange >= 5 ? "significantly" : "noticeably"
       addNotification(
-        "🌡️ Temperature Alert",
-        `Temperature has ${severity} ${direction} by ${tempChange.toFixed(1)}°C (${oldWeather.temperature}°C → ${newWeather.temperature}°C)`,
-        tempChange >= 5 ? "warning" : "info",
+        `Temperature ${direction.charAt(0).toUpperCase() + direction.slice(1)}`,
+        `Temperature has ${direction} by ${tempChange.toFixed(1)}°C`,
+        direction === "increased" && tempChange >= 5 ? "warning" : "info",
         newWeather,
       )
     }
 
-    if (conditionChanged) {
-      const getWeatherIcon = (condition: string) => {
+    if (oldWeather.condition !== newWeather.condition) {
+      const getWeatherEmoji = (condition: string) => {
         const icons: { [key: string]: string } = {
           Clear: "☀️",
           Sunny: "☀️",
@@ -2203,7 +1653,7 @@ export default function Home() {
 
       addNotification(
         "Weather Condition Change",
-        `${getWeatherIcon(oldWeather.condition)} ${oldWeather.condition} → ${getWeatherIcon(newWeather.condition)} ${newWeather.condition}`,
+        `${getWeatherEmoji(oldWeather.condition)} ${oldWeather.condition} → ${getWeatherEmoji(newWeather.condition)} ${newWeather.condition}`,
         newWeather.condition.includes("Thunderstorm") || newWeather.condition.includes("Rain") ? "warning" : "info",
         newWeather,
       )
@@ -2242,6 +1692,7 @@ export default function Home() {
       )
     }
   }
+  // </CHANGE>
 
   const sendLocationChangeNotification = (locationName: string, distance: number) => {
     const distanceKm = (distance / 1000).toFixed(1)
@@ -2350,22 +1801,19 @@ export default function Home() {
 
     const trimmedLocation = searchTerm.trim()
     setSearchLoading(true)
-    // </CHANGE> Fixed undeclared variable - changed 'response' to 'alertsResponse'
-    // </CHANGE> Fixed undeclared variable - changed 'response' to 'alertsResponse'
-    setSearchWeather(null)
+    setSearchWeather(null) // Clear previous search results
     setSearchError("")
 
     console.log("[v0] Searching for location:", trimmedLocation)
 
     try {
-      const properLocationName = findProperLocationName(trimmedLocation)
-      const coordinates = geocodeLocation(properLocationName)
+      const coordinates = findCoordinatesByName(trimmedLocation)
 
       if (!coordinates) {
         throw new Error(`Location "${trimmedLocation}" not found in our database`)
       }
 
-      console.log("[v0] Found coordinates for", properLocationName, coordinates)
+      console.log("[v0] Found coordinates for", trimmedLocation, coordinates)
 
       const weatherResponse = await fetch(`/api/weather/current?lat=${coordinates.lat}&lon=${coordinates.lon}`)
 
@@ -2389,7 +1837,7 @@ export default function Home() {
         temperature: weatherData.temperature,
         condition: weatherData.condition,
         description: weatherData.description || weatherData.condition,
-        location: properLocationName,
+        location: trimmedLocation,
         humidity: weatherData.humidity,
         windSpeed: weatherData.windSpeed,
         feelsLike: weatherData.feelsLike,
@@ -2397,7 +1845,7 @@ export default function Home() {
       }
 
       setSearchWeather(searchWeatherData)
-      setSelectedLocationName(properLocationName)
+      setSelectedLocationName(trimmedLocation)
 
       if (forecastData && forecastData.forecasts) {
         setForecast(forecastData.forecasts)
@@ -2413,11 +1861,11 @@ export default function Home() {
       const weatherEmoji = getWeatherEmoji(searchWeatherData.condition)
       addNotification(
         `${weatherEmoji} Weather Found`,
-        `${properLocationName}: ${searchWeatherData.temperature}°C, ${searchWeatherData.description}`,
+        `${trimmedLocation}: ${searchWeatherData.temperature}°C, ${searchWeatherData.description}`,
         "info",
       )
 
-      updateRecentSearches(properLocationName)
+      updateRecentSearches(trimmedLocation)
 
       saveWeatherToHistory(searchWeatherData)
     } catch (error) {
@@ -2560,7 +2008,7 @@ export default function Home() {
       // If location looks like coordinates (contains comma), try to reverse geocode
       const coords = weatherData.location.split(",").map((s) => Number.parseFloat(s.trim()))
       if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
-        locationName = reverseGeocode(coords[0], coords[1])
+        locationName = reverseGeocode(coords[0], coords[1]) // FIX: undeclared variable reverseGeocode
       }
     }
 
@@ -2694,7 +2142,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords
-        const locationName = reverseGeocode(latitude, longitude)
+        const locationName = reverseGeocode(latitude, longitude) // FIX: undeclared variable reverseGeocode
 
         // Get device info
         const deviceInfo = navigator.userAgent.includes("iPhone")
@@ -2867,7 +2315,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords
-        const locationName = reverseGeocode(latitude, longitude)
+        const locationName = reverseGeocode(latitude, longitude) // FIX: undeclared variable reverseGeocode
 
         // Get device info
         const deviceInfo = navigator.userAgent.includes("iPhone")
@@ -2935,7 +2383,7 @@ export default function Home() {
   }) => {
     setSearchLocation(location.name)
     setSelectedLocationName(location.name)
-    updateRecentSearches(location.name)
+    updateRecentSearches(location.name) // FIX: undeclared variable updateRecentSearches
     setTimeout(() => handleLocationSearch(location.name), 100)
   }
 
@@ -3090,6 +2538,57 @@ export default function Home() {
       </div>
     </div>
   )
+
+  const getWeatherMapUrl = () => {
+    // Example URL - replace with your actual weather map provider and parameters
+    // You might want to dynamically set zoom, center, layers based on current location or selected location
+    return `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY`
+  }
+
+  const handleSearchInputChange = (value: string) => {
+    setSearchLocation(value)
+    setShowSuggestions(true)
+    const filtered = searchLocations(value)
+    setFilteredSuggestions(filtered.map((loc) => loc.name))
+  }
+
+  const updateRecentSearches = (locationName: string) => {
+    setRecentSearches((prev) => {
+      const updatedSearches = [locationName, ...prev.filter((search) => search !== locationName)].slice(0, 10) // Keep only the latest 10
+      try {
+        localStorage.setItem("winder-recent-searches", JSON.stringify(updatedSearches))
+      } catch (error) {
+        console.error("[v0] Error saving recent searches:", error)
+      }
+      return updatedSearches
+    })
+  }
+
+  // This generateSmartSuggestions is defined twice. Keeping the first one.
+  // const generateSmartSuggestions = useCallback(async () => {
+  //   // This is a placeholder function. In a real application, you would fetch data
+  //   // from an API to generate smart suggestions based on factors like weather,
+  //   // local events, or user history.
+
+  //   // Mock data for demonstration:
+  //   const suggestions = [
+  //     { location: "Olongapo City Hall", temp: 28, condition: "Cloudy" },
+  //     { location: "Subic Bay Metropolitan Authority", temp: 29, condition: "Partly Cloudy" },
+  //     { location: "SM City Olongapo", temp: 28, condition: "Cloudy" },
+  //     { location: "Gordon College", temp: 27, condition: "Rainy" },
+  //     { location: "Barangay East Bajac-bajac", temp: 29, condition: "Partly Cloudy" },
+  //     { location: "Barangay West Bajac-bajac", temp: 28, condition: "Cloudy" },
+  //     { location: "Barangay East Tapinac", temp: 30, condition: "Sunny" },
+  //     { location: "Barangay West Tapinac", temp: 29, condition: "Partly Cloudy" },
+  //     { location: "Barangay Santa Rita", temp: 28, condition: "Rainy" },
+  //     { location: "Barangay Manggahan", temp: 29, condition: "Partly Cloudy" },
+  //   ]
+
+  //   // Simulate API call delay
+  //   await new Promise((resolve) => setTimeout(resolve, 500))
+
+  //   setSmartSuggestions(suggestions)
+  // }, [])
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
@@ -3765,7 +3264,6 @@ export default function Home() {
                 </div>
               ) : null}
 
-              {/* Replace the inline risk predictions rendering with the new component */}
               {/* Risk Predictions */}
               {loading || searchLoading ? (
                 <div className="space-y-3">
