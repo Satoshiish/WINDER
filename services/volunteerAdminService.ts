@@ -21,6 +21,7 @@ export interface VolunteerArea {
   province: string
   assigned_at: string
   is_active: boolean
+  is_primary: boolean
 }
 
 export interface VolunteerWithAreas extends Volunteer {
@@ -103,19 +104,31 @@ export async function assignVolunteerToBarangay(
   barangay: string,
   municipality: string,
   province: string,
+  isPrimary = false,
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // If setting as primary, unset other primaries
+    if (isPrimary) {
+      await supabase.from("volunteer_areas").update({ is_primary: false }).eq("volunteer_id", volunteerId)
+    }
+
     const { error } = await supabase.from("volunteer_areas").insert({
       volunteer_id: volunteerId,
       barangay,
       municipality,
       province,
       is_active: true,
+      is_primary: isPrimary,
     })
 
     if (error) {
       console.error("Error assigning volunteer:", error)
       return { success: false, message: error.message || "Failed to assign volunteer" }
+    }
+
+    // Update volunteer's primary barangay if this is primary
+    if (isPrimary) {
+      await supabase.from("volunteers").update({ barangay }).eq("id", volunteerId)
     }
 
     return { success: true, message: "Volunteer assigned successfully" }
@@ -243,4 +256,75 @@ export function getOlongapoBarangays(): string[] {
     "Old Ilalim",
     "Asinan Poblacion",
   ].sort()
+}
+
+// Assign multiple locations to a volunteer
+export async function assignMultipleLocations(
+  volunteerId: number,
+  locations: { barangay: string; is_primary: boolean }[],
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // Remove all existing assignments
+    await supabase.from("volunteer_areas").delete().eq("volunteer_id", volunteerId)
+
+    // Add new assignments
+    const assignments = locations.map((loc) => ({
+      volunteer_id: volunteerId,
+      barangay: loc.barangay,
+      municipality: "Olongapo City",
+      province: "Zambales",
+      is_active: true,
+      is_primary: loc.is_primary,
+    }))
+
+    const { error } = await supabase.from("volunteer_areas").insert(assignments)
+
+    if (error) {
+      console.error("Error assigning locations:", error)
+      return { success: false, message: error.message || "Failed to assign locations" }
+    }
+
+    // Update volunteer's primary barangay field
+    const primaryLocation = locations.find((loc) => loc.is_primary)
+    if (primaryLocation) {
+      await supabase.from("volunteers").update({ barangay: primaryLocation.barangay }).eq("id", volunteerId)
+    }
+
+    return { success: true, message: "Locations assigned successfully" }
+  } catch (error) {
+    console.error("Error assigning locations:", error)
+    return { success: false, message: "An error occurred" }
+  }
+}
+
+// Set primary location for a volunteer
+export async function setPrimaryLocation(
+  volunteerId: number,
+  areaId: number,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // First, unset all primaries for this volunteer
+    await supabase.from("volunteer_areas").update({ is_primary: false }).eq("volunteer_id", volunteerId)
+
+    // Set the selected area as primary
+    const { data, error } = await supabase
+      .from("volunteer_areas")
+      .update({ is_primary: true })
+      .eq("id", areaId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Error setting primary location:", error)
+      return { success: false, message: error.message || "Failed to set primary location" }
+    }
+
+    // Update volunteer's barangay field
+    await supabase.from("volunteers").update({ barangay: data.barangay }).eq("id", volunteerId)
+
+    return { success: true, message: "Primary location updated successfully" }
+  } catch (error) {
+    console.error("Error setting primary location:", error)
+    return { success: false, message: "An error occurred" }
+  }
 }
