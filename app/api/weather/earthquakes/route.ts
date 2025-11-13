@@ -112,12 +112,37 @@ function parseUsgsData(data: any, userLat: number, userLon: number): any[] {
         const location = props.place || "Unknown"
         const time = new Date(props.time)
 
-        const isPhilippines = latitude >= 5 && latitude <= 20 && longitude >= 120 && longitude <= 130
+        // Calculate distance from user first
+        const distance = calculateDistance(userLat, userLon, latitude, longitude)
 
-        // Only include earthquakes with magnitude >= 2.0 in Philippines region
-        if (isPhilippines && magnitude >= 2.0) {
-          const distance = calculateDistance(userLat, userLon, latitude, longitude)
+        // Enhanced filtering logic with thresholds:
+        // 1. Must be in Philippines region (with extended buffer for nearby areas)
+        const isInPhilippinesRegion = latitude >= 4.5 && latitude <= 21 && longitude >= 116 && longitude <= 127
 
+        // 2. Distance-based filtering with magnitude consideration
+        // - Higher magnitude earthquakes are relevant from farther away
+        // - Lower magnitude earthquakes only matter if they're close
+        let maxRelevantDistance = 300 // Base: 300km for any earthquake
+
+        if (magnitude >= 6.0) {
+          maxRelevantDistance = 800 // Major earthquakes felt up to 800km away
+        } else if (magnitude >= 5.0) {
+          maxRelevantDistance = 500 // Significant earthquakes up to 500km
+        } else if (magnitude >= 4.0) {
+          maxRelevantDistance = 300 // Moderate earthquakes up to 300km
+        } else if (magnitude >= 3.0) {
+          maxRelevantDistance = 150 // Minor earthquakes up to 150km
+        } else if (magnitude >= 2.0) {
+          maxRelevantDistance = 75 // Small earthquakes up to 75km
+        } else {
+          maxRelevantDistance = 50 // Micro earthquakes only within 50km
+        }
+
+        // Only include earthquakes that are:
+        // - In Philippines region
+        // - Within relevant distance based on magnitude
+        // - Magnitude >= 1.5 (filter out micro tremors)
+        if (isInPhilippinesRegion && distance <= maxRelevantDistance && magnitude >= 1.5) {
           earthquakes.push({
             magnitude,
             depth,
@@ -136,7 +161,8 @@ function parseUsgsData(data: any, userLat: number, userLon: number): any[] {
     console.error("[v0] Error parsing USGS data:", error)
   }
 
-  return earthquakes
+  // Sort by distance (closest first)
+  return earthquakes.sort((a, b) => a.distance - b.distance)
 }
 
 function calculateEarthquakeRisk(earthquakes: any[], userLat: number, userLon: number): number {
@@ -146,32 +172,43 @@ function calculateEarthquakeRisk(earthquakes: any[], userLat: number, userLon: n
 
   // Base risk from earthquake count (more earthquakes = higher risk)
   const earthquakeCount = earthquakes.length
-  riskScore += Math.min(20, earthquakeCount * 2)
+  riskScore += Math.min(15, earthquakeCount * 1.5)
 
   // Risk from magnitude (higher magnitude = higher risk)
   const avgMagnitude = earthquakes.reduce((sum: number, eq: any) => sum + eq.magnitude, 0) / earthquakes.length
   const maxMagnitude = Math.max(...earthquakes.map((eq: any) => eq.magnitude))
-  riskScore += Math.min(30, avgMagnitude * 5)
-  riskScore += Math.min(25, maxMagnitude * 3)
+  riskScore += Math.min(25, avgMagnitude * 4)
+  riskScore += Math.min(30, maxMagnitude * 5)
 
-  // Risk from proximity (earthquakes within 100km are more concerning)
-  const nearbyEarthquakes = earthquakes.filter((eq: any) => {
-    const distance = calculateDistance(userLat, userLon, eq.latitude, eq.longitude)
-    return distance < 100
-  })
+  // Enhanced proximity-based risk with graduated thresholds
+  const veryCloseEarthquakes = earthquakes.filter((eq: any) => eq.distance < 50) // Within 50km
+  const closeEarthquakes = earthquakes.filter((eq: any) => eq.distance < 100) // Within 100km
+  const nearbyEarthquakes = earthquakes.filter((eq: any) => eq.distance < 200) // Within 200km
 
-  if (nearbyEarthquakes.length > 0) {
+  if (veryCloseEarthquakes.length > 0) {
+    const maxVeryCloseMagnitude = Math.max(...veryCloseEarthquakes.map((eq: any) => eq.magnitude))
+    // Very close earthquakes have the highest impact
+    riskScore += Math.min(40, maxVeryCloseMagnitude * 10 + veryCloseEarthquakes.length * 3)
+  } else if (closeEarthquakes.length > 0) {
+    const maxCloseMagnitude = Math.max(...closeEarthquakes.map((eq: any) => eq.magnitude))
+    // Close earthquakes have moderate impact
+    riskScore += Math.min(30, maxCloseMagnitude * 7 + closeEarthquakes.length * 2)
+  } else if (nearbyEarthquakes.length > 0) {
     const maxNearbyMagnitude = Math.max(...nearbyEarthquakes.map((eq: any) => eq.magnitude))
-    riskScore += Math.min(35, maxNearbyMagnitude * 8 + nearbyEarthquakes.length * 2)
+    // Nearby earthquakes have lower impact
+    riskScore += Math.min(20, maxNearbyMagnitude * 4 + nearbyEarthquakes.length * 1)
   }
 
   // Risk from very recent earthquakes (last 24 hours)
   const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
   const veryRecentEarthquakes = earthquakes.filter((eq: any) => eq.time.getTime() > oneDayAgo)
   if (veryRecentEarthquakes.length > 0) {
-    riskScore += Math.min(15, veryRecentEarthquakes.length * 3)
+    const recentMaxMag = Math.max(...veryRecentEarthquakes.map((eq: any) => eq.magnitude))
+    // Recent activity increases risk, especially if magnitude is high
+    riskScore += Math.min(20, veryRecentEarthquakes.length * 4 + recentMaxMag * 2)
   }
 
+  // Cap the risk score at 100
   return Math.min(100, Math.round(riskScore))
 }
 

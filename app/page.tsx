@@ -260,12 +260,13 @@ export default function Home() {
   const [smsPreferences, setSmsPreferences] = useState<any>(null)
 
   const locationBounds = {
+    // Central Luzon - Priority 1 for Olongapo
     olongapo: {
       minLat: 14.78,
       maxLat: 14.9,
       minLon: 120.24,
       maxLon: 120.35,
-      priority: 1, // Highest priority
+      priority: 1,
     },
     zambales: {
       minLat: 14.5,
@@ -288,6 +289,15 @@ export default function Home() {
       maxLon: 120.9,
       priority: 3,
     },
+    bulacan: {
+      minLat: 14.6,
+      maxLat: 15.1,
+      minLon: 120.7,
+      maxLon: 121.2,
+      priority: 3,
+    },
+
+    // NCR - Metro Manila
     manila: {
       minLat: 14.4,
       maxLat: 14.8,
@@ -295,7 +305,345 @@ export default function Home() {
       maxLon: 121.2,
       priority: 2,
     },
+
+    // Northern Luzon
+    ilocosNorte: {
+      minLat: 17.9,
+      maxLat: 18.6,
+      minLon: 120.4,
+      maxLon: 121.0,
+      priority: 3,
+    },
+    ilocosSur: {
+      minLat: 17.0,
+      maxLat: 17.8,
+      minLon: 120.2,
+      maxLon: 120.7,
+      priority: 3,
+    },
+    laUnion: {
+      minLat: 16.3,
+      maxLat: 16.9,
+      minLon: 120.1,
+      maxLon: 120.6,
+      priority: 3,
+    },
+    cagayan: {
+      minLat: 17.9,
+      maxLat: 18.6,
+      minLon: 121.3,
+      maxLon: 122.3,
+      priority: 3,
+    },
+    isabela: {
+      minLat: 16.5,
+      maxLat: 17.5,
+      minLon: 121.4,
+      maxLon: 122.2,
+      priority: 3,
+    },
+    benguet: {
+      minLat: 16.1,
+      maxLat: 16.7,
+      minLon: 120.4,
+      maxLon: 121.0,
+      priority: 3,
+    },
+
+    // Southern Luzon
+    batangas: {
+      minLat: 13.5,
+      maxLat: 14.2,
+      minLon: 120.7,
+      maxLon: 121.5,
+      priority: 3,
+    },
+    cavite: {
+      minLat: 14.1,
+      maxLat: 14.5,
+      minLon: 120.6,
+      maxLon: 121.1,
+      priority: 3,
+    },
+    laguna: {
+      minLat: 14.0,
+      maxLat: 14.5,
+      minLon: 121.0,
+      maxLon: 121.7,
+      priority: 3,
+    },
+    rizal: {
+      minLat: 14.4,
+      maxLat: 14.8,
+      minLon: 121.0,
+      maxLon: 121.5,
+      priority: 3,
+    },
+    quezon: {
+      minLat: 13.5,
+      maxLat: 14.6,
+      minLon: 121.3,
+      maxLon: 122.5,
+      priority: 3,
+    },
+    palawan: {
+      minLat: 7.5,
+      maxLat: 12.0,
+      minLon: 117.5,
+      maxLon: 119.5,
+      priority: 3,
+    },
+
+    // Bicol Region
+    albay: {
+      minLat: 12.9,
+      maxLat: 13.5,
+      minLon: 123.4,
+      maxLon: 124.0,
+      priority: 3,
+    },
+    camarinesSur: {
+      minLat: 13.3,
+      maxLat: 14.0,
+      minLon: 122.8,
+      maxLon: 123.6,
+      priority: 3,
+    },
+    sorsogon: {
+      minLat: 12.5,
+      maxLat: 13.2,
+      minLon: 123.7,
+      maxLon: 124.3,
+      priority: 3,
+    },
+    masbate: {
+      minLat: 11.8,
+      maxLat: 12.6,
+      minLon: 123.2,
+      maxLon: 123.9,
+      priority: 3,
+    },
+
+    // Visayas - Western
+    iloilo: {
+      minLat: 10.4,
+      maxLat: 11.3,
+      minLon: 122.2,
+      maxLon: 123.1,
+      priority: 3,
+    },
+    capiz: {
+      minLat: 11.2,
+      maxLat: 11.9,
+      minLon: 122.4,
+      maxLon: 123.1,
+      priority: 3,
+    },
+    negrosOccidental: {
+      minLat: 9.7,
+      maxLat: 11.0,
+      minLon: 122.5,
+      maxLon: 123.3,
+      priority: 3,
+    },
+
+    // Visayas - Central
+    cebu: {
+      minLat: 9.5,
+      maxLat: 11.3,
+      minLon: 123.2,
+      maxLon: 124.1,
+      priority: 2,
+    },
+    bohol: {
+      minLat: 9.5,
+      maxLat: 10.2,
+      minLon: 123.7,
+      maxLon: 124.6,
+      priority: 3,
+    },
+
+    // Visayas - Eastern
+    leyte: {
+      minLat: 10.3,
+      maxLat: 11.7,
+      minLon: 124.3,
+      maxLon: 125.3,
+      priority: 3,
+    },
+    samar: {
+      minLat: 11.5,
+      maxLat: 12.5,
+      minLon: 124.6,
+      maxLon: 125.4,
+      priority: 3,
+    },
+    easternSamar: {
+      minLat: 10.9,
+      maxLat: 12.0,
+      minLon: 125.2,
+      maxLon: 126.0,
+      priority: 3,
+    },
+    southernLeyte: {
+      minLat: 9.9,
+      maxLat: 10.6,
+      minLon: 124.7,
+      maxLon: 125.4,
+      priority: 3,
+    },
+
+    // Mindanao - Western
+    zamboangaDelNorte: {
+      minLat: 7.8,
+      maxLat: 9.0,
+      minLon: 122.7,
+      maxLon: 123.7,
+      priority: 3,
+    },
+    zamboangaDelSur: {
+      minLat: 7.2,
+      maxLat: 8.4,
+      minLon: 122.8,
+      maxLon: 123.7,
+      priority: 3,
+    },
+    zamboangaSibugay: {
+      minLat: 7.4,
+      maxLat: 8.2,
+      minLon: 122.3,
+      maxLon: 123.2,
+      priority: 3,
+    },
+    zamboangaCity: {
+      minLat: 6.7,
+      maxLat: 7.2,
+      minLon: 121.8,
+      maxLon: 122.4,
+      priority: 2,
+    },
+
+    // Mindanao - Northern
+    bukidnon: {
+      minLat: 7.5,
+      maxLat: 8.5,
+      minLon: 124.5,
+      maxLon: 125.5,
+      priority: 3,
+    },
+    misamisOccidental: {
+      minLat: 7.9,
+      maxLat: 8.7,
+      minLon: 123.5,
+      maxLon: 124.1,
+      priority: 3,
+    },
+    misamisOriental: {
+      minLat: 8.2,
+      maxLat: 9.2,
+      minLon: 124.3,
+      maxLon: 125.3,
+      priority: 3,
+    },
+
+    // Mindanao - Southern
+    davaoDelNorte: {
+      minLat: 7.1,
+      maxLat: 7.9,
+      minLon: 125.4,
+      maxLon: 126.2,
+      priority: 3,
+    },
+    davaoDelSur: {
+      minLat: 6.3,
+      maxLat: 7.2,
+      minLon: 125.0,
+      maxLon: 125.8,
+      priority: 3,
+    },
+    davaoOriental: {
+      minLat: 6.4,
+      maxLat: 7.6,
+      minLon: 125.8,
+      maxLon: 126.7,
+      priority: 3,
+    },
+    davaoCity: {
+      minLat: 6.9,
+      maxLat: 7.5,
+      minLon: 125.2,
+      maxLon: 125.8,
+      priority: 2,
+    },
+    cotabato: {
+      minLat: 6.8,
+      maxLat: 7.7,
+      minLon: 124.0,
+      maxLon: 125.3,
+      priority: 3,
+    },
+    southCotabato: {
+      minLat: 6.0,
+      maxLat: 6.8,
+      minLon: 124.4,
+      maxLon: 125.5,
+      priority: 3,
+    },
+
+    // Mindanao - Caraga
+    agusan: {
+      minLat: 8.5,
+      maxLat: 9.5,
+      minLon: 125.4,
+      maxLon: 126.2,
+      priority: 3,
+    },
+    surigaoDelNorte: {
+      minLat: 9.3,
+      maxLat: 10.2,
+      minLon: 125.2,
+      maxLon: 126.2,
+      priority: 3,
+    },
+    surigaoDelSur: {
+      minLat: 8.3,
+      maxLat: 9.5,
+      minLon: 125.8,
+      maxLon: 126.6,
+      priority: 3,
+    },
+
+    // Mindanao - BARMM
+    lanaoDelSur: {
+      minLat: 7.5,
+      maxLat: 8.2,
+      minLon: 124.0,
+      maxLon: 124.8,
+      priority: 3,
+    },
+    lanaoDelNorte: {
+      minLat: 7.7,
+      maxLat: 8.4,
+      minLon: 123.7,
+      maxLon: 124.5,
+      priority: 3,
+    },
+    maguindanao: {
+      minLat: 6.7,
+      maxLat: 7.5,
+      minLon: 124.0,
+      maxLon: 124.9,
+      priority: 3,
+    },
+    basilan: {
+      minLat: 6.3,
+      maxLat: 6.8,
+      minLon: 121.8,
+      maxLon: 122.3,
+      priority: 3,
+    },
   }
+  // </CHANGE>
 
   const generateSmartSuggestions = useCallback(async () => {
     // This is a placeholder function. In a real application, you would fetch data
@@ -1166,7 +1514,7 @@ export default function Home() {
     // NCR
     { name: "Metro Manila", lat: 14.5995, lon: 120.9842, radius: 0.5 },
     { name: "Manila", lat: 14.5995, lon: 120.9842, radius: 0.35 },
-    { name: "Quezon City", lat: 14.676, lon: 121.0437, radius: 0.4 },
+    { name: "Quezon City", lat: 14.676, lon: 121.0437, radius: 0.35 },
     { name: "Caloocan City", lat: 14.7566, lon: 121.0453, radius: 0.35 },
     { name: "Makati City", lat: 14.5547, lon: 121.0244, radius: 0.35 },
     { name: "Pasig City", lat: 14.5764, lon: 121.0851, radius: 0.35 },
@@ -1367,30 +1715,80 @@ export default function Home() {
   }
 
   const reverseGeocode = (lat: number, lon: number): string => {
-    // Check which region the coordinates fall into
-    const isInOlongapo =
-      lat >= locationBounds.olongapo.minLat &&
-      lat <= locationBounds.olongapo.maxLat &&
-      lon >= locationBounds.olongapo.minLon &&
-      lon <= locationBounds.olongapo.maxLon
+    const regionChecks: Array<{ name: string; key: keyof typeof locationBounds; cityName: string }> = [
+      // Priority 1 - Olongapo (highest priority due to GPS accuracy issues)
+      { name: "olongapo", key: "olongapo", cityName: "Olongapo City" },
 
-    const isInZambales =
-      lat >= locationBounds.zambales.minLat &&
-      lat <= locationBounds.zambales.maxLat &&
-      lon >= locationBounds.zambales.minLon &&
-      lon <= locationBounds.zambales.maxLon
+      // Priority 2 - Major cities
+      { name: "cebu", key: "cebu", cityName: "Cebu" },
+      { name: "davaoCity", key: "davaoCity", cityName: "Davao City" },
+      { name: "manila", key: "manila", cityName: "Metro Manila" },
+      { name: "zamboangaCity", key: "zamboangaCity", cityName: "Zamboanga City" },
 
-    const isInBataan =
-      lat >= locationBounds.bataan.minLat &&
-      lat <= locationBounds.bataan.maxLat &&
-      lon >= locationBounds.bataan.minLon &&
-      lon <= locationBounds.bataan.maxLon
+      // Priority 3 - Central Luzon
+      { name: "zambales", key: "zambales", cityName: "Zambales" },
+      { name: "bataan", key: "bataan", cityName: "Bataan" },
+      { name: "pampanga", key: "pampanga", cityName: "Pampanga" },
+      { name: "bulacan", key: "bulacan", cityName: "Bulacan" },
 
-    const isInPampanga =
-      lat >= locationBounds.pampanga.minLat &&
-      lat <= locationBounds.pampanga.maxLat &&
-      lon >= locationBounds.pampanga.minLon &&
-      lon <= locationBounds.pampanga.maxLon
+      // Northern Luzon
+      { name: "ilocosNorte", key: "ilocosNorte", cityName: "Ilocos Norte" },
+      { name: "ilocosSur", key: "ilocosSur", cityName: "Ilocos Sur" },
+      { name: "laUnion", key: "laUnion", cityName: "La Union" },
+      { name: "cagayan", key: "cagayan", cityName: "Cagayan" },
+      { name: "isabela", key: "isabela", cityName: "Isabela" },
+      { name: "benguet", key: "benguet", cityName: "Benguet" },
+
+      // Southern Luzon
+      { name: "batangas", key: "batangas", cityName: "Batangas" },
+      { name: "cavite", key: "cavite", cityName: "Cavite" },
+      { name: "laguna", key: "laguna", cityName: "Laguna" },
+      { name: "rizal", key: "rizal", cityName: "Rizal" },
+      { name: "quezon", key: "quezon", cityName: "Quezon Province" },
+      { name: "palawan", key: "palawan", cityName: "Palawan" },
+
+      // Bicol
+      { name: "albay", key: "albay", cityName: "Albay" },
+      { name: "camarinesSur", key: "camarinesSur", cityName: "Camarines Sur" },
+      { name: "sorsogon", key: "sorsogon", cityName: "Sorsogon" },
+      { name: "masbate", key: "masbate", cityName: "Masbate" },
+
+      // Visayas
+      { name: "iloilo", key: "iloilo", cityName: "Iloilo" },
+      { name: "capiz", key: "capiz", cityName: "Capiz" },
+      { name: "negrosOccidental", key: "negrosOccidental", cityName: "Negros Occidental" },
+      { name: "bohol", key: "bohol", cityName: "Bohol" },
+      { name: "leyte", key: "leyte", cityName: "Leyte" },
+      { name: "samar", key: "samar", cityName: "Samar" },
+      { name: "easternSamar", key: "easternSamar", cityName: "Eastern Samar" },
+      { name: "southernLeyte", key: "southernLeyte", cityName: "Southern Leyte" },
+
+      // Mindanao
+      { name: "zamboangaDelNorte", key: "zamboangaDelNorte", cityName: "Zamboanga del Norte" },
+      { name: "zamboangaDelSur", key: "zamboangaDelSur", cityName: "Zamboanga del Sur" },
+      { name: "zamboangaSibugay", key: "zamboangaSibugay", cityName: "Zamboanga Sibugay" },
+      { name: "bukidnon", key: "bukidnon", cityName: "Bukidnon" },
+      { name: "misamisOccidental", key: "misamisOccidental", cityName: "Misamis Occidental" },
+      { name: "misamisOriental", key: "misamisOriental", cityName: "Misamis Oriental" },
+      { name: "davaoDelNorte", key: "davaoDelNorte", cityName: "Davao del Norte" },
+      { name: "davaoDelSur", key: "davaoDelSur", cityName: "Davao del Sur" },
+      { name: "davaoOriental", key: "davaoOriental", cityName: "Davao Oriental" },
+      { name: "cotabato", key: "cotabato", cityName: "Cotabato" },
+      { name: "southCotabato", key: "southCotabato", cityName: "South Cotabato" },
+      { name: "agusan", key: "agusan", cityName: "Agusan del Norte" },
+      { name: "surigaoDelNorte", key: "surigaoDelNorte", cityName: "Surigao del Norte" },
+      { name: "surigaoDelSur", key: "surigaoDelSur", cityName: "Surigao del Sur" },
+      { name: "lanaoDelSur", key: "lanaoDelSur", cityName: "Lanao del Sur" },
+      { name: "lanaoDelNorte", key: "lanaoDelNorte", cityName: "Lanao del Norte" },
+      { name: "maguindanao", key: "maguindanao", cityName: "Maguindanao" },
+      { name: "basilan", key: "basilan", cityName: "Basilan" },
+    ]
+
+    // Check which regions contain the coordinates
+    const matchingRegions = regionChecks.filter((region) => {
+      const bounds = locationBounds[region.key]
+      return lat >= bounds.minLat && lat <= bounds.maxLat && lon >= bounds.minLon && lon <= bounds.maxLon
+    })
 
     // Find all locations within their radius, sorted by distance
     const candidateLocations = locations
@@ -1401,21 +1799,26 @@ export default function Home() {
       .filter((loc) => loc.distance <= loc.radius)
       .sort((a, b) => a.distance - b.distance)
 
-    // Priority system: If in Olongapo bounds, strongly prefer Olongapo City
-    if (isInOlongapo) {
-      const olongapoMatch = candidateLocations.find((loc) => loc.name === "Olongapo City")
-      if (olongapoMatch) {
-        return "Olongapo City"
-      }
-      // Even if no exact match, if distance to Olongapo is reasonable, return it
-      const olongapoLocation = locations.find((loc) => loc.name === "Olongapo City")
-      if (olongapoLocation) {
-        const distanceToOlongapo = Math.sqrt(
-          Math.pow(lat - olongapoLocation.lat, 2) + Math.pow(lon - olongapoLocation.lon, 2),
+    // Priority system: If coordinates fall within a priority 1 region (Olongapo)
+    if (matchingRegions.length > 0) {
+      const priority1Region = matchingRegions.find((r) => locationBounds[r.key].priority === 1)
+      if (priority1Region) {
+        // Try to find the specific city within this region
+        const cityMatch = candidateLocations.find(
+          (loc) => loc.name.includes("Olongapo") || loc.name.includes(priority1Region.cityName),
         )
-        if (distanceToOlongapo < 0.7) {
-          // Extended threshold
-          return "Olongapo City"
+        if (cityMatch) {
+          return cityMatch.name
+        }
+        // Extended threshold check for Olongapo
+        const olongapoLocation = locations.find((loc) => loc.name === "Olongapo City")
+        if (olongapoLocation) {
+          const distanceToOlongapo = Math.sqrt(
+            Math.pow(lat - olongapoLocation.lat, 2) + Math.pow(lon - olongapoLocation.lon, 2),
+          )
+          if (distanceToOlongapo < 0.7) {
+            return "Olongapo City"
+          }
         }
       }
     }
@@ -1431,14 +1834,18 @@ export default function Home() {
       return candidateLocations[0].name
     }
 
-    // Regional fallback based on bounds
-    if (isInZambales) return "Zambales"
-    if (isInBataan) return "Bataan"
-    if (isInPampanga) return "Pampanga"
+    // Regional fallback based on bounds - use the highest priority matching region
+    if (matchingRegions.length > 0) {
+      const sortedByPriority = matchingRegions.sort(
+        (a, b) => locationBounds[a.key].priority - locationBounds[b.key].priority,
+      )
+      return sortedByPriority[0].cityName
+    }
 
     // Default to "Philippines" if no specific location is found
     return "Philippines"
   }
+  // </CHANGE>
 
   const formatDate = (dateValue: string | Date): string => {
     if (!dateValue) return "N/A"
@@ -3903,7 +4310,7 @@ export default function Home() {
           >
             {/* Header */}
             <DialogHeader className="flex-shrink-0 p-4 sm:p-6 border-b border-slate-700/50">
-              <DialogTitle className="flex items-center gap-3 sm:gap-4 text-lg sm:text-2xl font-bold">
+              <DialogTitle className="flex items-center gap-2 sm:gap-4 text-lg sm:text-2xl font-bold">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-red-600 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
                   <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                 </div>
