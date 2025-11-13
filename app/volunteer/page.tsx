@@ -66,7 +66,6 @@ export default function VolunteerDashboard() {
   const [newUpdate, setNewUpdate] = useState({
     barangay: "",
     municipality: "",
-    province: "",
     update_type: "weather" as VolunteerUpdate["update_type"],
     severity: "moderate" as VolunteerUpdate["severity"],
     title: "",
@@ -130,7 +129,6 @@ export default function VolunteerDashboard() {
         setNewUpdate({
           barangay: "",
           municipality: "",
-          province: "",
           update_type: "weather",
           severity: "moderate",
           title: "",
@@ -210,25 +208,30 @@ export default function VolunteerDashboard() {
   return (
     <RouteGuard requireAuth requireRole="volunteer" loginPath="/volunteer-login">
       <div className="min-h-screen bg-slate-950">
-        <div className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
-          <div className="container mx-auto px-6 lg:px-8">
+        <div className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/95 backdrop-blur-md">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
                   <Users className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">WINDER+ Volunteer</h1>
+                  <h1 className="text-xl font-bold text-white tracking-tight">WINDER+ Volunteer</h1>
                   <p className="text-sm text-slate-400">Field Updates & Monitoring</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-sm font-semibold text-white">{user?.name}</p>
                   <p className="text-xs text-slate-400">{user?.email}</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-white">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                >
                   <LogOut className="w-4 h-4" />
                 </Button>
               </div>
@@ -236,26 +239,26 @@ export default function VolunteerDashboard() {
           </div>
         </div>
 
-        <div className="container mx-auto px-6 lg:px-8 py-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-3 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-slate-900/50 border border-slate-800 p-1.5 rounded-xl backdrop-blur-sm">
               <TabsTrigger
                 value="overview"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
               >
                 <Activity className="w-4 h-4" />
                 <span className="hidden xs:inline">Overview</span>
               </TabsTrigger>
               <TabsTrigger
                 value="areas"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
               >
                 <MapPin className="w-4 h-4" />
                 <span className="hidden xs:inline">My Areas</span>
               </TabsTrigger>
               <TabsTrigger
                 value="updates"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
               >
                 <Send className="w-4 h-4" />
                 <span className="hidden xs:inline">Updates</span>
@@ -263,13 +266,15 @@ export default function VolunteerDashboard() {
             </TabsList>
 
             {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-slate-900 border-slate-800">
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-900/50 border-slate-800 hover:border-slate-700 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <TrendingUp className="w-5 h-5 text-slate-400" />
-                      <Badge variant="outline" className="border-slate-600 text-slate-400">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <Badge variant="outline" className="border-slate-700 text-slate-400">
                         Total
                       </Badge>
                     </div>
@@ -278,10 +283,12 @@ export default function VolunteerDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-900/50 border-slate-800 hover:border-blue-500/50 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <Activity className="w-5 h-5 text-blue-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                        <Activity className="w-5 h-5 text-blue-500" />
+                      </div>
                       <Badge variant="outline" className="border-blue-500/50 text-blue-500">
                         Active
                       </Badge>
@@ -291,10 +298,12 @@ export default function VolunteerDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-900/50 border-slate-800 hover:border-red-500/50 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
+                      </div>
                       <Badge variant="outline" className="border-red-500/50 text-red-500">
                         Critical
                       </Badge>
@@ -304,10 +313,12 @@ export default function VolunteerDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-900/50 border-slate-800 hover:border-green-500/50 transition-colors">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      </div>
                       <Badge variant="outline" className="border-green-500/50 text-green-500">
                         Resolved
                       </Badge>
@@ -319,34 +330,37 @@ export default function VolunteerDashboard() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="bg-slate-900 border-slate-800">
-                  <CardHeader>
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-white">Assigned Areas</CardTitle>
+                      <CardTitle className="text-white text-lg">Assigned Areas</CardTitle>
                       <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                        {areas.length} Areas
+                        {areas.length} {areas.length === 1 ? "Area" : "Areas"}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     {areas.length === 0 ? (
-                      <div className="text-center py-8">
-                        <MapPin className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                        <p className="text-slate-400">No areas assigned yet</p>
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <MapPin className="w-8 h-8 text-slate-600" />
+                        </div>
+                        <p className="text-slate-400 font-medium">No areas assigned yet</p>
+                        <p className="text-sm text-slate-500 mt-1">Contact admin for area assignment</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {areas.map((area) => (
                           <div
                             key={area.id}
-                            className="flex items-center gap-3 p-4 bg-slate-800/50 rounded-lg border border-slate-800"
+                            className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors"
                           >
-                            <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                              <Home className="w-5 h-5 text-green-500" />
+                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/20">
+                              <Home className="w-6 h-6 text-white" />
                             </div>
-                            <div>
-                              <p className="font-medium text-white">{area.barangay}</p>
-                              <p className="text-sm text-slate-400">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-white truncate">{area.barangay}</p>
+                              <p className="text-sm text-slate-400 truncate">
                                 {area.municipality}, {area.province}
                               </p>
                             </div>
@@ -357,24 +371,24 @@ export default function VolunteerDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Quick Actions</CardTitle>
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-green-600 hover:bg-green-700 h-auto py-4">
-                          <Plus className="w-5 h-5 mr-2" />
+                        <Button className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 h-auto py-5 shadow-lg shadow-green-500/20 transition-all hover:shadow-green-500/30">
+                          <Plus className="w-5 h-5 mr-3" />
                           <div className="text-left">
-                            <div className="font-semibold">Post New Update</div>
+                            <div className="font-semibold text-base">Post New Update</div>
                             <div className="text-xs opacity-90">Share field observations</div>
                           </div>
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle className="text-white">Create New Update</DialogTitle>
+                          <DialogTitle className="text-white text-xl">Create New Update</DialogTitle>
                           <DialogDescription className="text-slate-400">
                             Share weather conditions and situation updates from your area
                           </DialogDescription>
@@ -439,7 +453,7 @@ export default function VolunteerDashboard() {
                             />
                           </div>
 
-                          <div className="grid grid-cols-3 gap-4">
+                          <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label className="text-white">Barangay</Label>
                               <Input
@@ -455,15 +469,6 @@ export default function VolunteerDashboard() {
                                 placeholder="Municipality"
                                 value={newUpdate.municipality}
                                 onChange={(e) => setNewUpdate({ ...newUpdate, municipality: e.target.value })}
-                                className="bg-slate-800 border-slate-700 text-white"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-white">Province</Label>
-                              <Input
-                                placeholder="Province"
-                                value={newUpdate.province}
-                                onChange={(e) => setNewUpdate({ ...newUpdate, province: e.target.value })}
                                 className="bg-slate-800 border-slate-700 text-white"
                               />
                             </div>
@@ -492,11 +497,11 @@ export default function VolunteerDashboard() {
                     <Button
                       variant="outline"
                       onClick={() => router.push("/")}
-                      className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700 h-auto py-4"
+                      className="w-full bg-slate-800/50 border-slate-700 text-white hover:bg-slate-800 h-auto py-5 transition-all"
                     >
-                      <Cloud className="w-5 h-5 mr-2" />
+                      <Cloud className="w-5 h-5 mr-3" />
                       <div className="text-left">
-                        <div className="font-semibold">Weather App</div>
+                        <div className="font-semibold text-base">Weather App</div>
                         <div className="text-xs opacity-90">View current conditions</div>
                       </div>
                     </Button>
@@ -504,25 +509,28 @@ export default function VolunteerDashboard() {
                 </Card>
               </div>
 
-              <Card className="bg-slate-900 border-slate-800">
-                <CardHeader>
-                  <CardTitle className="text-white">Recent Updates</CardTitle>
+              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-white text-lg">Recent Updates</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {updates.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Send className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                      <p className="text-slate-400">No updates posted yet</p>
+                    <div className="text-center py-16">
+                      <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Send className="w-8 h-8 text-slate-600" />
+                      </div>
+                      <p className="text-slate-400 font-medium mb-2">No updates posted yet</p>
+                      <p className="text-sm text-slate-500">Start by posting your first field update</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {updates.slice(0, 5).map((update) => (
                         <div
                           key={update.id}
-                          className="flex items-start gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-800"
+                          className="flex items-start gap-4 p-5 bg-slate-800/50 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors"
                         >
                           <div
-                            className={`w-10 h-10 ${getSeverityColor(update.severity)}/10 rounded-lg flex items-center justify-center flex-shrink-0`}
+                            className={`w-12 h-12 ${getSeverityColor(update.severity)}/10 rounded-xl flex items-center justify-center flex-shrink-0`}
                           >
                             <div
                               className={`text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500`}
@@ -531,8 +539,8 @@ export default function VolunteerDashboard() {
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <p className="font-medium text-white">{update.title}</p>
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <p className="font-semibold text-white leading-snug">{update.title}</p>
                               <Badge
                                 variant="outline"
                                 className={`border-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500/50 text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500 capitalize flex-shrink-0`}
@@ -540,10 +548,10 @@ export default function VolunteerDashboard() {
                                 {update.severity}
                               </Badge>
                             </div>
-                            <p className="text-sm text-slate-400 mb-2">{update.description}</p>
+                            <p className="text-sm text-slate-400 mb-3 leading-relaxed">{update.description}</p>
                             <div className="flex items-center gap-4 text-xs text-slate-500">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
+                              <span className="flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5" />
                                 {update.barangay}, {update.municipality}
                               </span>
                               <span>{formatTimeAgo(update.created_at)}</span>
@@ -559,69 +567,102 @@ export default function VolunteerDashboard() {
 
             {/* Areas Tab */}
             <TabsContent value="areas" className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-2">
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-1">My Assigned Areas</h2>
                   <p className="text-slate-400">Areas you are responsible for monitoring</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {areas.map((area) => (
-                  <Card key={area.id} className="bg-slate-900 border-slate-800">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Home className="w-6 h-6 text-green-500" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white mb-1">{area.barangay}</h3>
-                          <p className="text-sm text-slate-400 mb-3">
-                            {area.municipality}, {area.province}
-                          </p>
-                          <Badge variant="outline" className="border-green-500/50 text-green-500">
-                            Active Assignment
-                          </Badge>
-                        </div>
+              {areas.length === 0 ? (
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardContent className="py-20">
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <MapPin className="w-10 h-10 text-slate-600" />
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      <p className="text-slate-400 font-medium mb-2">No areas assigned yet</p>
+                      <p className="text-sm text-slate-500">
+                        Contact your administrator to get assigned to monitoring areas
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {areas.map((area) => (
+                    <Card
+                      key={area.id}
+                      className="bg-slate-900/50 border-slate-800 hover:border-slate-700 transition-colors backdrop-blur-sm"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/20">
+                            <Home className="w-7 h-7 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-white mb-1.5 truncate text-lg">{area.barangay}</h3>
+                            <p className="text-sm text-slate-400 mb-3 truncate">
+                              {area.municipality}, {area.province}
+                            </p>
+                            <Badge variant="outline" className="border-green-500/50 text-green-500">
+                              Active Assignment
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             {/* Updates Tab */}
             <TabsContent value="updates" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-1">My Updates</h2>
-                  <p className="text-slate-400">All updates you have posted</p>
-                </div>
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Update
-                </Button>
+              <div className="mb-2">
+                <h2 className="text-2xl font-bold text-white mb-1">My Updates</h2>
+                <p className="text-slate-400">All updates you have posted</p>
               </div>
 
-              <div className="space-y-4">
-                {updates.map((update) => (
-                  <Card key={update.id} className="bg-slate-900 border-slate-800">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`w-12 h-12 ${getSeverityColor(update.severity)}/10 rounded-lg flex items-center justify-center flex-shrink-0`}
-                        >
+              {updates.length === 0 ? (
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardContent className="py-20">
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Send className="w-10 h-10 text-slate-600" />
+                      </div>
+                      <p className="text-slate-400 font-medium mb-2">No updates posted yet</p>
+                      <p className="text-sm text-slate-500 mb-6">
+                        Start by posting your first field update from the Overview tab
+                      </p>
+                      <Button onClick={() => setActiveTab("overview")} className="bg-green-600 hover:bg-green-700">
+                        Go to Overview
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {updates.map((update) => (
+                    <Card
+                      key={update.id}
+                      className="bg-slate-900/50 border-slate-800 hover:border-slate-700 transition-colors backdrop-blur-sm"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
                           <div
-                            className={`text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500`}
+                            className={`w-14 h-14 ${getSeverityColor(update.severity)}/10 rounded-xl flex items-center justify-center flex-shrink-0`}
                           >
-                            {getUpdateTypeIcon(update.update_type)}
+                            <div
+                              className={`text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500`}
+                            >
+                              {getUpdateTypeIcon(update.update_type)}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between gap-4 mb-2">
-                            <div>
-                              <h3 className="font-semibold text-white mb-1">{update.title}</h3>
-                              <div className="flex items-center gap-3 text-sm text-slate-400 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="mb-3">
+                              <h3 className="font-semibold text-white mb-2 text-lg leading-snug">{update.title}</h3>
+                              <div className="flex flex-wrap items-center gap-2">
                                 <Badge
                                   variant="outline"
                                   className={`border-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500/50 text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "green"}-500 capitalize`}
@@ -639,21 +680,21 @@ export default function VolunteerDashboard() {
                                 </Badge>
                               </div>
                             </div>
-                          </div>
-                          <p className="text-slate-300 mb-3">{update.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {update.barangay}, {update.municipality}, {update.province}
-                            </span>
-                            <span>{formatTimeAgo(update.created_at)}</span>
+                            <p className="text-slate-300 mb-4 leading-relaxed">{update.description}</p>
+                            <div className="flex items-center gap-4 text-sm text-slate-500">
+                              <span className="flex items-center gap-1.5">
+                                <MapPin className="w-4 h-4" />
+                                {update.barangay}, {update.municipality}, {update.province}
+                              </span>
+                              <span>{formatTimeAgo(update.created_at)}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

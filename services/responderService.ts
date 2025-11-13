@@ -130,3 +130,65 @@ export async function updateDeploymentStatus(emergencyId: number, status: string
 
   return true
 }
+
+export async function authenticateResponder(
+  email: string,
+  password: string,
+): Promise<{ success: boolean; responder?: any; team?: ResponseTeam }> {
+  try {
+    const { data: responder, error } = await supabase
+      .from("responders")
+      .select("*, response_teams(*)")
+      .eq("email", email)
+      .eq("is_active", true)
+      .single()
+
+    if (error || !responder) {
+      console.error("Responder not found:", error)
+      return { success: false }
+    }
+
+    // In a real app, you'd verify the hashed password
+    // For now, we'll do a simple check
+    if (responder.password !== password) {
+      console.error("Invalid password")
+      return { success: false }
+    }
+
+    return {
+      success: true,
+      responder: {
+        id: responder.id.toString(),
+        email: responder.email,
+        name: responder.full_name,
+        role: "responder",
+        teamId: responder.team_id,
+        teamRole: responder.role,
+      },
+      team: responder.response_teams,
+    }
+  } catch (error) {
+    console.error("Error authenticating responder:", error)
+    return { success: false }
+  }
+}
+
+export async function getResponderEmergencies(teamId: number): Promise<Emergency[]> {
+  try {
+    const { data, error } = await supabase
+      .from("emergency_reports")
+      .select("*")
+      .eq("assigned_team_id", teamId)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching responder emergencies:", error)
+      return []
+    }
+
+    return data || []
+  } catch (error) {
+    console.error("Error in getResponderEmergencies:", error)
+    return []
+  }
+}

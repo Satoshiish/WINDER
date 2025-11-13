@@ -23,33 +23,35 @@ export function RouteGuard({
   const router = useRouter()
 
   useEffect(() => {
-    if (loading) return
-
-    // Check authentication requirement
-    if (requireAuth && !isAuthenticated) {
-      router.push(loginPath)
+    if (loading) {
       return
     }
 
-    // Check role requirement
+    if (requireAuth && !isAuthenticated) {
+      router.replace(loginPath)
+      return
+    }
+
     if (requireRole && (!user || !hasRole(requireRole))) {
-      router.push(fallbackPath)
+      router.replace(fallbackPath)
       return
     }
   }, [user, loading, isAuthenticated, requireAuth, requireRole, router, hasRole, fallbackPath, loginPath])
 
-  // Show loading while checking auth
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
     )
   }
 
-  // Don't render if auth requirements not met
-  if (requireAuth && !isAuthenticated) return null
-  if (requireRole && (!user || !hasRole(requireRole))) return null
+  if (requireAuth && !isAuthenticated) {
+    return null
+  }
+  if (requireRole && (!user || !hasRole(requireRole))) {
+    return null
+  }
 
   return <>{children}</>
 }

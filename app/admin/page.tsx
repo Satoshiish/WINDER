@@ -50,18 +50,27 @@ import {
   Users,
   FileText,
   MessageSquare,
+  Edit2,
 } from "lucide-react"
 import { getEmergencyStats } from "@/services/emergencyService"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/services/adminStorageService"
 import { useToast } from "@/hooks/use-toast"
 import { formatAddress } from "@/lib/format-address"
-import { getBarangayFromCoordinates, formatBarangay } from "@/lib/barangay-lookup"
 import {
   getVolunteerUpdates,
   getVolunteerUpdateStats,
   updateVolunteerUpdateStatus,
   type VolunteerUpdate,
 } from "@/services/volunteerService"
+import {
+  getAllVolunteers,
+  addVolunteer,
+  updateVolunteer,
+  deleteVolunteer,
+  getOlongapoBarangays,
+  type Volunteer,
+} from "@/services/volunteerAdminService"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
@@ -107,6 +116,30 @@ export default function AdminDashboard() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [isAddingUser, setIsAddingUser] = useState(false)
 
+  // Volunteer management state
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([])
+  const [isLoadingVolunteers, setIsLoadingVolunteers] = useState(false)
+  const [isAddVolunteerDialogOpen, setIsAddVolunteerDialogOpen] = useState(false)
+  const [isEditVolunteerDialogOpen, setIsEditVolunteerDialogOpen] = useState(false)
+  const [volunteerToDelete, setVolunteerToDelete] = useState<Volunteer | null>(null)
+  const [selectedVolunteer, setSelectedVolunteer] = useState<Volunteer | null>(null)
+  const [newVolunteerForm, setNewVolunteerForm] = useState({
+    email: "",
+    password: "",
+    full_name: "",
+    phone_number: "",
+    barangay: "",
+    municipality: "Olongapo City",
+  })
+  const [editVolunteerForm, setEditVolunteerForm] = useState({
+    full_name: "",
+    phone_number: "",
+    barangay: "",
+    is_active: true,
+  })
+  const [isAddingVolunteer, setIsAddingVolunteer] = useState(false)
+  const [isEditingVolunteer, setIsEditingVolunteer] = useState(false)
+
   const handleLogout = () => {
     logout()
     router.push("/")
@@ -148,6 +181,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadVolunteerUpdates()
+  }, [])
+
+  // Volunteer loading effect
+  useEffect(() => {
+    loadVolunteers()
   }, [])
 
   const loadVolunteerUpdates = async () => {
@@ -216,12 +254,167 @@ export default function AdminDashboard() {
   const handleSettingChange = (key: string, value: boolean | number) => {
     const newSettings = { ...settings, [key]: value }
     setSettings(newSettings)
-    localStorage.setItem("winder-admin-settings", JSON.stringify(newSettings))
+    localStorage.setItem("winder-admin-settings", JSON.JSON.stringify(newSettings))
 
     toast({
       title: "Settings Updated",
       description: `${key.replace(/([A-Z])/g, " $1").trim()} has been ${typeof value === "boolean" ? (value ? "enabled" : "disabled") : "updated"}.`,
     })
+  }
+
+  // Volunteer management functions
+  const loadVolunteers = async () => {
+    setIsLoadingVolunteers(true)
+    try {
+      const data = await getAllVolunteers()
+      setVolunteers(data)
+    } catch (error) {
+      console.error("Error loading volunteers:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load volunteers",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingVolunteers(false)
+    }
+  }
+
+  const handleAddVolunteer = async () => {
+    if (
+      !newVolunteerForm.email ||
+      !newVolunteerForm.password ||
+      !newVolunteerForm.full_name ||
+      !newVolunteerForm.phone_number ||
+      !newVolunteerForm.barangay
+    ) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAddingVolunteer(true)
+    try {
+      const result = await addVolunteer(newVolunteerForm)
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        })
+        setIsAddVolunteerDialogOpen(false)
+        setNewVolunteerForm({
+          email: "",
+          password: "",
+          full_name: "",
+          phone_number: "",
+          barangay: "",
+          municipality: "Olongapo City",
+        })
+        await loadVolunteers()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error adding volunteer:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsAddingVolunteer(false)
+    }
+  }
+
+  const handleEditVolunteer = async () => {
+    if (!selectedVolunteer) return
+
+    if (!editVolunteerForm.full_name || !editVolunteerForm.phone_number || !editVolunteerForm.barangay) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsEditingVolunteer(true)
+    try {
+      const result = await updateVolunteer(selectedVolunteer.id, editVolunteerForm)
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        })
+        setIsEditVolunteerDialogOpen(false)
+        setSelectedVolunteer(null)
+        await loadVolunteers()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating volunteer:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsEditingVolunteer(false)
+    }
+  }
+
+  const handleDeleteVolunteer = async (volunteer: Volunteer) => {
+    try {
+      const result = await deleteVolunteer(volunteer.id)
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        })
+        await loadVolunteers()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error deleting volunteer:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setVolunteerToDelete(null)
+    }
+  }
+
+  const openEditDialog = (volunteer: Volunteer) => {
+    setSelectedVolunteer(volunteer)
+    setEditVolunteerForm({
+      full_name: volunteer.full_name,
+      phone_number: volunteer.phone_number,
+      barangay: volunteer.barangay,
+      is_active: volunteer.is_active,
+    })
+    setIsEditVolunteerDialogOpen(true)
   }
 
   const handleAddUser = async () => {
@@ -403,20 +596,13 @@ export default function AdminDashboard() {
 
         <div className="container mx-auto px-6 lg:px-8 py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-5 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-4 bg-slate-900 border border-slate-800 p-1 rounded-lg">
               <TabsTrigger
                 value="overview"
                 className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden xs:inline">Overview</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="locations"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white rounded-md"
-              >
-                <MapPin className="w-4 h-4" />
-                <span className="hidden xs:inline">Locations</span>
               </TabsTrigger>
               <TabsTrigger
                 value="emergencies"
@@ -526,26 +712,6 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card
                   className="bg-slate-900 border-slate-800 cursor-pointer hover:border-slate-700 transition-colors"
-                  onClick={() => router.push("/admin/locations")}
-                >
-                  <CardContent className="p-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                          <MapPin className="w-6 h-6 text-green-500" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white mb-1">Location Management</h3>
-                          <p className="text-sm text-slate-400">Monitor shared locations</p>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-slate-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card
-                  className="bg-slate-900 border-slate-800 cursor-pointer hover:border-slate-700 transition-colors"
                   onClick={() => router.push("/admin/emergencies")}
                 >
                   <CardContent className="p-8">
@@ -562,6 +728,31 @@ export default function AdminDashboard() {
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-1">Emergency Management</h3>
                           <p className="text-sm text-slate-400">Handle emergency requests</p>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-slate-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card
+                  className="bg-slate-900 border-slate-800 cursor-pointer hover:border-slate-700 transition-colors"
+                  onClick={() => setActiveTab("volunteer-reports")}
+                >
+                  <CardContent className="p-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center relative">
+                          <Users className="w-6 h-6 text-green-500" />
+                          {volunteerStats.active > 0 && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                              <span className="text-xs text-white font-bold">{volunteerStats.active}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-white mb-1">Volunteer Management</h3>
+                          <p className="text-sm text-slate-400">Manage volunteers and view their reports</p>
                         </div>
                       </div>
                       <ArrowRight className="w-5 h-5 text-slate-600" />
@@ -601,64 +792,6 @@ export default function AdminDashboard() {
                           </div>
                           <div className="text-right">
                             <Badge variant="outline" className="border-slate-700 text-slate-300 capitalize mb-1">
-                              {share.status}
-                            </Badge>
-                            <p className="text-xs text-slate-500">{formatTimeAgo(share.timestamp)}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Locations Tab */}
-            <TabsContent value="locations" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-1">Location Management</h2>
-                  <p className="text-slate-400">Monitor and manage shared locations</p>
-                </div>
-                <Button onClick={() => router.push("/admin/locations")} className="bg-blue-600 hover:bg-blue-700">
-                  View All
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-
-              <Card className="bg-slate-900 border-slate-800">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">Shared Locations</CardTitle>
-                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                      {sharedLocations.length} Total
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {sharedLocations.length === 0 ? (
-                    <div className="text-center py-12">
-                      <MapPin className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                      <p className="text-slate-400">No locations shared yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {sharedLocations.slice(0, 5).map((share) => (
-                        <div
-                          key={share.id}
-                          className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-800"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${getStatusColor(share.status)}`} />
-                            <div>
-                              <p className="font-medium text-white">{share.userName}</p>
-                              <p className="text-sm text-slate-400">
-                                {formatBarangay(getBarangayFromCoordinates(share.location.lat, share.location.lng))}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="border-slate-700 text-slate-300 capitalize">
                               {share.status}
                             </Badge>
                             <p className="text-xs text-slate-500">{formatTimeAgo(share.timestamp)}</p>
@@ -1004,45 +1137,6 @@ export default function AdminDashboard() {
 
                 <Card className="bg-slate-900 border-slate-800">
                   <CardHeader>
-                    <CardTitle className="text-white">Location Tracking</CardTitle>
-                    <CardDescription className="text-slate-400">Manage location monitoring settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-white font-medium">Location Tracking</Label>
-                        <p className="text-sm text-slate-400">Real-time location monitoring</p>
-                      </div>
-                      <Switch
-                        checked={settings.locationTracking}
-                        onCheckedChange={(checked) => handleSettingChange("locationTracking", checked)}
-                      />
-                    </div>
-
-                    <div className="pt-4 border-t border-slate-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <Label className="text-white font-medium">Active Locations</Label>
-                        <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                          {sharedLocations.filter((l) => l.status === "active").length}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-slate-400 mb-3">
-                        Currently monitoring {sharedLocations.filter((l) => l.status === "active").length} locations
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => router.push("/admin/locations")}
-                        className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
-                      >
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Manage Locations
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-slate-900 border-slate-800">
-                  <CardHeader>
                     <CardTitle className="text-white">Data Management</CardTitle>
                     <CardDescription className="text-slate-400">Configure data retention policies</CardDescription>
                   </CardHeader>
@@ -1078,8 +1172,10 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
 
-                <Card className="bg-slate-900 border-slate-800">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-slate-900 border-slate-800 flex flex-col">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
@@ -1091,47 +1187,60 @@ export default function AdminDashboard() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 flex-1 flex flex-col">
                     {isLoadingUsers ? (
                       <div className="text-center py-8">
                         <p className="text-slate-400">Loading admin users...</p>
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                        {adminUsers.map((adminUser) => (
-                          <div
-                            key={adminUser.id}
-                            className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-800"
-                          >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                                <User className="w-5 h-5 text-blue-500" />
+                      <>
+                        <div
+                          className="space-y-2 max-h-[300px] overflow-y-auto flex-1"
+                          style={{
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                          }}
+                        >
+                          <style jsx>{`
+                            div::-webkit-scrollbar {
+                              display: none;
+                            }
+                          `}</style>
+                          {adminUsers.map((adminUser) => (
+                            <div
+                              key={adminUser.id}
+                              className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-800"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                  <User className="w-5 h-5 text-blue-500" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-white truncate">{adminUser.name}</p>
+                                  <p className="text-xs text-slate-400 truncate">{adminUser.email}</p>
+                                </div>
                               </div>
-                              <div className="min-w-0">
-                                <p className="font-medium text-white truncate">{adminUser.name}</p>
-                                <p className="text-xs text-slate-400 truncate">{adminUser.email}</p>
-                              </div>
+                              {adminUser.id !== user?.id && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setUserToDelete(adminUser)}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
                             </div>
-                            {adminUser.id !== user?.id && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setUserToDelete(adminUser)}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      </>
                     )}
 
                     <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                          className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700 mt-auto"
                           disabled={adminUsers.length >= 10 || isLoadingUsers}
                         >
                           <UserPlus className="w-4 h-4 mr-2" />
@@ -1211,6 +1320,284 @@ export default function AdminDashboard() {
                     </Dialog>
                   </CardContent>
                 </Card>
+
+                <Card className="bg-slate-900 border-slate-800 flex flex-col">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-white">Volunteer Management</CardTitle>
+                        <CardDescription className="text-slate-400">Add and assign volunteers to areas</CardDescription>
+                      </div>
+                      <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+                        {volunteers.length} Total
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4 flex-1 flex flex-col">
+                    {isLoadingVolunteers ? (
+                      <div className="text-center py-8">
+                        <p className="text-slate-400">Loading volunteers...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div
+                          className="space-y-2 max-h-[300px] overflow-y-auto flex-1"
+                          style={{
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                          }}
+                        >
+                          <style jsx>{`
+                            div::-webkit-scrollbar {
+                              display: none;
+                            }
+                          `}</style>
+                          {volunteers.length === 0 ? (
+                            <div className="text-center py-8">
+                              <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                              <p className="text-slate-400">No volunteers added yet</p>
+                            </div>
+                          ) : (
+                            volunteers.map((volunteer) => (
+                              <div
+                                key={volunteer.id}
+                                className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-800"
+                              >
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                    <User className="w-5 h-5 text-green-500" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium text-white truncate">{volunteer.full_name}</p>
+                                      {!volunteer.is_active && (
+                                        <Badge variant="secondary" className="bg-red-500/10 text-red-500 text-xs">
+                                          Inactive
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-slate-400 truncate">{volunteer.email}</p>
+                                    <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {volunteer.barangay}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openEditDialog(volunteer)}
+                                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setVolunteerToDelete(volunteer)}
+                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    <Dialog open={isAddVolunteerDialogOpen} onOpenChange={setIsAddVolunteerDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700 mt-auto"
+                          disabled={isLoadingVolunteers}
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Add Volunteer
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Add New Volunteer</DialogTitle>
+                          <DialogDescription className="text-slate-400">
+                            Create a new volunteer account and assign to a barangay
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label className="text-white">Full Name</Label>
+                            <Input
+                              placeholder="Juan Dela Cruz"
+                              value={newVolunteerForm.full_name}
+                              onChange={(e) => setNewVolunteerForm({ ...newVolunteerForm, full_name: e.target.value })}
+                              className="bg-slate-800 border-slate-700 text-white"
+                              disabled={isAddingVolunteer}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Email</Label>
+                            <Input
+                              type="email"
+                              placeholder="volunteer@example.com"
+                              value={newVolunteerForm.email}
+                              onChange={(e) => setNewVolunteerForm({ ...newVolunteerForm, email: e.target.value })}
+                              className="bg-slate-800 border-slate-700 text-white"
+                              disabled={isAddingVolunteer}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Password</Label>
+                            <Input
+                              type="password"
+                              placeholder="Min. 6 characters"
+                              value={newVolunteerForm.password}
+                              onChange={(e) => setNewVolunteerForm({ ...newVolunteerForm, password: e.target.value })}
+                              className="bg-slate-800 border-slate-700 text-white"
+                              disabled={isAddingVolunteer}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Phone Number</Label>
+                            <Input
+                              placeholder="0917-123-4567"
+                              value={newVolunteerForm.phone_number}
+                              onChange={(e) =>
+                                setNewVolunteerForm({ ...newVolunteerForm, phone_number: e.target.value })
+                              }
+                              className="bg-slate-800 border-slate-700 text-white"
+                              disabled={isAddingVolunteer}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Assigned Barangay</Label>
+                            <Select
+                              value={newVolunteerForm.barangay}
+                              onValueChange={(value) => setNewVolunteerForm({ ...newVolunteerForm, barangay: value })}
+                              disabled={isAddingVolunteer}
+                            >
+                              <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                                <SelectValue placeholder="Select barangay" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-800 border-slate-700">
+                                {getOlongapoBarangays().map((barangay) => (
+                                  <SelectItem key={barangay} value={barangay} className="text-white">
+                                    {barangay}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsAddVolunteerDialogOpen(false)}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                            disabled={isAddingVolunteer}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleAddVolunteer}
+                            className="bg-green-600 hover:bg-green-700"
+                            disabled={isAddingVolunteer}
+                          >
+                            {isAddingVolunteer ? "Adding..." : "Add Volunteer"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isEditVolunteerDialogOpen} onOpenChange={setIsEditVolunteerDialogOpen}>
+                      <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Edit Volunteer</DialogTitle>
+                          <DialogDescription className="text-slate-400">
+                            Update volunteer information and assignment
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label className="text-white">Full Name</Label>
+                            <Input
+                              placeholder="Juan Dela Cruz"
+                              value={editVolunteerForm.full_name}
+                              onChange={(e) =>
+                                setEditVolunteerForm({ ...editVolunteerForm, full_name: e.target.value })
+                              }
+                              className="bg-slate-800 border-slate-700 text-white"
+                              disabled={isEditingVolunteer}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Phone Number</Label>
+                            <Input
+                              placeholder="0917-123-4567"
+                              value={editVolunteerForm.phone_number}
+                              onChange={(e) =>
+                                setEditVolunteerForm({ ...editVolunteerForm, phone_number: e.target.value })
+                              }
+                              className="bg-slate-800 border-slate-700 text-white"
+                              disabled={isEditingVolunteer}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Assigned Barangay</Label>
+                            <Select
+                              value={editVolunteerForm.barangay}
+                              onValueChange={(value) => setEditVolunteerForm({ ...editVolunteerForm, barangay: value })}
+                              disabled={isEditingVolunteer}
+                            >
+                              <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                                <SelectValue placeholder="Select barangay" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-800 border-slate-700">
+                                {getOlongapoBarangays().map((barangay) => (
+                                  <SelectItem key={barangay} value={barangay} className="text-white">
+                                    {barangay}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                            <div>
+                              <Label className="text-white font-medium">Active Status</Label>
+                              <p className="text-sm text-slate-400">Enable or disable volunteer account</p>
+                            </div>
+                            <Switch
+                              checked={editVolunteerForm.is_active}
+                              onCheckedChange={(checked) =>
+                                setEditVolunteerForm({ ...editVolunteerForm, is_active: checked })
+                              }
+                              disabled={isEditingVolunteer}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditVolunteerDialogOpen(false)}
+                            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                            disabled={isEditingVolunteer}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleEditVolunteer}
+                            className="bg-blue-600 hover:bg-blue-700"
+                            disabled={isEditingVolunteer}
+                          >
+                            {isEditingVolunteer ? "Saving..." : "Save Changes"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
               </div>
 
               <Card className="bg-slate-900 border-slate-800">
@@ -1218,7 +1605,7 @@ export default function AdminDashboard() {
                   <CardTitle className="text-white">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Button
                       variant="outline"
                       onClick={() => router.push("/")}
@@ -1227,16 +1614,6 @@ export default function AdminDashboard() {
                       <div className="flex flex-col items-center gap-2">
                         <Globe className="w-6 h-6" />
                         <span>Weather App</span>
-                      </div>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push("/admin/locations")}
-                      className="h-auto py-6 bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <MapPin className="w-6 h-6" />
-                        <span>Locations</span>
                       </div>
                     </Button>
                     <Button
@@ -1275,6 +1652,30 @@ export default function AdminDashboard() {
               className="bg-red-600 hover:bg-red-700"
             >
               Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Volunteer deletion confirmation dialog */}
+      <AlertDialog open={!!volunteerToDelete} onOpenChange={() => setVolunteerToDelete(null)}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Volunteer</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to remove <strong>{volunteerToDelete?.full_name}</strong> (
+              {volunteerToDelete?.email})? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => volunteerToDelete && handleDeleteVolunteer(volunteerToDelete)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Volunteer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

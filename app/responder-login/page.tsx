@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth } from "@/hooks/use-auth"
 import { Shield, Eye, EyeOff, Loader2, Cloud, ArrowLeft } from "lucide-react"
+import { authenticateResponder } from "@/services/responderService"
 
 export default function ResponderLoginPage() {
   const router = useRouter()
-  const { login, loading } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -25,9 +24,18 @@ export default function ResponderLoginPage() {
     setIsLoading(true)
 
     try {
-      const success = await login(email, password, "responder")
-      if (success) {
-        router.push("/responder")
+      console.log("[v0] Responder login attempt for:", email)
+
+      const result = await authenticateResponder(email, password)
+
+      if (result.success && result.responder) {
+        console.log("[v0] Responder login successful:", result.responder)
+
+        // Store responder data in localStorage
+        localStorage.setItem("weather-app-user", JSON.stringify(result.responder))
+
+        // Redirect to responder dashboard
+        window.location.replace("/responder")
       } else {
         setError("Invalid email or password. Please check your credentials.")
       }
@@ -120,7 +128,7 @@ export default function ResponderLoginPage() {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium h-11 rounded-xl shadow-lg shadow-orange-500/25 transition-all duration-200"
-              disabled={isLoading || loading}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <>

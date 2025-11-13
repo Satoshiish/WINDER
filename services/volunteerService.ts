@@ -16,7 +16,7 @@ export interface VolunteerUpdate {
   volunteer_name?: string
   barangay: string
   municipality: string
-  province: string
+  province?: string
   update_type: "weather" | "flood" | "evacuation" | "damage" | "safety" | "other"
   severity: "low" | "moderate" | "high" | "critical"
   title: string
@@ -54,8 +54,7 @@ export async function getVolunteerUpdates(volunteerId?: number): Promise<Volunte
   try {
     let query = supabase
       .from("volunteer_updates")
-      .select(`
-        *,
+      .select(`*
         volunteers!volunteer_id (
           full_name
         )
@@ -88,24 +87,28 @@ export async function createVolunteerUpdate(
   update: Omit<VolunteerUpdate, "id" | "volunteer_id" | "created_at" | "updated_at" | "status">,
 ): Promise<{ success: boolean; message: string; data?: VolunteerUpdate }> {
   try {
+    console.log("[v0] Creating volunteer update:", update)
+
     const { data, error } = await supabase
       .from("volunteer_updates")
       .insert({
         volunteer_id: volunteerId,
         ...update,
+        province: update.province || null,
         status: "active",
       })
       .select()
       .single()
 
     if (error) {
-      console.error("Error creating volunteer update:", error)
-      return { success: false, message: "Failed to create update" }
+      console.error("[v0] Error creating volunteer update:", error)
+      return { success: false, message: error.message || "Failed to create update" }
     }
 
+    console.log("[v0] Update created successfully:", data)
     return { success: true, message: "Update created successfully", data }
   } catch (error) {
-    console.error("Error creating volunteer update:", error)
+    console.error("[v0] Error creating volunteer update:", error)
     return { success: false, message: "An error occurred" }
   }
 }

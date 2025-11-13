@@ -9,6 +9,8 @@ interface User {
   name: string
   role: "user" | "admin" | "volunteer" | "responder"
   team_id?: number
+  teamId?: number
+  teamRole?: string
 }
 
 interface AuthContextType {
@@ -34,11 +36,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
       const storedUser = localStorage.getItem("weather-app-user")
+
       if (storedUser) {
-        setUser(JSON.parse(storedUser))
+        const parsedUser = JSON.parse(storedUser)
+        setUser(parsedUser)
+      } else {
+        setUser(null)
       }
     } catch (error) {
       console.error("Auth check failed:", error)
+      setUser(null)
     } finally {
       setLoading(false)
     }
@@ -51,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ): Promise<boolean> => {
     try {
       setLoading(true)
-      console.log("[v0] Attempting login for:", email, "as", userType)
 
       let users, error
 
@@ -74,20 +80,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error = result.error
       }
 
-      console.log("[v0] Query result:", { users, error })
-
       if (error) {
         console.error("Login error:", error.message)
+        setLoading(false)
         return false
       }
 
       if (!users || users.length === 0) {
         console.error("Login error: User not found")
+        setLoading(false)
         return false
       }
 
       if (users.length > 1) {
         console.error("Login error: Multiple users found with same email")
+        setLoading(false)
         return false
       }
 
@@ -100,21 +107,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: userData.full_name,
           role: userType,
           team_id: userData.team_id,
+          teamId: userData.team_id,
+          teamRole: userData.role,
         }
 
         setUser(user)
         localStorage.setItem("weather-app-user", JSON.stringify(user))
-        console.log(`[v0] User logged in successfully: ${email} as ${userType}`)
+
+        setLoading(false)
         return true
       }
 
-      console.log(`[v0] Login failed: Invalid password for ${email}`)
+      setLoading(false)
       return false
     } catch (error) {
       console.error("Login failed:", error)
-      return false
-    } finally {
       setLoading(false)
+      return false
     }
   }
 
@@ -124,7 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const isAuthenticated = !!user
-  const hasRole = (role: string) => user?.role === role
+  const hasRole = (role: string) => {
+    return user?.role === role
+  }
 
   const contextValue: AuthContextType = {
     user,
