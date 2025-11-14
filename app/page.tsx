@@ -138,6 +138,227 @@ interface WeatherIndices {
   }
 }
 
+// Enhanced Philippine location database
+const philippineLocations: Record<string, { lat: number; lon: number; region: string; type: string }> = {
+  // NCR - National Capital Region
+  "Metro Manila": { lat: 14.5995, lon: 120.9842, region: "NCR", type: "region" },
+  "Manila": { lat: 14.5995, lon: 120.9842, region: "NCR", type: "city" },
+  "Quezon City": { lat: 14.676, lon: 121.0437, region: "NCR", type: "city" },
+  "Makati": { lat: 14.5547, lon: 121.0244, region: "NCR", type: "city" },
+  "Taguig": { lat: 14.5176, lon: 121.0509, region: "NCR", type: "city" },
+  "Pasig": { lat: 14.5764, lon: 121.0851, region: "NCR", type: "city" },
+  "Mandaluyong": { lat: 14.5836, lon: 121.0409, region: "NCR", type: "city" },
+  "Pasay": { lat: 14.5378, lon: 120.9815, region: "NCR", type: "city" },
+  "Parañaque": { lat: 14.4793, lon: 121.0198, region: "NCR", type: "city" },
+  "Las Piñas": { lat: 14.4499, lon: 120.993, region: "NCR", type: "city" },
+  "Muntinlupa": { lat: 14.3833, lon: 121.05, region: "NCR", type: "city" },
+  "Marikina": { lat: 14.6507, lon: 121.1029, region: "NCR", type: "city" },
+  "Caloocan": { lat: 14.7566, lon: 121.0453, region: "NCR", type: "city" },
+  "Valenzuela": { lat: 14.706, lon: 120.983, region: "NCR", type: "city" },
+  "Malabon": { lat: 14.6686, lon: 120.9563, region: "NCR", type: "city" },
+  "Navotas": { lat: 14.6667, lon: 120.95, region: "NCR", type: "city" },
+  "San Juan": { lat: 14.6042, lon: 121.03, region: "NCR", type: "city" },
+
+  // Region I - Ilocos Region
+  "Ilocos Norte": { lat: 18.1647, lon: 120.711, region: "Ilocos Region", type: "province" },
+  "Laoag": { lat: 18.1978, lon: 120.5936, region: "Ilocos Region", type: "city" },
+  "Ilocos Sur": { lat: 17.5707, lon: 120.3875, region: "Ilocos Region", type: "province" },
+  "Vigan": { lat: 17.5747, lon: 120.3869, region: "Ilocos Region", type: "city" },
+  "La Union": { lat: 16.6159, lon: 120.3199, region: "Ilocos Region", type: "province" },
+  "San Fernando La Union": { lat: 16.6159, lon: 120.3199, region: "Ilocos Region", type: "city" },
+  "Pangasinan": { lat: 15.8949, lon: 120.2863, region: "Ilocos Region", type: "province" },
+  "Dagupan": { lat: 16.0439, lon: 120.3325, region: "Ilocos Region", type: "city" },
+
+  // Region II - Cagayan Valley
+  "Cagayan": { lat: 18.2489, lon: 121.878, region: "Cagayan Valley", type: "province" },
+  "Tuguegarao": { lat: 17.6131, lon: 121.7269, region: "Cagayan Valley", type: "city" },
+  "Isabela": { lat: 16.9754, lon: 121.8106, region: "Cagayan Valley", type: "province" },
+  "Ilagan": { lat: 17.1486, lon: 121.8894, region: "Cagayan Valley", type: "city" },
+  "Nueva Vizcaya": { lat: 16.3333, lon: 121.0333, region: "Cagayan Valley", type: "province" },
+  "Bayombong": { lat: 16.4833, lon: 121.15, region: "Cagayan Valley", type: "city" },
+  "Quirino": { lat: 16.2833, lon: 121.5833, region: "Cagayan Valley", type: "province" },
+  "Cabarroguis": { lat: 16.5833, lon: 121.5, region: "Cagayan Valley", type: "city" },
+
+  // Region III - Central Luzon
+  "Bulacan": { lat: 14.8535, lon: 120.816, region: "Central Luzon", type: "province" },
+  "Malolos": { lat: 14.8433, lon: 120.8117, region: "Central Luzon", type: "city" },
+  "Pampanga": { lat: 15.0794, lon: 120.6194, region: "Central Luzon", type: "province" },
+  "San Fernando Pampanga": { lat: 15.0336, lon: 120.6844, region: "Central Luzon", type: "city" },
+  "Angeles": { lat: 15.1449, lon: 120.5886, region: "Central Luzon", type: "city" },
+  "Tarlac": { lat: 15.4751, lon: 120.5969, region: "Central Luzon", type: "province" },
+  "Tarlac City": { lat: 15.4869, lon: 120.5986, region: "Central Luzon", type: "city" },
+  "Nueva Ecija": { lat: 15.5784, lon: 120.9726, region: "Central Luzon", type: "province" },
+  "Cabanatuan": { lat: 15.4833, lon: 120.9667, region: "Central Luzon", type: "city" },
+  "Zambales": { lat: 15.3333, lon: 119.95, region: "Central Luzon", type: "province" },
+  "Olongapo": { lat: 14.8293, lon: 120.2824, region: "Central Luzon", type: "city" },
+  "Olongapo City": { lat: 14.8293, lon: 120.2824, region: "Central Luzon", type: "city" },
+  "Bataan": { lat: 14.676, lon: 120.54, region: "Central Luzon", type: "province" },
+  "Balanga": { lat: 14.676, lon: 120.54, region: "Central Luzon", type: "city" },
+
+  // Region IV-A - CALABARZON
+  "Cavite": { lat: 14.4791, lon: 120.8969, region: "CALABARZON", type: "province" },
+  "Imus": { lat: 14.4297, lon: 120.9367, region: "CALABARZON", type: "city" },
+  "Dasmariñas": { lat: 14.3294, lon: 120.9367, region: "CALABARZON", type: "city" },
+  "Laguna": { lat: 14.17, lon: 121.3331, region: "CALABARZON", type: "province" },
+  "Santa Rosa": { lat: 14.3167, lon: 121.1167, region: "CALABARZON", type: "city" },
+  "Calamba": { lat: 14.2117, lon: 121.1653, region: "CALABARZON", type: "city" },
+  "Batangas": { lat: 13.7565, lon: 121.0583, region: "CALABARZON", type: "province" },
+  "Batangas City": { lat: 13.7565, lon: 121.0583, region: "CALABARZON", type: "city" },
+  "Rizal": { lat: 14.6034, lon: 121.308, region: "CALABARZON", type: "province" },
+  "Antipolo": { lat: 14.6258, lon: 121.1226, region: "CALABARZON", type: "city" },
+  "Quezon": { lat: 13.9418, lon: 121.6236, region: "CALABARZON", type: "province" },
+  "Lucena": { lat: 13.9418, lon: 121.6236, region: "CALABARZON", type: "city" },
+
+  // Region IV-B - MIMAROPA
+  "Mindoro Occidental": { lat: 13.0, lon: 120.9167, region: "MIMAROPA", type: "province" },
+  "Mamburao": { lat: 13.2233, lon: 120.5961, region: "MIMAROPA", type: "city" },
+  "Mindoro Oriental": { lat: 13.0833, lon: 121.0833, region: "MIMAROPA", type: "province" },
+  "Calapan": { lat: 13.4103, lon: 121.18, region: "MIMAROPA", type: "city" },
+  "Marinduque": { lat: 13.4167, lon: 121.95, region: "MIMAROPA", type: "province" },
+  "Boac": { lat: 13.45, lon: 121.8333, region: "MIMAROPA", type: "city" },
+  "Romblon": { lat: 12.5833, lon: 122.2667, region: "MIMAROPA", type: "province" },
+  "Romblon": { lat: 12.5833, lon: 122.2667, region: "MIMAROPA", type: "city" },
+  "Palawan": { lat: 9.8349, lon: 118.7384, region: "MIMAROPA", type: "province" },
+  "Puerto Princesa": { lat: 9.7392, lon: 118.7353, region: "MIMAROPA", type: "city" },
+
+  // Region V - Bicol Region
+  "Albay": { lat: 13.1667, lon: 123.7333, region: "Bicol Region", type: "province" },
+  "Legazpi": { lat: 13.1333, lon: 123.7333, region: "Bicol Region", type: "city" },
+  "Camarines Sur": { lat: 13.6226, lon: 123.1948, region: "Bicol Region", type: "province" },
+  "Naga": { lat: 13.6218, lon: 123.1948, region: "Bicol Region", type: "city" },
+  "Camarines Norte": { lat: 14.1667, lon: 122.75, region: "Bicol Region", type: "province" },
+  "Daet": { lat: 14.1167, lon: 122.95, region: "Bicol Region", type: "city" },
+  "Sorsogon": { lat: 12.9667, lon: 124.0167, region: "Bicol Region", type: "province" },
+  "Sorsogon City": { lat: 12.9714, lon: 124.0064, region: "Bicol Region", type: "city" },
+  "Masbate": { lat: 12.1667, lon: 123.5833, region: "Bicol Region", type: "province" },
+  "Masbate City": { lat: 12.3667, lon: 123.6167, region: "Bicol Region", type: "city" },
+  "Catanduanes": { lat: 13.8333, lon: 124.25, region: "Bicol Region", type: "province" },
+  "Virac": { lat: 13.5833, lon: 124.2333, region: "Bicol Region", type: "city" },
+
+  // Region VI - Western Visayas
+  "Iloilo": { lat: 10.7202, lon: 122.5621, region: "Western Visayas", type: "province" },
+  "Iloilo City": { lat: 10.7202, lon: 122.5621, region: "Western Visayas", type: "city" },
+  "Negros Occidental": { lat: 10.6407, lon: 122.9689, region: "Western Visayas", type: "province" },
+  "Bacolod": { lat: 10.6765, lon: 122.9509, region: "Western Visayas", type: "city" },
+  "Capiz": { lat: 11.5833, lon: 122.75, region: "Western Visayas", type: "province" },
+  "Roxas": { lat: 11.5853, lon: 122.7511, region: "Western Visayas", type: "city" },
+  "Aklan": { lat: 11.6667, lon: 122.3333, region: "Western Visayas", type: "province" },
+  "Kalibo": { lat: 11.7167, lon: 122.3667, region: "Western Visayas", type: "city" },
+  "Antique": { lat: 11.1667, lon: 122.0833, region: "Western Visayas", type: "province" },
+  "San Jose": { lat: 10.75, lon: 121.95, region: "Western Visayas", type: "city" },
+  "Guimaras": { lat: 10.5667, lon: 122.5833, region: "Western Visayas", type: "province" },
+  "Jordan": { lat: 10.6, lon: 122.6, region: "Western Visayas", type: "city" },
+
+  // Region VII - Central Visayas
+  "Cebu": { lat: 10.3157, lon: 123.8854, region: "Central Visayas", type: "province" },
+  "Cebu City": { lat: 10.3157, lon: 123.8854, region: "Central Visayas", type: "city" },
+  "Bohol": { lat: 9.8499, lon: 124.1435, region: "Central Visayas", type: "province" },
+  "Tagbilaran": { lat: 9.6475, lon: 123.8556, region: "Central Visayas", type: "city" },
+  "Negros Oriental": { lat: 9.3344, lon: 123.3018, region: "Central Visayas", type: "province" },
+  "Dumaguete": { lat: 9.3103, lon: 123.3081, region: "Central Visayas", type: "city" },
+  "Siquijor": { lat: 9.2, lon: 123.5167, region: "Central Visayas", type: "province" },
+  "Siquijor": { lat: 9.2, lon: 123.5167, region: "Central Visayas", type: "city" },
+
+  // Region VIII - Eastern Visayas
+  "Leyte": { lat: 11.25, lon: 124.75, region: "Eastern Visayas", type: "province" },
+  "Tacloban": { lat: 11.2433, lon: 124.9772, region: "Eastern Visayas", type: "city" },
+  "Samar": { lat: 12.0, lon: 125.0, region: "Eastern Visayas", type: "province" },
+  "Catbalogan": { lat: 11.7753, lon: 124.8861, region: "Eastern Visayas", type: "city" },
+  "Eastern Samar": { lat: 11.5, lon: 125.5, region: "Eastern Visayas", type: "province" },
+  "Borongan": { lat: 11.6077, lon: 125.4312, region: "Eastern Visayas", type: "city" },
+  "Northern Samar": { lat: 12.3333, lon: 124.6667, region: "Eastern Visayas", type: "province" },
+  "Catarman": { lat: 12.45, lon: 124.65, region: "Eastern Visayas", type: "city" },
+  "Southern Leyte": { lat: 10.3333, lon: 125.0833, region: "Eastern Visayas", type: "province" },
+  "Maasin": { lat: 10.1333, lon: 124.8333, region: "Eastern Visayas", type: "city" },
+  "Biliran": { lat: 11.5833, lon: 124.4667, region: "Eastern Visayas", type: "province" },
+  "Naval": { lat: 11.5833, lon: 124.45, region: "Eastern Visayas", type: "city" },
+
+  // Region IX - Zamboanga Peninsula
+  "Zamboanga del Norte": { lat: 8.5, lon: 123.5, region: "Zamboanga Peninsula", type: "province" },
+  "Dipolog": { lat: 8.5886, lon: 123.3409, region: "Zamboanga Peninsula", type: "city" },
+  "Zamboanga del Sur": { lat: 7.8333, lon: 123.5, region: "Zamboanga Peninsula", type: "province" },
+  "Pagadian": { lat: 7.8257, lon: 123.4366, region: "Zamboanga Peninsula", type: "city" },
+  "Zamboanga Sibugay": { lat: 7.8333, lon: 122.75, region: "Zamboanga Peninsula", type: "province" },
+  "Ipil": { lat: 7.7833, lon: 122.5833, region: "Zamboanga Peninsula", type: "city" },
+  "Zamboanga City": { lat: 6.9214, lon: 122.079, region: "Zamboanga Peninsula", type: "city" },
+
+  // Region X - Northern Mindanao
+  "Bukidnon": { lat: 8.0, lon: 125.0, region: "Northern Mindanao", type: "province" },
+  "Malaybalay": { lat: 8.1458, lon: 125.1278, region: "Northern Mindanao", type: "city" },
+  "Misamis Oriental": { lat: 8.5, lon: 124.75, region: "Northern Mindanao", type: "province" },
+  "Cagayan de Oro": { lat: 8.4542, lon: 124.6319, region: "Northern Mindanao", type: "city" },
+  "Misamis Occidental": { lat: 8.5, lon: 123.75, region: "Northern Mindanao", type: "province" },
+  "Oroquieta": { lat: 8.4833, lon: 123.8, region: "Northern Mindanao", type: "city" },
+  "Lanao del Norte": { lat: 8.0, lon: 124.0, region: "Northern Mindanao", type: "province" },
+  "Iligan": { lat: 8.2289, lon: 124.24, region: "Northern Mindanao", type: "city" },
+  "Camiguin": { lat: 9.1667, lon: 124.7167, region: "Northern Mindanao", type: "province" },
+  "Mambajao": { lat: 9.25, lon: 124.7167, region: "Northern Mindanao", type: "city" },
+
+  // Region XI - Davao Region
+  "Davao del Norte": { lat: 7.45, lon: 125.75, region: "Davao Region", type: "province" },
+  "Tagum": { lat: 7.4478, lon: 125.8078, region: "Davao Region", type: "city" },
+  "Davao del Sur": { lat: 6.75, lon: 125.35, region: "Davao Region", type: "province" },
+  "Digos": { lat: 6.75, lon: 125.35, region: "Davao Region", type: "city" },
+  "Davao Oriental": { lat: 7.0, lon: 126.1667, region: "Davao Region", type: "province" },
+  "Mati": { lat: 6.95, lon: 126.2167, region: "Davao Region", type: "city" },
+  "Davao de Oro": { lat: 7.5, lon: 126.0, region: "Davao Region", type: "province" },
+  "Nabunturan": { lat: 7.6, lon: 126.0, region: "Davao Region", type: "city" },
+  "Davao Occidental": { lat: 6.5, lon: 125.5, region: "Davao Region", type: "province" },
+  "Malita": { lat: 6.4, lon: 125.6, region: "Davao Region", type: "city" },
+  "Davao City": { lat: 7.1907, lon: 125.4553, region: "Davao Region", type: "city" },
+
+  // Region XII - SOCCSKSARGEN
+  "South Cotabato": { lat: 6.3333, lon: 124.8333, region: "SOCCSKSARGEN", type: "province" },
+  "Koronadal": { lat: 6.5031, lon: 124.8469, region: "SOCCSKSARGEN", type: "city" },
+  "North Cotabato": { lat: 7.2167, lon: 124.25, region: "SOCCSKSARGEN", type: "province" },
+  "Kidapawan": { lat: 7.0083, lon: 125.0894, region: "SOCCSKSARGEN", type: "city" },
+  "Sultan Kudarat": { lat: 6.5, lon: 124.3333, region: "SOCCSKSARGEN", type: "province" },
+  "Isulan": { lat: 6.6333, lon: 124.6, region: "SOCCSKSARGEN", type: "city" },
+  "Sarangani": { lat: 5.8667, lon: 125.2833, region: "SOCCSKSARGEN", type: "province" },
+  "Alabel": { lat: 5.8833, lon: 125.2833, region: "SOCCSKSARGEN", type: "city" },
+  "General Santos": { lat: 6.1164, lon: 125.1716, region: "SOCCSKSARGEN", type: "city" },
+
+  // Region XIII - Caraga
+  "Agusan del Norte": { lat: 9.1667, lon: 125.75, region: "Caraga", type: "province" },
+  "Butuan": { lat: 8.9492, lon: 125.5436, region: "Caraga", type: "city" },
+  "Agusan del Sur": { lat: 8.5, lon: 125.75, region: "Caraga", type: "province" },
+  "Prosperidad": { lat: 8.6, lon: 125.9, region: "Caraga", type: "city" },
+  "Surigao del Norte": { lat: 9.75, lon: 125.75, region: "Caraga", type: "province" },
+  "Surigao City": { lat: 9.7833, lon: 125.4833, region: "Caraga", type: "city" },
+  "Surigao del Sur": { lat: 8.75, lon: 126.1667, region: "Caraga", type: "province" },
+  "Tandag": { lat: 9.0789, lon: 126.1986, region: "Caraga", type: "city" },
+  "Dinagat Islands": { lat: 10.1667, lon: 125.5833, region: "Caraga", type: "province" },
+  "San Jose": { lat: 10.0, lon: 125.5833, region: "Caraga", type: "city" },
+
+  // BARMM - Bangsamoro Autonomous Region
+  "Maguindanao del Norte": { lat: 7.1333, lon: 124.25, region: "BARMM", type: "province" },
+  "Datu Odin Sinsuat": { lat: 7.1833, lon: 124.2167, region: "BARMM", type: "city" },
+  "Maguindanao del Sur": { lat: 6.9, lon: 124.4, region: "BARMM", type: "province" },
+  "Buluan": { lat: 6.7167, lon: 124.7833, region: "BARMM", type: "city" },
+  "Lanao del Sur": { lat: 7.8333, lon: 124.3333, region: "BARMM", type: "province" },
+  "Marawi": { lat: 8.0, lon: 124.3, region: "BARMM", type: "city" },
+  "Basilan": { lat: 6.5, lon: 122.0833, region: "BARMM", type: "province" },
+  "Isabela City": { lat: 6.7, lon: 121.9667, region: "BARMM", type: "city" },
+  "Sulu": { lat: 6.0, lon: 121.0, region: "BARMM", type: "province" },
+  "Jolo": { lat: 6.05, lon: 121.0, region: "BARMM", type: "city" },
+  "Tawi-Tawi": { lat: 5.2, lon: 120.0833, region: "BARMM", type: "province" },
+  "Bongao": { lat: 5.0333, lon: 119.7667, region: "BARMM", type: "city" },
+
+  // Cordillera Administrative Region (CAR)
+  "Benguet": { lat: 16.3993, lon: 120.601, region: "CAR", type: "province" },
+  "Baguio": { lat: 16.4023, lon: 120.596, region: "CAR", type: "city" },
+  "Mountain Province": { lat: 17.0833, lon: 121.1667, region: "CAR", type: "province" },
+  "Bontoc": { lat: 17.0833, lon: 120.9667, region: "CAR", type: "city" },
+  "Ifugao": { lat: 16.8333, lon: 121.1667, region: "CAR", type: "province" },
+  "Lagawe": { lat: 16.8, lon: 121.1, region: "CAR", type: "city" },
+  "Kalinga": { lat: 17.5, lon: 121.5, region: "CAR", type: "province" },
+  "Tabuk": { lat: 17.45, lon: 121.4583, region: "CAR", type: "city" },
+  "Apayao": { lat: 18.0, lon: 121.0, region: "CAR", type: "province" },
+  "Kabugao": { lat: 18.0167, lon: 121.1833, region: "CAR", type: "city" },
+  "Abra": { lat: 17.5833, lon: 120.75, region: "CAR", type: "province" },
+  "Bangued": { lat: 17.6, lon: 120.6167, region: "CAR", type: "city" }
+};
+
 export default function Home() {
   const { toast } = useToast()
   const router = useRouter() // Initialize useRouter
@@ -646,52 +867,279 @@ export default function Home() {
   // </CHANGE>
 
   const generateSmartSuggestions = useCallback(async () => {
-    // This is a placeholder function. In a real application, you would fetch data
-    // from an API to generate smart suggestions based on factors like weather,
-    // local events, or user history.
+  const allLocations = Object.keys(philippineLocations);
+  const suggestions: Array<{
+    name: string;
+    temperature: number;
+    condition: string;
+    icon: string;
+    reason: string;
+    score: number;
+  }> = [];
 
-    // Mock data for demonstration:
-    const suggestions = [
-      { location: "Olongapo City Hall", temp: 28, condition: "Cloudy" },
-      { location: "Subic Bay Metropolitan Authority", temp: 29, condition: "Partly Cloudy" },
-      { location: "SM City Olongapo", temp: 28, condition: "Cloudy" },
-      { location: "Gordon College", temp: 27, condition: "Rainy" },
-      { location: "Barangay East Bajac-bajac", temp: 29, condition: "Partly Cloudy" },
-      { location: "Barangay West Bajac-bajac", temp: 28, condition: "Cloudy" },
-      { location: "Barangay East Tapinac", temp: 30, condition: "Sunny" },
-      { location: "Barangay West Tapinac", temp: 29, condition: "Partly Cloudy" },
-      { location: "Barangay Santa Rita", temp: 28, condition: "Rainy" },
-      { location: "Barangay Manggahan", temp: 29, condition: "Partly Cloudy" },
-    ]
+  // Get current time for context-aware suggestions
+  const now = new Date();
+  const currentHour = now.getHours();
+  const isWeekend = [0, 6].includes(now.getDay());
+  const currentMonth = now.getMonth();
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
+  // Priority locations based on various factors
+  const priorityLocations = allLocations
+    .map(location => {
+      const data = philippineLocations[location];
+      let score = 0;
+      let reason = "";
 
-    setSmartSuggestions(suggestions)
-  }, [])
+      // Factor 1: Recent searches
+      const recentIndex = recentSearches.indexOf(location);
+      if (recentIndex !== -1) {
+        score += 50 - recentIndex * 8;
+        reason = recentIndex === 0 ? "Last searched" : "Recently searched";
+      }
 
-  const findCoordinatesByName = (locationName: string): { lat: number; lon: number } | null => {
-    const normalizedSearch = locationName.toLowerCase().trim()
+      // Factor 2: Geographic proximity to current location
+      if (currentLocationName && location !== currentLocationName) {
+        const proximityBonus = getProximityScore(currentLocationName, location);
+        score += proximityBonus;
+        if (proximityBonus > 20) reason = reason || "Nearby location";
+      }
 
-    // Check Olongapo locations first
-    const olongapoLocation = OLONGAPO_LOCATIONS.find(
-      (loc) => loc.name.toLowerCase().includes(normalizedSearch) || normalizedSearch.includes(loc.name.toLowerCase()),
-    )
+      // Factor 3: Time-based suggestions
+      if (currentHour >= 5 && currentHour <= 9) {
+        // Morning: suggest cooler destinations
+        if (["Baguio", "Tagaytay", "Sagada", "Banaue"].includes(location)) {
+          score += 25;
+          if (!reason) reason = "Perfect morning destination";
+        }
+      } else if (currentHour >= 16 && currentHour <= 19) {
+        // Evening: suggest sunset/view destinations
+        if (["Boracay", "Palawan", "La Union", "Siargao"].includes(location)) {
+          score += 25;
+          if (!reason) reason = "Beautiful sunset views";
+        }
+      }
 
-    if (olongapoLocation) {
-      return { lat: olongapoLocation.lat, lon: olongapoLocation.lng }
+      // Factor 4: Seasonal recommendations
+      const seasonalBonus = getSeasonalScore(location, currentMonth);
+      score += seasonalBonus;
+      if (seasonalBonus > 15) reason = reason || "Perfect season";
+
+      // Factor 5: Weekend vs weekday preferences
+      if (isWeekend) {
+        // Weekend: suggest tourist destinations
+        if (["Boracay", "Palawan", "Cebu", "Bohol", "Baguio", "Tagaytay"].includes(location)) {
+          score += 20;
+          if (!reason) reason = "Great weekend getaway";
+        }
+      } else {
+        // Weekday: suggest business/commercial centers
+        if (["Makati", "Taguig", "Pasig", "Mandaluyong", "Cebu City", "Davao City"].includes(location)) {
+          score += 15;
+          if (!reason) reason = "Business center";
+        }
+      }
+
+      // Factor 6: Type preference (cities over provinces)
+      if (data.type === "city") {
+        score += 10;
+      }
+
+      // Factor 7: Major tourist destinations bonus
+      const majorDestinations = ["Boracay", "Palawan", "Cebu", "Bohol", "Baguio", "Vigan", "Siargao"];
+      if (majorDestinations.includes(location)) {
+        score += 15;
+        if (!reason) reason = "Popular destination";
+      }
+
+      return { name: location, score, reason: reason || "Recommended location" };
+    })
+    .filter(location => location.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6); // Get top 6 by score
+
+  // Fetch weather data for top locations
+  for (const location of priorityLocations) {
+    try {
+      const coordinates = {
+        lat: philippineLocations[location.name].lat,
+        lon: philippineLocations[location.name].lon
+      };
+
+      const response = await fetch(`/api/weather/current?lat=${coordinates.lat}&lon=${coordinates.lon}`);
+      
+      if (response.ok) {
+        const weatherData = await response.json();
+        
+        suggestions.push({
+          name: location.name,
+          temperature: weatherData.temperature,
+          condition: weatherData.condition,
+          icon: weatherData.icon || getWeatherIconCode(weatherData.condition),
+          reason: location.reason,
+          score: location.score,
+        });
+      } else {
+        // Fallback to generated weather data if API fails
+        const fallbackWeather = generateRealisticWeather(location.name, currentMonth);
+        suggestions.push({
+          name: location.name,
+          temperature: fallbackWeather.temperature,
+          condition: fallbackWeather.condition,
+          icon: fallbackWeather.icon,
+          reason: location.reason,
+          score: location.score,
+        });
+      }
+    } catch (error) {
+      console.error(`[v0] Error fetching weather for ${location.name}:`, error);
+      // Fallback to generated weather data
+      const fallbackWeather = generateRealisticWeather(location.name, currentMonth);
+      suggestions.push({
+        name: location.name,
+        temperature: fallbackWeather.temperature,
+        condition: fallbackWeather.condition,
+        icon: fallbackWeather.icon,
+        reason: location.reason,
+        score: location.score,
+      });
     }
-
-    // Check main locations list
-    const location = locations.find(
-      (loc) =>
-        loc.name.toLowerCase() === normalizedSearch ||
-        loc.name.toLowerCase().includes(normalizedSearch) ||
-        normalizedSearch.includes(loc.name.toLowerCase()),
-    )
-
-    return location ? { lat: location.lat, lon: location.lon } : null
   }
+
+  // Ensure we have at least 3 suggestions
+  if (suggestions.length < 3) {
+    const fallbackLocations = ["Manila", "Cebu City", "Davao City", "Baguio", "Boracay"];
+    for (const locationName of fallbackLocations) {
+      if (!suggestions.find(s => s.name === locationName) && suggestions.length < 6) {
+        const fallbackWeather = generateRealisticWeather(locationName, currentMonth);
+        suggestions.push({
+          name: locationName,
+          temperature: fallbackWeather.temperature,
+          condition: fallbackWeather.condition,
+          icon: fallbackWeather.icon,
+          reason: "Popular destination",
+          score: 30,
+        });
+      }
+    }
+  }
+
+  setSuggestedLocations(suggestions.sort((a, b) => b.score - a.score));
+}, [recentSearches, currentLocationName]);
+
+// Helper functions for the smart suggestions
+const getProximityScore = (currentLocation: string, targetLocation: string): number => {
+  const proximityMap: { [key: string]: string[] } = {
+    // NCR proximity
+    "Manila": ["Quezon City", "Makati", "Taguig", "Pasig", "Mandaluyong", "Pasay", "Parañaque"],
+    "Quezon City": ["Manila", "Makati", "Pasig", "Mandaluyong", "Marikina", "Caloocan"],
+    "Makati": ["Manila", "Taguig", "Pasay", "Mandaluyong", "Pasig"],
+    
+    // Central Luzon proximity
+    "Olongapo": ["Subic", "Angeles", "San Fernando Pampanga", "Balanga"],
+    "Angeles": ["San Fernando Pampanga", "Olongapo", "Tarlac City"],
+    
+    // Visayas proximity
+    "Cebu City": ["Mandaue", "Lapu-Lapu", "Talisay", "Mactan"],
+    "Bacolod": ["Silay", "Talisay", "Bago"],
+    
+    // Mindanao proximity
+    "Davao City": ["Tagum", "Digos", "Panabo"],
+  };
+
+  const currentProximity = proximityMap[currentLocation] || [];
+  return currentProximity.includes(targetLocation) ? 25 : 0;
+};
+
+const getSeasonalScore = (location: string, month: number): number => {
+  // Dry season (Nov-Apr): months 10-3 (0-indexed: 10,11,0,1,2,3)
+  const isDrySeason = month >= 10 || month <= 3;
+  
+  // Beach destinations score higher in dry season
+  const beachDestinations = ["Boracay", "Palawan", "Puerto Princesa", "El Nido", "Coron", "La Union", "Siargao"];
+  if (isDrySeason && beachDestinations.includes(location)) {
+    return 20;
+  }
+  
+  // Mountain destinations score higher in rainy season
+  const mountainDestinations = ["Baguio", "Sagada", "Banaue", "Tagaytay"];
+  if (!isDrySeason && mountainDestinations.includes(location)) {
+    return 15;
+  }
+  
+  return 0;
+};
+
+const generateRealisticWeather = (location: string, month: number) => {
+  const weatherPatterns: { [key: string]: any } = {
+    // Cool destinations
+    "Baguio": { baseTemp: 18, variation: 5, sunnyChance: 0.4, rainChance: 0.4 },
+    "Tagaytay": { baseTemp: 22, variation: 4, sunnyChance: 0.5, rainChance: 0.3 },
+    "Sagada": { baseTemp: 16, variation: 6, sunnyChance: 0.3, rainChance: 0.5 },
+    
+    // Beach destinations
+    "Boracay": { baseTemp: 28, variation: 3, sunnyChance: 0.7, rainChance: 0.2 },
+    "Palawan": { baseTemp: 29, variation: 3, sunnyChance: 0.6, rainChance: 0.3 },
+    "Puerto Princesa": { baseTemp: 28, variation: 3, sunnyChance: 0.6, rainChance: 0.3 },
+    
+    // Urban areas
+    "Manila": { baseTemp: 30, variation: 4, sunnyChance: 0.5, rainChance: 0.3 },
+    "Cebu City": { baseTemp: 29, variation: 3, sunnyChance: 0.6, rainChance: 0.25 },
+    "Davao City": { baseTemp: 31, variation: 3, sunnyChance: 0.65, rainChance: 0.2 },
+    
+    // Default pattern
+    "default": { baseTemp: 28, variation: 4, sunnyChance: 0.6, rainChance: 0.25 }
+  };
+
+  const pattern = weatherPatterns[location] || weatherPatterns.default;
+  
+  // Adjust for season
+  const isDrySeason = month >= 10 || month <= 3;
+  const seasonalAdjustment = isDrySeason ? 
+    { temp: +1, sunny: +0.1, rain: -0.1 } : 
+    { temp: -1, sunny: -0.1, rain: +0.1 };
+  
+  const temp = Math.round(pattern.baseTemp + seasonalAdjustment.temp + (Math.random() - 0.5) * pattern.variation);
+  const sunnyChance = Math.max(0.1, Math.min(0.9, pattern.sunnyChance + seasonalAdjustment.sunny));
+  const rainChance = Math.max(0.1, Math.min(0.9, pattern.rainChance + seasonalAdjustment.rain));
+
+  const rand = Math.random();
+  let condition = "clear";
+  let icon = "01d";
+
+  if (rand < rainChance) {
+    condition = Math.random() < 0.3 ? "thunderstorm" : "rain";
+    icon = condition === "thunderstorm" ? "11d" : "10d";
+  } else if (rand < rainChance + 0.2) {
+    condition = "clouds";
+    icon = "03d";
+  } else if (rand < rainChance + 0.2 + sunnyChance) {
+    condition = "clear";
+    icon = "01d";
+  } else {
+    condition = "clouds";
+    icon = "02d";
+  }
+
+  return {
+    temperature: temp,
+    condition: condition,
+    icon: icon,
+  };
+};
+
+const getWeatherIconCode = (condition: string): string => {
+  const iconMap: { [key: string]: string } = {
+    "clear": "01d",
+    "clouds": "03d",
+    "rain": "10d",
+    "drizzle": "09d",
+    "thunderstorm": "11d",
+    "snow": "13d",
+    "mist": "50d"
+  };
+  
+  return iconMap[condition.toLowerCase()] || "01d";
+};
 
   useEffect(() => {
     // Dynamically import to avoid server-side rendering issues if the service is client-only
@@ -2199,93 +2647,67 @@ export default function Home() {
   }, [riskPredictions, currentWeather])
 
   const handleLocationSearch = async (locationName: string) => {
-    const searchTerm = locationName || searchLocation
+  const searchTerm = locationName || searchLocation;
 
-    if (!searchTerm || typeof searchTerm !== "string" || !searchTerm.trim()) {
-      addNotification("Invalid Search", "Please enter a valid location name", "error")
-      return
-    }
-
-    const trimmedLocation = searchTerm.trim()
-    setSearchLoading(true)
-    setSearchWeather(null) // Clear previous search results
-    setSearchError("")
-
-    console.log("[v0] Searching for location:", trimmedLocation)
-
-    try {
-      const coordinates = findCoordinatesByName(trimmedLocation)
-
-      if (!coordinates) {
-        throw new Error(`Location "${trimmedLocation}" not found in our database`)
-      }
-
-      console.log("[v0] Found coordinates for", trimmedLocation, coordinates)
-
-      const weatherResponse = await fetch(`/api/weather/current?lat=${coordinates.lat}&lon=${coordinates.lon}`)
-
-      if (!weatherResponse.ok) {
-        const errorData = await weatherResponse.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to fetch weather data")
-      }
-
-      const weatherData = await weatherResponse.json()
-      console.log("[v0] Weather data received:", weatherData)
-
-      const forecastResponse = await fetch(`/api/weather/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}`)
-      let forecastData = null
-
-      if (forecastResponse.ok) {
-        forecastData = await forecastResponse.json()
-        console.log("[v0] Forecast data received:", forecastData)
-      }
-
-      const searchWeatherData: WeatherData = {
-        temperature: weatherData.temperature,
-        condition: weatherData.condition,
-        description: weatherData.description || weatherData.condition,
-        location: trimmedLocation,
-        humidity: weatherData.humidity,
-        windSpeed: weatherData.windSpeed,
-        feelsLike: weatherData.feelsLike,
-        icon: weatherData.icon,
-      }
-
-      setSearchWeather(searchWeatherData)
-      setSelectedLocationName(trimmedLocation)
-
-      if (forecastData && forecastData.forecasts) {
-        setForecast(forecastData.forecasts)
-      }
-
-      const alertsResponse = await fetch(`/api/weather/alerts?lat=${coordinates.lat}&lon=${coordinates.lon}`)
-      if (alertsResponse.ok) {
-        const alertsData = await alertsResponse.json()
-        if (alertsData.alerts) setAlerts(alertsData.alerts)
-        if (alertsData.riskPredictions) setRiskPredictions(alertsData.riskPredictions)
-      }
-
-      const weatherEmoji = getWeatherEmoji(searchWeatherData.condition)
-      addNotification(
-        `${weatherEmoji} Weather Found`,
-        `${trimmedLocation}: ${searchWeatherData.temperature}°C, ${searchWeatherData.description}`,
-        "info",
-      )
-
-      updateRecentSearches(trimmedLocation)
-
-      saveWeatherToHistory(searchWeatherData)
-    } catch (error) {
-      console.error("[v0] Location search failed:", error)
-      const errorMessage = error instanceof Error ? error.message : "Failed to fetch weather data"
-      addNotification("Search Failed", errorMessage, "error")
-
-      setSearchWeather(null)
-      setSelectedLocationName("")
-    } finally {
-      setSearchLoading(false)
-    }
+  if (!searchTerm || typeof searchTerm !== "string" || !searchTerm.trim()) {
+    addNotification("Invalid Search", "Please enter a valid location name", "error");
+    return;
   }
+
+  const trimmedLocation = searchTerm.trim();
+  setSearchLoading(true);
+  setSearchWeather(null);
+  setSearchError("");
+
+  console.log("[v0] Searching for location:", trimmedLocation);
+
+  try {
+    // Find location in our enhanced database
+    const locationData = philippineLocations[trimmedLocation];
+    
+    if (!locationData) {
+      // Try fuzzy matching
+      const normalizedSearch = trimmedLocation.toLowerCase();
+      const foundLocation = Object.keys(philippineLocations).find(key => 
+        key.toLowerCase().includes(normalizedSearch) || 
+        normalizedSearch.includes(key.toLowerCase())
+      );
+      
+      if (!foundLocation) {
+        throw new Error(`Location "${trimmedLocation}" not found in our database`);
+      }
+      
+      // Use the found location
+      const coordinates = {
+        lat: philippineLocations[foundLocation].lat,
+        lon: philippineLocations[foundLocation].lon
+      };
+      console.log("[v0] Found coordinates for", foundLocation, coordinates);
+      
+      await fetchWeatherData(coordinates.lat, coordinates.lon, foundLocation);
+      setSelectedLocationName(foundLocation);
+      updateRecentSearches(foundLocation);
+    } else {
+      // Exact match found
+      const coordinates = { lat: locationData.lat, lon: locationData.lon };
+      console.log("[v0] Found exact coordinates for", trimmedLocation, coordinates);
+      
+      await fetchWeatherData(coordinates.lat, coordinates.lon, trimmedLocation);
+      setSelectedLocationName(trimmedLocation);
+      updateRecentSearches(trimmedLocation);
+    }
+
+  } catch (error) {
+    console.error("[v0] Location search failed:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch weather data";
+    addNotification("Search Failed", errorMessage, "error");
+
+    setSearchWeather(null);
+    setSelectedLocationName("");
+  } finally {
+    setSearchLoading(false);
+  }
+};
 
   const getWeatherEmoji = (condition: string): string => {
     const conditionLower = condition.toLowerCase()
@@ -2959,49 +3381,63 @@ export default function Home() {
   }
 
   const handleSearchInputChange = (value: string) => {
-    setSearchLocation(value)
-    setShowSuggestions(true)
-    const filtered = searchLocations(value)
-    setFilteredSuggestions(filtered.map((loc) => loc.name))
+  setSearchLocation(value);
+  
+  // Clear existing timer
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer);
   }
 
-  const updateRecentSearches = (locationName: string) => {
-    setRecentSearches((prev) => {
-      const updatedSearches = [locationName, ...prev.filter((search) => search !== locationName)].slice(0, 10) // Keep only the latest 10
-      try {
-        localStorage.setItem("winder-recent-searches", JSON.stringify(updatedSearches))
-      } catch (error) {
-        console.error("[v0] Error saving recent searches:", error)
-      }
-      return updatedSearches
-    })
+  if (value.trim().length > 0) {
+    const timer = setTimeout(() => {
+      const allLocations = Object.keys(philippineLocations);
+      const filtered = allLocations
+        .filter((location) => {
+          const searchTerm = value.toLowerCase();
+          const locationLower = location.toLowerCase();
+
+          return (
+            locationLower.includes(searchTerm) ||
+            locationLower.startsWith(searchTerm) ||
+            location.split(" ").some((word) => word.toLowerCase().startsWith(searchTerm)) ||
+            // Search by region
+            philippineLocations[location].region.toLowerCase().includes(searchTerm) ||
+            // Search by type
+            philippineLocations[location].type.toLowerCase().includes(searchTerm)
+          );
+        })
+        .sort((a, b) => {
+          const searchTerm = value.toLowerCase();
+          const aLower = a.toLowerCase();
+          const bLower = b.toLowerCase();
+
+          // Exact match first
+          if (aLower === searchTerm) return -1;
+          if (bLower === searchTerm) return 1;
+          
+          // Starts with search term
+          if (aLower.startsWith(searchTerm) && !bLower.startsWith(searchTerm)) return -1;
+          if (bLower.startsWith(searchTerm) && !aLower.startsWith(searchTerm)) return 1;
+          
+          // City matches before provinces
+          if (philippineLocations[a].type === "city" && philippineLocations[b].type !== "city") return -1;
+          if (philippineLocations[b].type === "city" && philippineLocations[a].type !== "city") return 1;
+          
+          // Shorter names first
+          return a.length - b.length;
+        })
+        .slice(0, 8); // Limit to 8 suggestions
+
+      setFilteredSuggestions(filtered);
+      setShowSuggestions(true);
+    }, 300); // 300ms debounce
+
+    setSearchDebounceTimer(timer);
+  } else {
+    setShowSuggestions(false);
+    setFilteredSuggestions([]);
   }
-
-  // This generateSmartSuggestions is defined twice. Keeping the first one.
-  // const generateSmartSuggestions = useCallback(async () => {
-  //   // This is a placeholder function. In a real application, you would fetch data
-  //   // from an API to generate smart suggestions based on factors like weather,
-  //   // local events, or user history.
-
-  //   // Mock data for demonstration:
-  //   const suggestions = [
-  //     { location: "Olongapo City Hall", temp: 28, condition: "Cloudy" },
-  //     { location: "Subic Bay Metropolitan Authority", temp: 29, condition: "Partly Cloudy" },
-  //     { location: "SM City Olongapo", temp: 28, condition: "Cloudy" },
-  //     { location: "Gordon College", temp: 27, condition: "Rainy" },
-  //     { location: "Barangay East Bajac-bajac", temp: 29, condition: "Partly Cloudy" },
-  //     { location: "Barangay West Bajac-bajac", temp: 28, condition: "Cloudy" },
-  //     { location: "Barangay East Tapinac", temp: 30, condition: "Sunny" },
-  //     { location: "Barangay West Tapinac", temp: 29, condition: "Partly Cloudy" },
-  //     { location: "Barangay Santa Rita", temp: 28, condition: "Rainy" },
-  //     { location: "Barangay Manggahan", temp: 29, condition: "Partly Cloudy" },
-  //   ]
-
-  //   // Simulate API call delay
-  //   await new Promise((resolve) => setTimeout(resolve, 500))
-
-  //   setSmartSuggestions(suggestions)
-  // }, [])
+};
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
