@@ -3582,7 +3582,7 @@ const getWeatherIconCode = (condition: string): string => {
             <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-800/95 backdrop-blur-md border-b border-slate-700/50">
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden">
                     <img 
                       src="/Winder+_Black-BG.png" 
                       alt="Winder+ Logo" 
@@ -3739,7 +3739,7 @@ const getWeatherIconCode = (condition: string): string => {
           {/* Header with branding and navigation */}
           <div className="p-6 border-b border-slate-700/50">
             <div className="flex items-center space-x-4 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden">
                 <img
                   src="/Winder+_Black-BG.png"
                   alt="Winder+ Logo"
