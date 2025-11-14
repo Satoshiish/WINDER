@@ -2947,9 +2947,15 @@ export default function Home() {
   )
 
   const getWeatherMapUrl = () => {
-    // Example URL - replace with your actual weather map provider and parameters
-    // You might want to dynamically set zoom, center, layers based on current location or selected location
-    return `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY`
+    if (location) {
+      const mapUrl = `https://openweathermap.org/weathermap?basemap=map&cities=true&layer=precipitation&lat=${location.lat}&lon=${location.lon}&zoom=12&appid=openweathermap`
+      console.log("[v0] Generated map URL with user coordinates:", mapUrl)
+      return mapUrl
+    } else {
+      const defaultUrl = `https://openweathermap.org/weathermap?basemap=map&cities=true&layer=precipitation&lat=12.8797&lon=121.7740&zoom=6&appid=openweathermap`
+      console.log("[v0] Using default Philippines map URL:", defaultUrl)
+      return defaultUrl
+    }
   }
 
   const handleSearchInputChange = (value: string) => {
