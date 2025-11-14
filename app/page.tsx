@@ -428,6 +428,25 @@ export default function Home() {
     }>
   >([])
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const updateRecentSearches = useCallback((location: string) => {
+  if (!location.trim()) return;
+  
+  setRecentSearches(prev => {
+    // Remove duplicates and limit to 10 items
+    const filtered = prev.filter(item => item !== location);
+    const updated = [location, ...filtered].slice(0, 10);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem("winder-recent-searches", JSON.stringify(updated));
+    } catch (error) {
+      console.error("[v0] Error saving recent searches:", error);
+    }
+    
+    return updated;
+  });
+}, []);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
 
