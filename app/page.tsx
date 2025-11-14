@@ -1414,66 +1414,66 @@ const getWeatherIconCode = (condition: string): string => {
   }, []) // Empty dependency array ensures this runs only once
 
   const requestPushNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      addNotification("Not Supported", "Push notifications are not supported in this browser", "error")
-      return false
-    }
-
-    try {
-      // Check current permission status
-      let permission = Notification.permission
-
-      if (permission === "default") {
-        permission = await Notification.requestPermission()
-      }
-
-      if (permission === "granted") {
-        const registration = await navigator.serviceWorker.ready
-
-        // Use environment variable for VAPID key or fallback
-        const vapidKey =
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-          "BEl62iUYgUivxIkv69yViEuiBIa40HI6YUTakcfaUYxOqHSgMfpfMUrxQJNLLISHBNKnNdoMrZYF_9_NLnomkZg"
-
-        // Create push subscription
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: vapidKey,
-        })
-
-        setPushSubscription(subscription)
-        setPushNotificationsEnabled(true)
-
-        addNotification(
-          "✅ Push Notifications Enabled",
-          "You will receive weather alerts even when the app is closed",
-          "info",
-        )
-
-        // Test notification
-        setTimeout(() => {
-          sendPushNotification("🌤️ WINDER+ Ready", "Weather notifications are now active!")
-        }, 1000)
-
-        console.log("[v0] Push subscription created:", subscription)
-        return true
-      } else if (permission === "denied") {
-        addNotification(
-          "❌ Permission Denied",
-          "Push notifications were blocked. Please enable them in your browser settings.",
-          "error",
-        )
-        return false
-      } else {
-        addNotification("⚠️ Permission Required", "Please allow notifications to receive weather alerts", "warning")
-        return false
-      }
-    } catch (error) {
-      console.error("[v0] Error requesting push notification permission:", error)
-      addNotification("Permission Error", `Failed to enable push notifications: ${error.message}`, "error")
-      return false
-    }
+  if (!("Notification" in window)) {
+    addNotification("Not Supported", "Push notifications are not supported in this browser", "error")
+    return false
   }
+
+  try {
+    // Check current permission status
+    let permission = Notification.permission
+
+    if (permission === "default") {
+      permission = await Notification.requestPermission()
+    }
+
+    if (permission === "granted") {
+      const registration = await navigator.serviceWorker.ready
+
+      // Use environment variable for VAPID key or fallback
+      const vapidKey =
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        "BEl62iUYgUivxIkv69yViEuiBIa40HI6YUTakcfaUYxOqHSgMfpfMUrxQJNLLISHBNKnNdoMrZYF_9_NLnomkZg"
+
+      // Create push subscription
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidKey,
+      })
+
+      setPushSubscription(subscription)
+      setPushNotificationsEnabled(true)
+
+      addNotification(
+        "✅ Push Notifications Enabled",
+        "You will receive weather alerts even when the app is closed",
+        "info",
+      )
+
+      // Test notification
+      setTimeout(() => {
+        sendPushNotification("🌤️ WINDER+ Ready", "Weather notifications are now active!")
+      }, 1000)
+
+      console.log("[v0] Push subscription created:", subscription)
+      return true
+    } else if (permission === "denied") {
+      addNotification(
+        "❌ Permission Denied",
+        "Push notifications were blocked. Please enable them in your browser settings.",
+        "error",
+      )
+      return false
+    } else {
+      addNotification("⚠️ Permission Required", "Please allow notifications to receive weather alerts", "warning")
+      return false
+    }
+  } catch (error) {
+    console.error("[v0] Error requesting push notification permission:", error)
+    addNotification("Permission Error", `Failed to enable push notifications: ${(error as Error).message}`, "error")
+    return false
+  }
+}
 
   const sendPushNotification = async (title: string, message: string) => {
     if (!pushNotificationsEnabled || !notificationsEnabled) {
@@ -2180,137 +2180,137 @@ const getWeatherIconCode = (condition: string): string => {
   }
 
   const reverseGeocode = (lat: number, lon: number): string => {
-    const regionChecks: Array<{ name: string; key: keyof typeof locationBounds; cityName: string }> = [
-      // Priority 1 - Olongapo (highest priority due to GPS accuracy issues)
-      { name: "olongapo", key: "olongapo", cityName: "Olongapo City" },
+  // Simple implementation - you can enhance this with a proper geocoding service
+  const regionChecks: Array<{ name: string; key: keyof typeof locationBounds; cityName: string }> = [
+    // Priority 1 - Olongapo (highest priority due to GPS accuracy issues)
+    { name: "olongapo", key: "olongapo", cityName: "Olongapo City" },
 
-      // Priority 2 - Major cities
-      { name: "cebu", key: "cebu", cityName: "Cebu" },
-      { name: "davaoCity", key: "davaoCity", cityName: "Davao City" },
-      { name: "manila", key: "manila", cityName: "Metro Manila" },
-      { name: "zamboangaCity", key: "zamboangaCity", cityName: "Zamboanga City" },
+    // Priority 2 - Major cities
+    { name: "cebu", key: "cebu", cityName: "Cebu" },
+    { name: "davaoCity", key: "davaoCity", cityName: "Davao City" },
+    { name: "manila", key: "manila", cityName: "Metro Manila" },
+    { name: "zamboangaCity", key: "zamboangaCity", cityName: "Zamboanga City" },
 
-      // Priority 3 - Central Luzon
-      { name: "zambales", key: "zambales", cityName: "Zambales" },
-      { name: "bataan", key: "bataan", cityName: "Bataan" },
-      { name: "pampanga", key: "pampanga", cityName: "Pampanga" },
-      { name: "bulacan", key: "bulacan", cityName: "Bulacan" },
+    // Priority 3 - Central Luzon
+    { name: "zambales", key: "zambales", cityName: "Zambales" },
+    { name: "bataan", key: "bataan", cityName: "Bataan" },
+    { name: "pampanga", key: "pampanga", cityName: "Pampanga" },
+    { name: "bulacan", key: "bulacan", cityName: "Bulacan" },
 
-      // Northern Luzon
-      { name: "ilocosNorte", key: "ilocosNorte", cityName: "Ilocos Norte" },
-      { name: "ilocosSur", key: "ilocosSur", cityName: "Ilocos Sur" },
-      { name: "laUnion", key: "laUnion", cityName: "La Union" },
-      { name: "cagayan", key: "cagayan", cityName: "Cagayan" },
-      { name: "isabela", key: "isabela", cityName: "Isabela" },
-      { name: "benguet", key: "benguet", cityName: "Benguet" },
+    // Northern Luzon
+    { name: "ilocosNorte", key: "ilocosNorte", cityName: "Ilocos Norte" },
+    { name: "ilocosSur", key: "ilocosSur", cityName: "Ilocos Sur" },
+    { name: "laUnion", key: "laUnion", cityName: "La Union" },
+    { name: "cagayan", key: "cagayan", cityName: "Cagayan" },
+    { name: "isabela", key: "isabela", cityName: "Isabela" },
+    { name: "benguet", key: "benguet", cityName: "Benguet" },
 
-      // Southern Luzon
-      { name: "batangas", key: "batangas", cityName: "Batangas" },
-      { name: "cavite", key: "cavite", cityName: "Cavite" },
-      { name: "laguna", key: "laguna", cityName: "Laguna" },
-      { name: "rizal", key: "rizal", cityName: "Rizal" },
-      { name: "quezon", key: "quezon", cityName: "Quezon Province" },
-      { name: "palawan", key: "palawan", cityName: "Palawan" },
+    // Southern Luzon
+    { name: "batangas", key: "batangas", cityName: "Batangas" },
+    { name: "cavite", key: "cavite", cityName: "Cavite" },
+    { name: "laguna", key: "laguna", cityName: "Laguna" },
+    { name: "rizal", key: "rizal", cityName: "Rizal" },
+    { name: "quezon", key: "quezon", cityName: "Quezon Province" },
+    { name: "palawan", key: "palawan", cityName: "Palawan" },
 
-      // Bicol
-      { name: "albay", key: "albay", cityName: "Albay" },
-      { name: "camarinesSur", key: "camarinesSur", cityName: "Camarines Sur" },
-      { name: "sorsogon", key: "sorsogon", cityName: "Sorsogon" },
-      { name: "masbate", key: "masbate", cityName: "Masbate" },
+    // Bicol
+    { name: "albay", key: "albay", cityName: "Albay" },
+    { name: "camarinesSur", key: "camarinesSur", cityName: "Camarines Sur" },
+    { name: "sorsogon", key: "sorsogon", cityName: "Sorsogon" },
+    { name: "masbate", key: "masbate", cityName: "Masbate" },
 
-      // Visayas
-      { name: "iloilo", key: "iloilo", cityName: "Iloilo" },
-      { name: "capiz", key: "capiz", cityName: "Capiz" },
-      { name: "negrosOccidental", key: "negrosOccidental", cityName: "Negros Occidental" },
-      { name: "bohol", key: "bohol", cityName: "Bohol" },
-      { name: "leyte", key: "leyte", cityName: "Leyte" },
-      { name: "samar", key: "samar", cityName: "Samar" },
-      { name: "easternSamar", key: "easternSamar", cityName: "Eastern Samar" },
-      { name: "southernLeyte", key: "southernLeyte", cityName: "Southern Leyte" },
+    // Visayas
+    { name: "iloilo", key: "iloilo", cityName: "Iloilo" },
+    { name: "capiz", key: "capiz", cityName: "Capiz" },
+    { name: "negrosOccidental", key: "negrosOccidental", cityName: "Negros Occidental" },
+    { name: "bohol", key: "bohol", cityName: "Bohol" },
+    { name: "leyte", key: "leyte", cityName: "Leyte" },
+    { name: "samar", key: "samar", cityName: "Samar" },
+    { name: "easternSamar", key: "easternSamar", cityName: "Eastern Samar" },
+    { name: "southernLeyte", key: "southernLeyte", cityName: "Southern Leyte" },
 
-      // Mindanao
-      { name: "zamboangaDelNorte", key: "zamboangaDelNorte", cityName: "Zamboanga del Norte" },
-      { name: "zamboangaDelSur", key: "zamboangaDelSur", cityName: "Zamboanga del Sur" },
-      { name: "zamboangaSibugay", key: "zamboangaSibugay", cityName: "Zamboanga Sibugay" },
-      { name: "bukidnon", key: "bukidnon", cityName: "Bukidnon" },
-      { name: "misamisOccidental", key: "misamisOccidental", cityName: "Misamis Occidental" },
-      { name: "misamisOriental", key: "misamisOriental", cityName: "Misamis Oriental" },
-      { name: "davaoDelNorte", key: "davaoDelNorte", cityName: "Davao del Norte" },
-      { name: "davaoDelSur", key: "davaoDelSur", cityName: "Davao del Sur" },
-      { name: "davaoOriental", key: "davaoOriental", cityName: "Davao Oriental" },
-      { name: "cotabato", key: "cotabato", cityName: "Cotabato" },
-      { name: "southCotabato", key: "southCotabato", cityName: "South Cotabato" },
-      { name: "agusan", key: "agusan", cityName: "Agusan del Norte" },
-      { name: "surigaoDelNorte", key: "surigaoDelNorte", cityName: "Surigao del Norte" },
-      { name: "surigaoDelSur", key: "surigaoDelSur", cityName: "Surigao del Sur" },
-      { name: "lanaoDelSur", key: "lanaoDelSur", cityName: "Lanao del Sur" },
-      { name: "lanaoDelNorte", key: "lanaoDelNorte", cityName: "Lanao del Norte" },
-      { name: "maguindanao", key: "maguindanao", cityName: "Maguindanao" },
-      { name: "basilan", key: "basilan", cityName: "Basilan" },
-    ]
+    // Mindanao
+    { name: "zamboangaDelNorte", key: "zamboangaDelNorte", cityName: "Zamboanga del Norte" },
+    { name: "zamboangaDelSur", key: "zamboangaDelSur", cityName: "Zamboanga del Sur" },
+    { name: "zamboangaSibugay", key: "zamboangaSibugay", cityName: "Zamboanga Sibugay" },
+    { name: "bukidnon", key: "bukidnon", cityName: "Bukidnon" },
+    { name: "misamisOccidental", key: "misamisOccidental", cityName: "Misamis Occidental" },
+    { name: "misamisOriental", key: "misamisOriental", cityName: "Misamis Oriental" },
+    { name: "davaoDelNorte", key: "davaoDelNorte", cityName: "Davao del Norte" },
+    { name: "davaoDelSur", key: "davaoDelSur", cityName: "Davao del Sur" },
+    { name: "davaoOriental", key: "davaoOriental", cityName: "Davao Oriental" },
+    { name: "cotabato", key: "cotabato", cityName: "Cotabato" },
+    { name: "southCotabato", key: "southCotabato", cityName: "South Cotabato" },
+    { name: "agusan", key: "agusan", cityName: "Agusan del Norte" },
+    { name: "surigaoDelNorte", key: "surigaoDelNorte", cityName: "Surigao del Norte" },
+    { name: "surigaoDelSur", key: "surigaoDelSur", cityName: "Surigao del Sur" },
+    { name: "lanaoDelSur", key: "lanaoDelSur", cityName: "Lanao del Sur" },
+    { name: "lanaoDelNorte", key: "lanaoDelNorte", cityName: "Lanao del Norte" },
+    { name: "maguindanao", key: "maguindanao", cityName: "Maguindanao" },
+    { name: "basilan", key: "basilan", cityName: "Basilan" },
+  ]
 
-    // Check which regions contain the coordinates
-    const matchingRegions = regionChecks.filter((region) => {
-      const bounds = locationBounds[region.key]
-      return lat >= bounds.minLat && lat <= bounds.maxLat && lon >= bounds.minLon && lon <= bounds.maxLon
-    })
+  // Check which regions contain the coordinates
+  const matchingRegions = regionChecks.filter((region) => {
+    const bounds = locationBounds[region.key]
+    return lat >= bounds.minLat && lat <= bounds.maxLat && lon >= bounds.minLon && lon <= bounds.maxLon
+  })
 
-    // Find all locations within their radius, sorted by distance
-    const candidateLocations = locations
-      .map((location) => ({
-        ...location,
-        distance: Math.sqrt(Math.pow(lat - location.lat, 2) + Math.pow(lon - location.lon, 2)),
-      }))
-      .filter((loc) => loc.distance <= loc.radius)
-      .sort((a, b) => a.distance - b.distance)
+  // Find all locations within their radius, sorted by distance
+  const candidateLocations = locations
+    .map((location) => ({
+      ...location,
+      distance: Math.sqrt(Math.pow(lat - location.lat, 2) + Math.pow(lon - location.lon, 2)),
+    }))
+    .filter((loc) => loc.distance <= loc.radius)
+    .sort((a, b) => a.distance - b.distance)
 
-    // Priority system: If coordinates fall within a priority 1 region (Olongapo)
-    if (matchingRegions.length > 0) {
-      const priority1Region = matchingRegions.find((r) => locationBounds[r.key].priority === 1)
-      if (priority1Region) {
-        // Try to find the specific city within this region
-        const cityMatch = candidateLocations.find(
-          (loc) => loc.name.includes("Olongapo") || loc.name.includes(priority1Region.cityName),
-        )
-        if (cityMatch) {
-          return cityMatch.name
-        }
-        // Extended threshold check for Olongapo
-        const olongapoLocation = locations.find((loc) => loc.name === "Olongapo City")
-        if (olongapoLocation) {
-          const distanceToOlongapo = Math.sqrt(
-            Math.pow(lat - olongapoLocation.lat, 2) + Math.pow(lon - olongapoLocation.lon, 2),
-          )
-          if (distanceToOlongapo < 0.7) {
-            return "Olongapo City"
-          }
-        }
-      }
-    }
-
-    // If we found specific city matches, prefer cities over provinces
-    if (candidateLocations.length > 0) {
-      // Prefer cities (those with "City" in the name) over provinces
-      const cityMatch = candidateLocations.find((loc) => loc.name.includes("City"))
+  // Priority system: If coordinates fall within a priority 1 region (Olongapo)
+  if (matchingRegions.length > 0) {
+    const priority1Region = matchingRegions.find((r) => locationBounds[r.key].priority === 1)
+    if (priority1Region) {
+      // Try to find the specific city within this region
+      const cityMatch = candidateLocations.find(
+        (loc) => loc.name.includes("Olongapo") || loc.name.includes(priority1Region.cityName),
+      )
       if (cityMatch) {
         return cityMatch.name
       }
-      // Otherwise return closest match
-      return candidateLocations[0].name
+      // Extended threshold check for Olongapo
+      const olongapoLocation = locations.find((loc) => loc.name === "Olongapo City")
+      if (olongapoLocation) {
+        const distanceToOlongapo = Math.sqrt(
+          Math.pow(lat - olongapoLocation.lat, 2) + Math.pow(lon - olongapoLocation.lon, 2),
+        )
+        if (distanceToOlongapo < 0.7) {
+          return "Olongapo City"
+        }
+      }
     }
-
-    // Regional fallback based on bounds - use the highest priority matching region
-    if (matchingRegions.length > 0) {
-      const sortedByPriority = matchingRegions.sort(
-        (a, b) => locationBounds[a.key].priority - locationBounds[b.key].priority,
-      )
-      return sortedByPriority[0].cityName
-    }
-
-    // Default to "Philippines" if no specific location is found
-    return "Philippines"
   }
-  // </CHANGE>
+
+  // If we found specific city matches, prefer cities over provinces
+  if (candidateLocations.length > 0) {
+    // Prefer cities (those with "City" in the name) over provinces
+    const cityMatch = candidateLocations.find((loc) => loc.name.includes("City"))
+    if (cityMatch) {
+      return cityMatch.name
+    }
+    // Otherwise return closest match
+    return candidateLocations[0].name
+  }
+
+  // Regional fallback based on bounds - use the highest priority matching region
+  if (matchingRegions.length > 0) {
+    const sortedByPriority = matchingRegions.sort(
+      (a, b) => locationBounds[a.key].priority - locationBounds[b.key].priority,
+    )
+    return sortedByPriority[0].cityName
+  }
+
+  // Default to "Philippines" if no specific location is found
+  return "Philippines"
+}
 
   const formatDate = (dateValue: string | Date): string => {
     if (!dateValue) return "N/A"
@@ -2494,42 +2494,42 @@ const getWeatherIconCode = (condition: string): string => {
   }
 
   const compareWeatherConditions = (oldWeather: WeatherData, newWeather: WeatherData) => {
-    const tempChange = Math.abs(newWeather.temperature - oldWeather.temperature)
-    const windSpeedChange = Math.abs(newWeather.windSpeed - oldWeather.windSpeed)
-    const humidityChange = Math.abs(newWeather.humidity - oldWeather.humidity)
+  const tempChange = Math.abs(newWeather.temperature - oldWeather.temperature)
+  const windSpeedChange = Math.abs(newWeather.windSpeed - oldWeather.windSpeed)
+  const humidityChange = Math.abs(newWeather.humidity - oldWeather.humidity)
 
-    if (tempChange >= 3) {
-      const direction = newWeather.temperature > oldWeather.temperature ? "increased" : "decreased"
-      addNotification(
-        `Temperature ${direction.charAt(0).toUpperCase() + direction.slice(1)}`,
-        `Temperature has ${direction} by ${tempChange.toFixed(1)}°C`,
-        direction === "increased" && tempChange >= 5 ? "warning" : "info",
-        newWeather,
-      )
-    }
+  if (tempChange >= 3) {
+    const direction = newWeather.temperature > oldWeather.temperature ? "increased" : "decreased"
+    addNotification(
+      `Temperature ${direction.charAt(0).toUpperCase() + direction.slice(1)}`,
+      `Temperature has ${direction} by ${tempChange.toFixed(1)}°C`,
+      direction === "increased" && tempChange >= 5 ? "warning" : "info",
+      newWeather,
+    )
+  }
 
-    if (oldWeather.condition !== newWeather.condition) {
-      const getWeatherEmoji = (condition: string) => {
-        const icons: { [key: string]: string } = {
-          Clear: "☀️",
-          Sunny: "☀️",
-          Rain: "🌧️",
-          Thunderstorm: "⛈️",
-          Cloudy: "☁️",
-          "Partly Cloudy": "⛅",
-          Snow: "❄️",
-          Fog: "🌫️",
-        }
-        return icons[condition] || "🌤️"
+  if (oldWeather.condition !== newWeather.condition) {
+    const getWeatherEmoji = (condition: string) => {
+      const icons: { [key: string]: string } = {
+        Clear: "☀️",
+        Sunny: "☀️",
+        Rain: "🌧️",
+        Thunderstorm: "⛈️",
+        Cloudy: "☁️",
+        "Partly Cloudy": "⛅",
+        Snow: "❄️",
+        Fog: "🌫️",
       }
-
-      addNotification(
-        "Weather Condition Change",
-        `${getWeatherEmoji(oldWeather.condition)} ${oldWeather.condition} → ${getWeatherEmoji(newWeather.condition)} ${newWeather.condition}`,
-        newWeather.condition.includes("Thunderstorm") || newWeather.condition.includes("Rain") ? "warning" : "info",
-        newWeather,
-      )
+      return icons[condition] || "🌤️"
     }
+
+    addNotification(
+      "Weather Condition Change",
+      `${getWeatherEmoji(oldWeather.condition)} ${oldWeather.condition} → ${getWeatherEmoji(newWeather.condition)} ${newWeather.condition}`,
+      newWeather.condition.includes("Thunderstorm") || newWeather.condition.includes("Rain") ? "warning" : "info",
+      newWeather,
+    )
+  }
 
     if (windSpeedChange >= 10) {
       const direction = newWeather.windSpeed > oldWeather.windSpeed ? "increased" : "decreased"
