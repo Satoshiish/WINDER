@@ -60,8 +60,11 @@ export const metadata: Metadata = {
     title: "WINDER+",
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/icon-192x192.png",
+  icon: [
+    { url: "/favicon.ico" },
+    { url: "/Winder+_Black-BG.png", type: "image/png" },
+  ],
+  apple: "/icon-192x192.png",
   },
   other: {
     "mobile-web-app-capable": "yes",
