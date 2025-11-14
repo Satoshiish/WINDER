@@ -3583,7 +3583,11 @@ const getWeatherIconCode = (condition: string): string => {
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <Cloud className="h-5 w-5 text-white" />
+                    <img 
+                      src="/Winder+_Black-BG.png" 
+                      alt="Winder+ Logo" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <h1 className="text-lg font-semibold text-blue-400 mb-1">WINDER+</h1>
@@ -3736,7 +3740,11 @@ const getWeatherIconCode = (condition: string): string => {
           <div className="p-6 border-b border-slate-700/50">
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <Cloud className="h-7 w-7 text-white" />
+                <img 
+                  src="/Winder+_Black-BG.png" 
+                  alt="Winder+ Logo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-lg font-semibold text-blue-400 mb-1">WINDER+</div>
