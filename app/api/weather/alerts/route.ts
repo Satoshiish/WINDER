@@ -305,7 +305,13 @@ async function generateRiskPredictions(lat: string, lon: string, weatherData?: a
         console.log("[v0] Using calculated earthquake risk:", earthquakeRisk)
 
         if (earthquakeData.recentEarthquakes && earthquakeData.recentEarthquakes.length > 0) {
+          const meanMagnitude = earthquakeData.recentEarthquakes.reduce((sum: number, eq: any) => sum + eq.magnitude, 0) / earthquakeData.recentEarthquakes.length
           const maxMagnitude = Math.max(...earthquakeData.recentEarthquakes.map((eq: any) => eq.magnitude))
+          
+          // Count total earthquakes including grouped ones
+          const totalEarthquakeCount = earthquakeData.recentEarthquakes.reduce((sum: number, eq: any) => sum + (eq.count || 1), 0)
+          
+          console.log("[v0] Mean magnitude:", meanMagnitude.toFixed(1), "Max:", maxMagnitude.toFixed(1), "Total earthquakes:", totalEarthquakeCount)
 
           const last24h = earthquakeData.recentEarthquakes.filter((eq: any) => {
             const timeDiff = Date.now() - eq.time.getTime()
@@ -322,14 +328,16 @@ async function generateRiskPredictions(lat: string, lon: string, weatherData?: a
             earthquakeTrend = "decreasing"
           }
 
-          if (maxMagnitude >= 6) {
-            earthquakeDescription = `Strong seismic activity detected (M${maxMagnitude.toFixed(1)})`
-          } else if (maxMagnitude >= 5) {
-            earthquakeDescription = `Moderate seismic activity (M${maxMagnitude.toFixed(1)})`
-          } else if (maxMagnitude >= 4) {
-            earthquakeDescription = `Light seismic activity detected (M${maxMagnitude.toFixed(1)})`
+          if (meanMagnitude >= 6) {
+            earthquakeDescription = `Strong seismic activity (Mean: M${meanMagnitude.toFixed(1)}, ${totalEarthquakeCount} events)`
+          } else if (meanMagnitude >= 5) {
+            earthquakeDescription = `Moderate seismic activity (Mean: M${meanMagnitude.toFixed(1)}, ${totalEarthquakeCount} events)`
+          } else if (meanMagnitude >= 4) {
+            earthquakeDescription = `Light seismic activity (Mean: M${meanMagnitude.toFixed(1)}, ${totalEarthquakeCount} events)`
+          } else if (meanMagnitude >= 3) {
+            earthquakeDescription = `Minor seismic activity (Mean: M${meanMagnitude.toFixed(1)}, ${totalEarthquakeCount} events)`
           } else {
-            earthquakeDescription = "Minor seismic activity"
+            earthquakeDescription = `Low seismic activity (Mean: M${meanMagnitude.toFixed(1)}, ${totalEarthquakeCount} events)`
           }
         }
       } else {
@@ -422,42 +430,19 @@ async function fetchEarthquakeDataDirect(lat: string, lon: string) {
     const userLat = Number.parseFloat(lat)
     const userLon = Number.parseFloat(lon)
 
-    const usgsUrl = new URL("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson")
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-    let response
-    try {
-      response = await fetch(usgsUrl.toString(), {
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "WeatherHub/1.0",
-          Accept: "application/json",
-        },
-      })
-    } catch (fetchError) {
-      clearTimeout(timeoutId)
-      console.log("[v0] USGS API fetch failed, using fallback data")
-      return { earthquakes: [], earthquakeRisk: 0, recentEarthquakes: [] }
+    let earthquakes = await fetchPhivolcsDataDirect(userLat, userLon)
+    
+    // Fallback to USGS if PHIVOLCS fails
+    if (earthquakes.length === 0) {
+      console.log("[v0] PHIVOLCS returned no data, falling back to USGS")
+      earthquakes = await fetchUsgsDataDirect(userLat, userLon)
     }
 
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      console.log("[v0] USGS API returned status:", response.status)
-      return { earthquakes: [], earthquakeRisk: 0, recentEarthquakes: [] }
-    }
-
-    const data = await response.json()
-    console.log("[v0] USGS API returned", data.features?.length || 0, "earthquakes")
-
-    const earthquakes = parseUsgsData(data, userLat, userLon)
-    console.log("[v0] Parsed", earthquakes.length, "earthquakes from USGS")
+    const earthquakesWithMean = calculateMeanMagnitudesForAlerts(earthquakes)
 
     // Filter for recent earthquakes (last 7 days)
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-    const recentEarthquakes = earthquakes
+    const recentEarthquakes = earthquakesWithMean
       .filter((eq: any) => eq.time.getTime() > sevenDaysAgo)
       .sort((a: any, b: any) => b.time.getTime() - a.time.getTime())
 
@@ -469,7 +454,7 @@ async function fetchEarthquakeDataDirect(lat: string, lon: string) {
       earthquakeRisk,
       "from",
       recentEarthquakes.length,
-      "recent earthquakes",
+      "earthquake groups",
     )
 
     return {
@@ -481,6 +466,177 @@ async function fetchEarthquakeDataDirect(lat: string, lon: string) {
     console.error("[v0] Earthquake fetch error:", error instanceof Error ? error.message : String(error))
     return { earthquakes: [], earthquakeRisk: 0, recentEarthquakes: [] }
   }
+}
+
+async function fetchPhivolcsDataDirect(userLat: number, userLon: number): Promise<any[]> {
+  try {
+    const response = await fetch("https://earthquake.phivolcs.dost.gov.ph/", {
+      headers: {
+        "User-Agent": "WeatherHub/1.0",
+      },
+      signal: AbortSignal.timeout(10000),
+    })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const html = await response.text()
+    return parsePhivolcsHtmlForAlerts(html, userLat, userLon)
+  } catch (error) {
+    return []
+  }
+}
+
+function parsePhivolcsHtmlForAlerts(html: string, userLat: number, userLon: number): any[] {
+  const earthquakes: any[] = []
+  
+  try {
+    const tableRowRegex = /<tr[^>]*>[\s\S]*?<\/tr>/gi
+    const rows = html.match(tableRowRegex) || []
+    
+    for (const row of rows) {
+      try {
+        const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi
+        const cells: string[] = []
+        let match
+        
+        while ((match = cellRegex.exec(row)) !== null) {
+          cells.push(match[1].replace(/<[^>]*>/g, '').trim())
+        }
+        
+        if (cells.length >= 6) {
+          const dateTime = cells[0]
+          const latitude = Number.parseFloat(cells[1])
+          const longitude = Number.parseFloat(cells[2])
+          const depth = Number.parseFloat(cells[3])
+          const magnitude = Number.parseFloat(cells[4])
+          const location = cells[5]
+          
+          if (!isNaN(latitude) && !isNaN(longitude) && !isNaN(magnitude) && magnitude >= 1.5) {
+            const time = new Date(dateTime)
+            const distance = calculateDistance(userLat, userLon, latitude, longitude)
+            
+            const maxDistance = getMaxDistanceForLocationAlerts(userLat, userLon, magnitude)
+            
+            if (distance <= maxDistance) {
+              earthquakes.push({
+                magnitude,
+                depth: isNaN(depth) ? 0 : depth,
+                latitude,
+                longitude,
+                location,
+                time,
+                distance,
+              })
+            }
+          }
+        }
+      } catch (e) {
+        continue
+      }
+    }
+  } catch (error) {
+    console.error("[v0] Error parsing PHIVOLCS data:", error)
+  }
+  
+  return earthquakes.sort((a, b) => a.distance - b.distance)
+}
+
+async function fetchUsgsDataDirect(userLat: number, userLon: number): Promise<any[]> {
+  try {
+    const usgsUrl = new URL("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson")
+
+    const response = await fetch(usgsUrl.toString(), {
+      signal: AbortSignal.timeout(10000),
+      headers: {
+        "User-Agent": "WeatherHub/1.0",
+        Accept: "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const data = await response.json()
+    console.log("[v0] USGS API returned", data.features?.length || 0, "earthquakes")
+
+    return parseUsgsData(data, userLat, userLon)
+  } catch (error) {
+    return []
+  }
+}
+
+function getMaxDistanceForLocationAlerts(userLat: number, userLon: number, magnitude: number): number {
+  const isOlongapo = userLat >= 14.78 && userLat <= 14.90 && userLon >= 120.24 && userLon <= 120.35
+  
+  let maxDistance = 100
+  
+  // Only very strong earthquakes are relevant from far away
+  if (magnitude >= 6.5) {
+    maxDistance = isOlongapo ? 300 : 400
+  } else if (magnitude >= 6.0) {
+    maxDistance = isOlongapo ? 200 : 300
+  } else if (magnitude >= 5.5) {
+    maxDistance = isOlongapo ? 150 : 200
+  } else if (magnitude >= 5.0) {
+    maxDistance = isOlongapo ? 100 : 150
+  } else if (magnitude >= 4.5) {
+    maxDistance = isOlongapo ? 75 : 100
+  } else if (magnitude >= 4.0) {
+    maxDistance = isOlongapo ? 50 : 75
+  } else if (magnitude >= 3.0) {
+    maxDistance = isOlongapo ? 30 : 50
+  } else if (magnitude >= 2.5) {
+    maxDistance = isOlongapo ? 20 : 30
+  } else {
+    maxDistance = isOlongapo ? 15 : 20
+  }
+  
+  return maxDistance
+}
+
+function calculateMeanMagnitudesForAlerts(earthquakes: any[]): any[] {
+  if (earthquakes.length === 0) return []
+  
+  const groups: any[] = []
+  const processed = new Set<number>()
+  
+  for (let i = 0; i < earthquakes.length; i++) {
+    if (processed.has(i)) continue
+    
+    const eq = earthquakes[i]
+    const nearby: any[] = [eq]
+    processed.add(i)
+    
+    for (let j = i + 1; j < earthquakes.length; j++) {
+      if (processed.has(j)) continue
+      
+      const other = earthquakes[j]
+      const distance = calculateDistance(eq.latitude, eq.longitude, other.latitude, other.longitude)
+      
+      if (distance <= 10) {
+        nearby.push(other)
+        processed.add(j)
+      }
+    }
+    
+    const meanMagnitude = nearby.reduce((sum, e) => sum + e.magnitude, 0) / nearby.length
+    const maxMagnitude = Math.max(...nearby.map(e => e.magnitude))
+    
+    const latest = nearby.sort((a, b) => b.time.getTime() - a.time.getTime())[0]
+    
+    groups.push({
+      ...latest,
+      magnitude: meanMagnitude,
+      maxMagnitude,
+      count: nearby.length,
+      grouped: nearby.length > 1
+    })
+  }
+  
+  return groups
 }
 
 function parseUsgsData(data: any, userLat: number, userLon: number): any[] {
@@ -538,52 +694,59 @@ function calculateEarthquakeRisk(earthquakes: any[], userLat: number, userLon: n
 
   let riskScore = 0
 
-  // Base risk from earthquake count (more earthquakes = higher risk)
-  const earthquakeCount = earthquakes.length
-  riskScore += Math.min(15, earthquakeCount * 1.5)
-
-  // Risk from magnitude (higher magnitude = higher risk)
-  const avgMagnitude = earthquakes.reduce((sum: number, eq: any) => sum + eq.magnitude, 0) / earthquakes.length
+  const totalMagnitude = earthquakes.reduce((sum: number, eq: any) => sum + (eq.magnitude * (eq.count || 1)), 0)
+  const totalCount = earthquakes.reduce((sum: number, eq: any) => sum + (eq.count || 1), 0)
+  const avgMagnitude = totalMagnitude / totalCount
+  
   const maxMagnitude = Math.max(...earthquakes.map((eq: any) => eq.magnitude))
+  
+  // Base risk from mean magnitude
+  const magnitudeRisk = Math.pow(avgMagnitude - 2, 2) * 3
+  riskScore += Math.min(40, magnitudeRisk)
+  
+  console.log("[v0] Risk calculation - Mean mag:", avgMagnitude.toFixed(1), "Max mag:", maxMagnitude.toFixed(1), "Count:", totalCount, "Base risk:", riskScore.toFixed(1))
 
-  // Magnitude risk: 3.0 = 5%, 4.0 = 15%, 5.0 = 25%, 6.0 = 40%
-  riskScore += Math.min(40, Math.pow(maxMagnitude, 2) * 1.5)
-  riskScore += Math.min(20, avgMagnitude * 3)
-
-  // Risk from proximity (earthquakes within 200km are more concerning)
-  const nearbyEarthquakes = earthquakes.filter((eq: any) => {
-    const distance = calculateDistance(userLat, userLon, eq.latitude, eq.longitude)
-    return distance < 200
+  // Heavy proximity weighting: earthquakes are only shown if nearby anyway, so weight distance heavily
+  earthquakes.forEach((eq: any) => {
+    const distance = eq.distance || calculateDistance(userLat, userLon, eq.latitude, eq.longitude)
+    const eqCount = eq.count || 1
+    
+    let proximityFactor = 0
+    let magnitudeFactor = Math.pow(eq.magnitude - 2, 2)
+    
+    if (distance < 30) {
+      proximityFactor = 10 * magnitudeFactor
+    } else if (distance < 50) {
+      proximityFactor = 6 * magnitudeFactor
+    } else if (distance < 100) {
+      proximityFactor = 3 * magnitudeFactor
+    } else if (distance < 200) {
+      proximityFactor = 1.5 * magnitudeFactor
+    } else {
+      proximityFactor = 0.5 * magnitudeFactor
+    }
+    
+    riskScore += proximityFactor * eqCount * 0.5
   })
 
-  if (nearbyEarthquakes.length > 0) {
-    const maxNearbyMagnitude = Math.max(...nearbyEarthquakes.map((eq: any) => eq.magnitude))
-    riskScore += Math.min(30, maxNearbyMagnitude * 10 + nearbyEarthquakes.length * 3)
-  }
-
-  // Risk from moderate distance earthquakes (200-500km)
-  const moderateDistanceEarthquakes = earthquakes.filter((eq: any) => {
-    const distance = calculateDistance(userLat, userLon, eq.latitude, eq.longitude)
-    return distance >= 200 && distance < 500
-  })
-
-  if (moderateDistanceEarthquakes.length > 0) {
-    const maxModMagnitude = Math.max(...moderateDistanceEarthquakes.map((eq: any) => eq.magnitude))
-    riskScore += Math.min(20, maxModMagnitude * 4 + moderateDistanceEarthquakes.length * 1)
-  }
-
-  // Risk from very recent earthquakes (last 24 hours)
+  // Bonus for very recent earthquakes (last 24 hours)
   const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
   const veryRecentEarthquakes = earthquakes.filter((eq: any) => eq.time.getTime() > oneDayAgo)
   if (veryRecentEarthquakes.length > 0) {
-    riskScore += Math.min(10, veryRecentEarthquakes.length * 2)
+    const recentCount = veryRecentEarthquakes.reduce((sum: number, eq: any) => sum + (eq.count || 1), 0)
+    riskScore += Math.min(15, recentCount * 3)
+    
+    console.log("[v0] Recent activity boost - Count:", recentCount, "Added risk:", (recentCount * 3).toFixed(1))
   }
 
-  // Depth factor: shallower earthquakes are more dangerous
-  const avgDepth = earthquakes.reduce((sum: number, eq: any) => sum + eq.depth, 0) / earthquakes.length
-  if (avgDepth < 50) {
-    riskScore += Math.min(10, (50 - avgDepth) * 0.1)
+  // Depth factor: shallower earthquakes (<30km) are more dangerous
+  const shallowEarthquakes = earthquakes.filter((eq: any) => eq.depth < 30)
+  if (shallowEarthquakes.length > 0) {
+    riskScore += Math.min(10, shallowEarthquakes.length * 2)
   }
 
-  return Math.min(100, Math.max(5, Math.round(riskScore)))
+  const finalRisk = Math.min(100, Math.max(5, Math.round(riskScore)))
+  console.log("[v0] Final earthquake risk:", finalRisk)
+  
+  return finalRisk
 }
