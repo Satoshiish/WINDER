@@ -58,17 +58,8 @@ import { sendSMS } from "@/services/smsService"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { searchLocations, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
-
-interface WeatherData {
-  temperature: number
-  condition: string
-  description: string
-  location: string
-  humidity: number
-  windSpeed: number
-  feelsLike: number
-  icon?: string
-}
+import { WeatherCard } from "@/components/weather-card"
+import type { WeatherData } from "@/lib/interfaces"
 
 interface WeatherHistoryEntry {
   id: string
@@ -4045,44 +4036,20 @@ const getWeatherIconCode = (condition: string): string => {
                     {(() => {
                       const displayWeather = searchWeather || currentWeather
                       return (
-                        <>
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h2 className="text-2xl font-semibold">{selectedLocationName || currentLocationName}</h2>
-                              <p className="text-sm text-slate-300">
-                                {formatDate(new Date())} • {displayWeather.description}
-                              </p>
-                            </div>
-                            <div className="flex items-center">
-                              {getMainWeatherIcon(displayWeather.condition, displayWeather.icon)}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="text-5xl font-bold">
-                                {convertTemperature(displayWeather.temperature).toFixed(1)}
-                                {getTemperatureUnit()}
-                              </h3>
-                              {/* Update weather display labels */}
-                              <p className="text-sm text-slate-300">
-                                {t("weather.feelsLike")} {convertTemperature(displayWeather.feelsLike).toFixed(1)}
-                                {getTemperatureUnit()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              {/* Update weather display labels */}
-                              <p className="text-sm text-slate-300">
-                                {t("weather.humidity")}: {displayWeather.humidity}%
-                              </p>
-                              {/* Update weather display labels */}
-                              <p className="text-sm text-slate-300">
-                                {t("weather.windSpeed")}: {convertWindSpeed(displayWeather.windSpeed).toFixed(1)}
-                                {getWindSpeedUnit()}
-                              </p>
-                            </div>
-                          </div>
-                        </>
+                        <WeatherCard
+                          latitude={location?.lat}
+                          longitude={location?.lon}
+                          hourlyForecast={[]}
+                          location={selectedLocationName || currentLocationName}
+                          temperature={displayWeather.temperature}
+                          condition={displayWeather.condition}
+                          humidity={displayWeather.humidity}
+                          windSpeed={displayWeather.windSpeed}
+                          alertLevel={alerts && alerts.length > 0 ? "high" : "low"}
+                          heatIndex={weatherIndices?.heatIndex}
+                          floodRiskIndex={weatherIndices?.uvIndex}
+                          typhoonImpactIndex={weatherIndices?.typhoonImpactIndex}
+                        />
                       )
                     })()}
                   </>

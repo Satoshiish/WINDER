@@ -4,16 +4,6 @@
  * based on meteorological data and Philippine standards
  */
 
-interface WeatherData {
-  temperature: number
-  humidity: number
-  windSpeed: number
-  pressure: number
-  precipitation?: number
-  feelsLike?: number
-  cloudCover?: number
-}
-
 interface HourlyWeatherData {
   temperature: number[]
   humidity: number[]

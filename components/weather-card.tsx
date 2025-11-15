@@ -3,56 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Cloud, Droplets, Wind, Eye, Loader2, AlertCircle, AlertTriangle } from "lucide-react"
+import WeatherMetrics from "@/components/molecules/weather-metrics"
 import { useState, useEffect } from "react"
 import { WeatherIndexIndicator } from "@/components/weather-index-indicator"
-
-interface WeatherData {
-  temperature: number
-  condition: string
-  location: string
-  humidity: number
-  windSpeed: number
-  visibility: number
-  feelsLike: number
-  icon: string
-  lastUpdated?: string
-}
-
-interface WeatherCardProps {
-  // API-driven props (existing)
-  latitude?: number
-  longitude?: number
-  hourlyForecast?: Array<{
-    time: string
-    temp: string
-    icon: string
-  }>
-  location?: string
-  temperature?: number
-  condition?: string
-  humidity?: number
-  windSpeed?: number
-  alertLevel?: "low" | "medium" | "high"
-  heatIndex?: {
-    value: number
-    category: string
-    color: string
-    advisory: string
-  }
-  floodRiskIndex?: {
-    value: number
-    category: string
-    color: string
-    advisory: string
-  }
-  typhoonImpactIndex?: {
-    value: number
-    category: string
-    color: string
-    advisory: string
-    typhoonLevel?: string
-  }
-}
+import type { WeatherData, WeatherIndex, HourlyForecast, WeatherCardProps } from "@/lib/interfaces"
 
 export function WeatherCard({
   latitude,
@@ -214,20 +168,11 @@ export function WeatherCard({
               {error?.includes("demo") ? "Demo data" : "Live data from Open-Meteo"} • Updated {weatherData.lastUpdated}
             </p>
           </div>
-          <div className="text-right space-y-1">
-            <div className="flex items-center gap-1 text-sm">
-              <Droplets className="h-4 w-4" />
-              <span>{weatherData.humidity}%</span>
-            </div>
-            <div className="flex items-center gap-1 text-sm">
-              <Wind className="h-4 w-4" />
-              <span>{weatherData.windSpeed} km/h</span>
-            </div>
-            <div className="flex items-center gap-1 text-sm">
-              <Eye className="h-4 w-4" />
-              <span>{weatherData.visibility} km</span>
-            </div>
-          </div>
+          <WeatherMetrics
+            humidity={weatherData.humidity}
+            windSpeed={weatherData.windSpeed}
+            visibility={weatherData.visibility}
+          />
         </div>
 
         {(heatIndex || floodRiskIndex || typhoonImpactIndex) && (
