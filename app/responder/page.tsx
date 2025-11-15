@@ -139,18 +139,9 @@ export default function ResponderDashboard() {
     return `${Math.floor(diffHours / 24)}d ago`
   }
 
-  // Extract barangay from address (assuming format like "Sta Rita, Olongapo City")
-  const extractBarangay = (address: string) => {
-    if (!address) return "Unknown Location"
-    const parts = address.split(',')
-    return parts[0]?.trim() || address
-  }
-
-  // Extract city from address
-  const extractCity = (address: string) => {
-    if (!address) return ""
-    const parts = address.split(',')
-    return parts.slice(1).join(',').trim() || "Olongapo City"
+  // Get the full location address - use the address field directly
+  const getFullLocation = (emergency: Emergency) => {
+    return emergency.address || "Location not specified"
   }
 
   const stats = {
@@ -402,7 +393,7 @@ export default function ResponderDashboard() {
                               </Badge>
                             </div>
                             <p className="text-sm text-slate-300 mb-2 line-clamp-1">
-                              {emergency.additional_info || emergency.address}
+                              {emergency.additional_info || getFullLocation(emergency)}
                             </p>
                             <div className="flex items-center gap-4 text-xs text-slate-500">
                               <span className="flex items-center gap-1">
@@ -506,20 +497,15 @@ export default function ResponderDashboard() {
                           </div>
                         </div>
 
-                        {/* Enhanced Location Display - Similar to Admin Dashboard */}
+                        {/* Enhanced Location Display - Show full address like in the image */}
                         <div className="space-y-3 mb-4">
-                          <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
-                            <p className="text-xs text-slate-400 mb-1">Barangay</p>
-                            <p className="text-white font-medium">{extractBarangay(emergency.address)}</p>
-                            <p className="text-xs text-slate-500 mt-1">{extractCity(emergency.address)}</p>
-                          </div>
-                          
                           <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
                             <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
-                              Full Location
+                              Location
                             </p>
-                            <p className="text-white text-sm">{emergency.address}</p>
+                            <p className="text-white font-medium">{getFullLocation(emergency)}</p>
+                            <p className="text-xs text-slate-500 mt-1">Reported: {formatTimeAgo(emergency.created_at)}</p>
                           </div>
                         </div>
 
@@ -619,20 +605,15 @@ export default function ResponderDashboard() {
                   </div>
                 </div>
 
-                {/* Enhanced Location Display in Dialog */}
+                {/* Enhanced Location Display in Dialog - Show full address */}
                 <div className="space-y-3">
-                  <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                    <p className="text-xs text-slate-400 mb-2">Barangay</p>
-                    <p className="text-white font-medium text-lg">{extractBarangay(selectedEmergency.address)}</p>
-                    <p className="text-sm text-slate-400 mt-1">{extractCity(selectedEmergency.address)}</p>
-                  </div>
-                  
                   <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                     <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
-                      Full Location Details
+                      Location
                     </p>
-                    <p className="text-white font-medium">{selectedEmergency.address}</p>
+                    <p className="text-white font-medium text-lg">{getFullLocation(selectedEmergency)}</p>
+                    <p className="text-sm text-slate-400 mt-1">Reported: {formatTimeAgo(selectedEmergency.created_at)}</p>
                   </div>
                 </div>
 
