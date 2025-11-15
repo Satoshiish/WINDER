@@ -175,13 +175,3 @@ pnpm add -D jest @testing-library/react @testing-library/jest-dom ts-jest
 pnpm add -D @playwright/test
 npx playwright install
 # add a script: "test:e2e": "playwright test"
-```
-
----
-
-If you'd like, I can:
-- add a basic `test` script and Jest configuration,
-- create a sample GitHub Actions CI workflow that lints and builds on PRs,
-- or commit this README to the repository and open a PR.
-
-File created: `README_DEVELOPMENT.md` (update `<REPO_URL>` and test results placeholders).
