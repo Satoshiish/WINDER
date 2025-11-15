@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
-import type { WeatherData } from "@/lib/interfaces"
 
-interface Alert {
+// import type { WeatherData } from "@/lib/interfaces"
+ {
   id: string
   title: string
   description: string

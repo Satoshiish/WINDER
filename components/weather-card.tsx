@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Cloud, Droplets, Wind, Eye, Loader2, AlertCircle, AlertTriangle } from "lucide-react"
-import WeatherMetrics from "@/components/molecules/weather-metrics"
+imporimport WeatherMetrics from "@/components/molecules/weather-metrics"
 import { useState, useEffect } from "react"
 import { WeatherIndexIndicator } from "@/components/weather-index-indicator"
 import type { WeatherData, WeatherIndex, HourlyForecast, WeatherCardProps } from "@/lib/interfaces"
@@ -173,12 +173,7 @@ export function WeatherCard({
             windSpeed={weatherData.windSpeed}
             visibility={weatherData.visibility}
           />
-        </div>
-
-        {(heatIndex || floodRiskIndex || typhoonImpactIndex) && (
-          <div className="pt-4 border-t">
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Weather Indices</p>
-            <WeatherIndexIndicator
+  <WeatherIndexIndicator
               heatIndex={heatIndex}
               floodRiskIndex={floodRiskIndex}
               typhoonImpactIndex={typhoonImpactIndex}
