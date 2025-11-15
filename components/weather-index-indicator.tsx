@@ -1,14 +1,7 @@
 "use client"
 
 import { Thermometer, CloudRain, Cloud } from "lucide-react"
-
-interface WeatherIndex {
-  value: number
-  category: string
-  color: string
-  advisory: string
-  typhoonLevel?: string
-}
+import type { WeatherIndex } from "@/lib/interfaces"
 
 interface WeatherIndexIndicatorProps {
   heatIndex?: WeatherIndex

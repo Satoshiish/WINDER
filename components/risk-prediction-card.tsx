@@ -3,13 +3,7 @@
 import { Cloud, Droplets, Wind, Mountain, TrendingDown, TrendingUp, Minus, Zap } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { translateRiskDescription } from "@/lib/translate-weather"
-
-interface RiskPrediction {
-  category: string
-  risk: number
-  trend: "increasing" | "decreasing" | "stable"
-  description: string
-}
+import type { RiskPrediction } from "@/lib/interfaces"
 
 interface RiskPredictionCardProps {
   risks: RiskPrediction[]

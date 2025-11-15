@@ -2,14 +2,7 @@
 
 import { Sun, Wind, Thermometer } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
-
-interface WeatherIndex {
-  value: number
-  category: string
-  color: string
-  advisory: string
-  typhoonLevel?: string
-}
+import type { WeatherIndex } from "@/lib/interfaces"
 
 interface WeatherIndicesCardProps {
   heatIndex?: WeatherIndex

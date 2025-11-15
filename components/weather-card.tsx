@@ -6,53 +6,7 @@ import { Cloud, Droplets, Wind, Eye, Loader2, AlertCircle, AlertTriangle } from 
 import { useState, useEffect } from "react"
 import { WeatherIndexIndicator } from "@/components/weather-index-indicator"
 
-interface WeatherData {
-  temperature: number
-  condition: string
-  location: string
-  humidity: number
-  windSpeed: number
-  visibility: number
-  feelsLike: number
-  icon: string
-  lastUpdated?: string
-}
-
-interface WeatherCardProps {
-  // API-driven props (existing)
-  latitude?: number
-  longitude?: number
-  hourlyForecast?: Array<{
-    time: string
-    temp: string
-    icon: string
-  }>
-  location?: string
-  temperature?: number
-  condition?: string
-  humidity?: number
-  windSpeed?: number
-  alertLevel?: "low" | "medium" | "high"
-  heatIndex?: {
-    value: number
-    category: string
-    color: string
-    advisory: string
-  }
-  floodRiskIndex?: {
-    value: number
-    category: string
-    color: string
-    advisory: string
-  }
-  typhoonImpactIndex?: {
-    value: number
-    category: string
-    color: string
-    advisory: string
-    typhoonLevel?: string
-  }
-}
+import type { Weather, WeatherCardProps } from "@/lib/interfaces"
 
 export function WeatherCard({
   latitude,
@@ -68,7 +22,7 @@ export function WeatherCard({
   floodRiskIndex,
   typhoonImpactIndex,
 }: WeatherCardProps) {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [weatherData, setWeatherData] = useState<Weather | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
