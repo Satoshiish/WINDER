@@ -43,6 +43,7 @@ import {
   WeatherCardSkeleton,
   ForecastSkeleton,
 } from "@/components/skeletons/weather-skeleton"
+import { WeatherIndicesCard } from "@/components/weather-indices-card"
 import { RiskPredictionCard } from "@/components/risk-prediction-card"
 
 import { useRouter } from "next/navigation" // Import useRouter
@@ -4160,7 +4161,7 @@ const getWeatherIconCode = (condition: string): string => {
               ) : null}
 
               {/* Weather Indices */}
-              {weatherIndices && (
+              {(weatherIndices || loading || searchLoading) && (
                 <div className="space-y-3">
                   {/* Update Weather Indices section */}
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
@@ -4168,53 +4169,13 @@ const getWeatherIconCode = (condition: string): string => {
                     {t("weather.indices")}
                   </h2>
                   {/* Update the Weather Indices display section to show UV Index instead of Flood Risk */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Heat Index */}
-                    <div
-                      className={`bg-gradient-to-r from-red-600/30 to-red-500/30 rounded-xl p-5 border border-red-500/40 shadow-lg transition-all duration-200`}
-                    >
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Thermometer className="w-5 h-5 text-red-400" /> {t("weather.heatIndex")}
-                      </h3>
-                      <p className="text-2xl font-bold mt-2">{weatherIndices.heatIndex.value.toFixed(1)}°C</p>
-                      <p className={`text-sm font-medium ${weatherIndices.heatIndex.color}`}>
-                        {weatherIndices.heatIndex.category}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.heatIndex.advisory}</p>
-                    </div>
-
-                    {/* UV Index */}
-                    <div
-                      className={`bg-gradient-to-r from-yellow-600/30 to-yellow-500/30 rounded-xl p-5 border border-yellow-500/40 shadow-lg transition-all duration-200`}
-                    >
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Sun className="w-5 h-5 text-yellow-400" /> {t("weather.uvIndex")}
-                      </h3>
-                      <p className="text-2xl font-bold mt-2">{weatherIndices.uvIndex.value.toFixed(1)}</p>
-                      <p className={`text-sm font-medium ${weatherIndices.uvIndex.color}`}>
-                        {weatherIndices.uvIndex.category}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.uvIndex.advisory}</p>
-                    </div>
-
-                    {/* Typhoon Impact Index */}
-                    <div
-                      className={`bg-gradient-to-r from-purple-600/30 to-purple-500/30 rounded-xl p-5 border border-purple-500/40 shadow-lg transition-all duration-200`}
-                    >
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Wind className="w-5 h-5 text-purple-400" /> {t("weather.typhoonImpact")}
-                      </h3>
-                      <p className="text-2xl font-bold mt-2">{weatherIndices.typhoonImpactIndex.value.toFixed(1)}</p>
-                      <p className={`text-sm font-medium ${weatherIndices.typhoonImpactIndex.color}`}>
-                        {weatherIndices.typhoonImpactIndex.category}
-                      </p>
-                      {weatherIndices.typhoonImpactIndex.typhoonLevel && (
-                        <p className="text-xs text-slate-300 mt-2">
-                          Level: {weatherIndices.typhoonImpactIndex.typhoonLevel}
-                        </p>
-                      )}
-                      <p className="text-xs text-slate-400 mt-1">{weatherIndices.typhoonImpactIndex.advisory}</p>
-                    </div>
+                  <div className="grid grid-cols-1">
+                    <WeatherIndicesCard
+                      heatIndex={weatherIndices?.heatIndex}
+                      uvIndex={weatherIndices?.uvIndex}
+                      typhoonImpactIndex={weatherIndices?.typhoonImpactIndex}
+                      loading={loading || searchLoading}
+                    />
                   </div>
                 </div>
               )}
