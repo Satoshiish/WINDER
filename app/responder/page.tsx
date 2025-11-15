@@ -1,7 +1,6 @@
 "use client"
 
 import { Label } from "@/components/ui/label"
-
 import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
@@ -138,6 +137,20 @@ export default function ResponderDashboard() {
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     return `${Math.floor(diffHours / 24)}d ago`
+  }
+
+  // Extract barangay from address (assuming format like "Sta Rita, Olongapo City")
+  const extractBarangay = (address: string) => {
+    if (!address) return "Unknown Location"
+    const parts = address.split(',')
+    return parts[0]?.trim() || address
+  }
+
+  // Extract city from address
+  const extractCity = (address: string) => {
+    if (!address) return ""
+    const parts = address.split(',')
+    return parts.slice(1).join(',').trim() || "Olongapo City"
   }
 
   const stats = {
@@ -493,12 +506,21 @@ export default function ResponderDashboard() {
                           </div>
                         </div>
 
-                        <div className="p-3 bg-slate-800/30 rounded-lg mb-4 border border-slate-700/30">
-                          <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            Location
-                          </p>
-                          <p className="text-white text-sm">{emergency.address}</p>
+                        {/* Enhanced Location Display - Similar to Admin Dashboard */}
+                        <div className="space-y-3 mb-4">
+                          <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                            <p className="text-xs text-slate-400 mb-1">Barangay</p>
+                            <p className="text-white font-medium">{extractBarangay(emergency.address)}</p>
+                            <p className="text-xs text-slate-500 mt-1">{extractCity(emergency.address)}</p>
+                          </div>
+                          
+                          <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                            <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Full Location
+                            </p>
+                            <p className="text-white text-sm">{emergency.address}</p>
+                          </div>
                         </div>
 
                         <div className="flex gap-2">
@@ -597,12 +619,21 @@ export default function ResponderDashboard() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                  <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    Location
-                  </p>
-                  <p className="text-white font-medium">{selectedEmergency.address}</p>
+                {/* Enhanced Location Display in Dialog */}
+                <div className="space-y-3">
+                  <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <p className="text-xs text-slate-400 mb-2">Barangay</p>
+                    <p className="text-white font-medium text-lg">{extractBarangay(selectedEmergency.address)}</p>
+                    <p className="text-sm text-slate-400 mt-1">{extractCity(selectedEmergency.address)}</p>
+                  </div>
+                  
+                  <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      Full Location Details
+                    </p>
+                    <p className="text-white font-medium">{selectedEmergency.address}</p>
+                  </div>
                 </div>
 
                 {selectedEmergency.additional_info && (
@@ -631,7 +662,7 @@ export default function ResponderDashboard() {
                     className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700"
                   >
                     <Navigation className="w-4 h-4 mr-2" />
-                    Navigate
+                    Navigate to Location
                   </Button>
                 </div>
               </div>
