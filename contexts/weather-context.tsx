@@ -3,8 +3,19 @@
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
 
-// import type { WeatherData } from "@/lib/interfaces"
- {
+// Types
+interface WeatherData {
+  temperature: number
+  condition: string
+  description: string
+  location: string
+  humidity: number
+  windSpeed: number
+  feelsLike: number
+  icon: string
+}
+
+interface Alert {
   id: string
   title: string
   description: string
