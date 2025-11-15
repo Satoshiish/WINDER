@@ -156,7 +156,7 @@ export function WeatherIndicesSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-6 border border-slate-600/30 backdrop-blur-sm"
+          className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-5 border border-slate-600/30 backdrop-blur-sm"
         >
           <div className="flex items-center gap-3 mb-4">
             <Skeleton className="h-6 w-6 bg-slate-600/50 rounded" />
