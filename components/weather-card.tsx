@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Cloud, Droplets, Wind, Eye, Loader2, AlertCircle, AlertTriangle } from "lucide-react"
-imporimport WeatherMetrics from "@/components/molecules/weather-metrics"
+import WeatherMetrics from "@/components/molecules/weather-metrics"
 import { useState, useEffect } from "react"
 import { WeatherIndexIndicator } from "@/components/weather-index-indicator"
 import type { WeatherData, WeatherIndex, HourlyForecast, WeatherCardProps } from "@/lib/interfaces"
