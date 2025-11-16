@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Clock,
   MapPin,
+  X,
 } from "lucide-react"
 import {
   getResponderEmergencies,
@@ -101,8 +102,11 @@ export default function ResponderDashboard() {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (emergency: Emergency) => {
+    // Check if emergency is cancelled first
+    if (emergency.status === 'cancelled') return "bg-gray-500"
+    
+    switch (emergency.deployment_status) {
       case "pending":
         return "bg-yellow-500"
       case "dispatched":
@@ -144,6 +148,12 @@ export default function ResponderDashboard() {
     return emergency.address || "Location not specified"
   }
 
+  // Add helper function to check if emergency is active
+  const isEmergencyActive = (emergency: Emergency) => {
+    return emergency.status !== 'cancelled' && 
+           emergency.deployment_status !== 'resolved'
+  }
+
   const stats = {
     total: emergencies.length,
     pending: emergencies.filter((e) => e.deployment_status === "pending").length,
@@ -151,6 +161,7 @@ export default function ResponderDashboard() {
     onScene: emergencies.filter((e) => e.deployment_status === "on_scene").length,
     resolved: emergencies.filter((e) => e.deployment_status === "resolved").length,
     critical: emergencies.filter((e) => e.priority === "critical").length,
+    cancelled: emergencies.filter((e) => e.status === "cancelled").length
   }
 
   return (
@@ -378,19 +389,27 @@ export default function ResponderDashboard() {
                           onClick={() => setSelectedEmergency(emergency)}
                         >
                           <div
-                            className={`w-3 h-3 rounded-full ${getStatusColor(emergency.deployment_status)} mt-1.5 shadow-lg`}
+                            className={`w-3 h-3 rounded-full ${getStatusColor(emergency)} mt-1.5 shadow-lg`}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <p className="font-semibold text-white group-hover:text-orange-400 transition-colors">
                                 {emergency.user_name}
                               </p>
-                              <Badge
-                                variant={getPriorityColor(emergency.priority)}
-                                className="capitalize flex-shrink-0"
-                              >
-                                {emergency.priority}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant={getPriorityColor(emergency.priority)}
+                                  className="capitalize flex-shrink-0"
+                                >
+                                  {emergency.priority}
+                                </Badge>
+                                {/* Add cancelled badge */}
+                                {emergency.status === 'cancelled' && (
+                                  <Badge variant="destructive" className="bg-gray-500">
+                                    Cancelled
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                             <p className="text-sm text-slate-300 mb-2 line-clamp-1">
                               {emergency.additional_info || getFullLocation(emergency)}
@@ -404,7 +423,12 @@ export default function ResponderDashboard() {
                                 <Clock className="w-3 h-3" />
                                 {formatTimeAgo(emergency.created_at)}
                               </span>
-                              <span className="capitalize">{emergency.deployment_status.replace("_", " ")}</span>
+                              <span className="capitalize">
+                                {emergency.status === 'cancelled' 
+                                  ? 'Cancelled' 
+                                  : emergency.deployment_status.replace("_", " ")
+                                }
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -456,14 +480,22 @@ export default function ResponderDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <div
-                                className={`w-3 h-3 rounded-full ${getStatusColor(emergency.deployment_status)} shadow-lg`}
+                                className={`w-3 h-3 rounded-full ${getStatusColor(emergency)} shadow-lg`}
                               />
                               <h3 className="font-bold text-white text-lg group-hover:text-orange-400 transition-colors">
                                 {emergency.user_name}
                               </h3>
-                              <Badge variant={getPriorityColor(emergency.priority)} className="capitalize">
-                                {emergency.priority}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={getPriorityColor(emergency.priority)} className="capitalize">
+                                  {emergency.priority}
+                                </Badge>
+                                {/* Add cancelled badge */}
+                                {emergency.status === 'cancelled' && (
+                                  <Badge variant="destructive" className="bg-gray-500">
+                                    Cancelled
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                             {emergency.additional_info && (
                               <p className="text-slate-300 mb-3 line-clamp-2">{emergency.additional_info}</p>
@@ -488,7 +520,10 @@ export default function ResponderDashboard() {
                           <div className="p-2 bg-slate-800/30 rounded-lg">
                             <p className="text-xs text-slate-400 mb-1">Status</p>
                             <p className="text-white font-medium capitalize">
-                              {emergency.deployment_status.replace("_", " ")}
+                              {emergency.status === 'cancelled' 
+                                ? 'Cancelled' 
+                                : emergency.deployment_status.replace("_", " ")
+                              }
                             </p>
                           </div>
                           <div className="p-2 bg-slate-800/30 rounded-lg">
@@ -510,32 +545,45 @@ export default function ResponderDashboard() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              window.open(`tel:${emergency.contact_number}`)
-                            }}
-                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/30"
-                          >
-                            <Phone className="w-4 h-4 mr-1" />
-                            Call
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              window.open(
-                                `https://maps.google.com/?q=${emergency.location_lat},${emergency.location_lng}`,
-                                "_blank",
-                              )
-                            }}
-                            className="bg-slate-800/50 border-slate-700 hover:bg-slate-700 hover:border-orange-500/50"
-                          >
-                            <Navigation className="w-4 h-4 mr-1" />
-                            Navigate
-                          </Button>
+                          {isEmergencyActive(emergency) ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  window.open(`tel:${emergency.contact_number}`)
+                                }}
+                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/30"
+                              >
+                                <Phone className="w-4 h-4 mr-1" />
+                                Call
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  window.open(
+                                    `https://maps.google.com/?q=${emergency.location_lat},${emergency.location_lng}`,
+                                    "_blank",
+                                  )
+                                }}
+                                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700 hover:border-orange-500/50"
+                              >
+                                <Navigation className="w-4 h-4 mr-1" />
+                                Navigate
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              className="bg-slate-800/30 border-slate-600 text-slate-500"
+                            >
+                              Actions Disabled
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -551,30 +599,61 @@ export default function ResponderDashboard() {
             <DialogHeader>
               <DialogTitle className="text-white text-xl">Emergency Details</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Manage deployment status and view full emergency information
+                {selectedEmergency?.status === 'cancelled' 
+                  ? "This emergency has been cancelled" 
+                  : "Manage deployment status and view full emergency information"
+                }
               </DialogDescription>
             </DialogHeader>
             {selectedEmergency && (
               <div className="space-y-6">
-                <div>
-                  <Label className="text-white mb-2 block">Update Deployment Status</Label>
-                  <Select
-                    value={selectedEmergency.deployment_status}
-                    onValueChange={(value) => handleStatusUpdate(selectedEmergency.id, value)}
-                  >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="dispatched">Dispatched</SelectItem>
-                      <SelectItem value="on_scene">On Scene</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Status Update Section - Only show if not cancelled */}
+                {selectedEmergency.status !== 'cancelled' && (
+                  <div>
+                    <Label className="text-white mb-2 block">Update Deployment Status</Label>
+                    <Select
+                      value={selectedEmergency.deployment_status}
+                      onValueChange={(value) => handleStatusUpdate(selectedEmergency.id, value)}
+                    >
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="dispatched">Dispatched</SelectItem>
+                        <SelectItem value="on_scene">On Scene</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Cancellation Notice */}
+                {selectedEmergency.status === 'cancelled' && (
+                  <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <X className="w-5 h-5 text-red-400" />
+                      <p className="text-red-400 font-semibold">Emergency Cancelled</p>
+                    </div>
+                    {selectedEmergency.notes && (
+                      <p className="text-white text-sm">Reason: {selectedEmergency.notes}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <p className="text-xs text-slate-400 mb-1">Current Status</p>
+                    <Badge 
+                      variant={selectedEmergency.status === 'cancelled' ? 'destructive' : 'outline'}
+                      className="capitalize"
+                    >
+                      {selectedEmergency.status === 'cancelled' 
+                        ? 'Cancelled' 
+                        : selectedEmergency.deployment_status.replace('_', ' ')
+                      }
+                    </Badge>
+                  </div>
                   <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                     <p className="text-xs text-slate-400 mb-1">Reporter Name</p>
                     <p className="text-white font-semibold">{selectedEmergency.user_name}</p>
@@ -624,28 +703,31 @@ export default function ResponderDashboard() {
                   </div>
                 )}
 
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => window.open(`tel:${selectedEmergency.contact_number}`)}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Reporter
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      window.open(
-                        `https://maps.google.com/?q=${selectedEmergency.location_lat},${selectedEmergency.location_lng}`,
-                        "_blank",
-                      )
-                    }
-                    className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700"
-                  >
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Navigate to Location
-                  </Button>
-                </div>
+                {/* Action Buttons - Only show for active emergencies */}
+                {isEmergencyActive(selectedEmergency) && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => window.open(`tel:${selectedEmergency.contact_number}`)}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Reporter
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        window.open(
+                          `https://maps.google.com/?q=${selectedEmergency.location_lat},${selectedEmergency.location_lng}`,
+                          "_blank",
+                        )
+                      }
+                      className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700"
+                    >
+                      <Navigation className="w-4 h-4 mr-2" />
+                      Navigate to Location
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>

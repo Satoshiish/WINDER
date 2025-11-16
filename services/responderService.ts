@@ -179,8 +179,7 @@ export async function getResponderEmergencies(teamId: number): Promise<Emergency
       .from("emergency_reports")
       .select("*")
       .eq("assigned_team_id", teamId)
-      .order("created_at", { ascending: false })
-
+      .neq("status", "cancelled") 
     if (error) {
       console.error("Error fetching responder emergencies:", error)
       return []
