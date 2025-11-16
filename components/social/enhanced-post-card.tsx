@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MessageCircle, MoreVertical, MapPin, Cloud, AlertCircle, Flag } from "lucide-react"
+import { MessageCircle, MoreVertical, MapPin, Cloud, AlertCircle, Flag, Navigation } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
@@ -10,6 +10,7 @@ interface EnhancedPostCardProps {
   id: number
   content: string
   location?: string
+  address?: string
   postType?: "post" | "donation"
   weather?: {
     condition: string
@@ -20,22 +21,19 @@ interface EnhancedPostCardProps {
   commentsCount: number
   createdAt: string
   onComment: (postId: number) => void
-  onReport: (postId: number) => void
-  onMore: (postId: number) => void
 }
 
 export function EnhancedPostCard({
   id,
   content,
   location,
+  address,
   postType = "post",
   weather,
   imageUrl,
   commentsCount,
   createdAt,
   onComment,
-  onReport,
-  onMore,
 }: EnhancedPostCardProps) {
   const [commentCount, setCommentCount] = useState(commentsCount)
 
@@ -97,17 +95,20 @@ export function EnhancedPostCard({
               </span>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => onMore(id)}>
-            <MoreVertical className="w-4 h-4 text-slate-400" />
-          </Button>
         </div>
 
-        {/* Location and Weather */}
-        <div className="flex items-center gap-4 text-sm">
+        {/* Location, Address and Weather */}
+        <div className="space-y-2 text-sm">
           {location && (
             <div className="flex items-center gap-1 text-slate-300">
-              <MapPin className="w-4 h-4 text-blue-400" />
+              <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
               <span>{location}</span>
+            </div>
+          )}
+          {address && (
+            <div className="flex items-start gap-1 text-slate-400 ml-1">
+              <Navigation className="w-3 h-3 text-slate-500 mt-0.5 flex-shrink-0" />
+              <span className="text-xs">{address}</span>
             </div>
           )}
           {weather && (
@@ -151,13 +152,6 @@ export function EnhancedPostCard({
             <span>{commentCount}</span>
           </button>
         </div>
-        <button
-          onClick={() => onReport(id)}
-          className="flex items-center gap-1 hover:text-amber-400 transition-colors"
-          title="Report post"
-        >
-          <Flag className="w-4 h-4" />
-        </button>
       </div>
     </div>
   )

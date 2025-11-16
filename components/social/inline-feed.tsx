@@ -238,6 +238,7 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
               id={post.id}
               content={post.content}
               location={post.location_name || "Unknown Location"}
+              address={post.address} // Add this line
               postType={post.post_type || "post"}
               weather={
                 post.weather_condition
@@ -252,7 +253,6 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
               commentsCount={post.comments_count}
               createdAt={post.created_at}
               onComment={handleComment}
-              // Removed onReport and onMore props
             />
           ))}
         </div>
