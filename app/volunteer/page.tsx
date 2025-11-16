@@ -188,20 +188,36 @@ export default function VolunteerDashboard() {
     }
   }
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  // FIXED: Properly handle UTC timestamps
+  const formatTimeAgo = (timestamp: string) => {
+    try {
+      // Parse the UTC timestamp and convert to local time
+      const normalizedTimestamp = timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`
+      const date = new Date(normalizedTimestamp)
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return "Invalid date"
+      }
+      
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffMins = Math.floor(diffMs / (1000 * 60))
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    if (diffMins < 60) {
-      return `${diffMins}m ago`
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`
-    } else {
-      return `${diffDays}d ago`
+      if (diffMins < 1) {
+        return "just now"
+      } else if (diffMins < 60) {
+        return `${diffMins}m ago`
+      } else if (diffHours < 24) {
+        return `${diffHours}h ago`
+      } else {
+        return `${diffDays}d ago`
+      }
+    } catch (error) {
+      console.error("Error formatting date:", timestamp, error)
+      return "Unknown time"
     }
   }
 
