@@ -46,60 +46,55 @@ export function CommentsSection({
   }
 
   const handleAddComment = async () => {
-  if (!newComment.trim()) return
+    if (!newComment.trim()) return
 
-  setIsSubmitting(true)
-  
-  const commentContent = newComment
-  const currentTimestamp = new Date().toISOString()
-  
-  console.log('🔍 [CommentsSection] Before API call - client time:', currentTimestamp)
-  
-  const optimisticComment: Comment = {
-    id: Date.now(),
-    content: commentContent,
-    created_at: currentTimestamp,
-  }
-  
-  setComments([optimisticComment, ...comments])
-  setNewComment("")
+    setIsSubmitting(true)
+    
+    const commentContent = newComment
+    const currentTimestamp = new Date().toISOString()
+    
+    const optimisticComment: Comment = {
+      id: Date.now(),
+      content: commentContent,
+      created_at: currentTimestamp,
+    }
+    
+    setComments([optimisticComment, ...comments])
+    setNewComment("")
 
-  try {
-    const result = await addComment(postId, commentContent)
+    try {
+      const result = await addComment(postId, commentContent)
 
-    if (result.success && result.comment) {
-      console.log('🔍 [CommentsSection] After API call - server time:', result.comment.created_at)
-      console.log('🔍 [CommentsSection] Time difference:', {
-        client: currentTimestamp,
-        server: result.comment.created_at
-      })
-      
-      setComments(prev => [
-        { ...result.comment } as Comment,
-        ...prev.filter(c => c.id !== optimisticComment.id)
-      ])
-      onCommentAdded?.()
-    } else {
+      if (result.success && result.comment) {
+        setComments(prev => [
+          { ...result.comment } as Comment,
+          ...prev.filter(c => c.id !== optimisticComment.id)
+        ])
+        onCommentAdded?.()
+      } else {
+        setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
+        setNewComment(commentContent)
+      }
+    } catch (error) {
       setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
       setNewComment(commentContent)
+      console.error("Error adding comment:", error)
+    } finally {
+      setIsSubmitting(false)
     }
-  } catch (error) {
-    setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
-    setNewComment(commentContent)
-    console.error("Error adding comment:", error)
-  } finally {
-    setIsSubmitting(false)
   }
-}
 
-  // Helper function to format date with timezone awareness
+  // FIXED: Properly handle UTC timestamps
   const formatCommentTime = (timestamp: string) => {
     try {
-      const date = new Date(timestamp)
+      // Parse the UTC timestamp and convert to local time
+      const date = new Date(timestamp + 'Z') // Ensure it's treated as UTC
+      
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         return "Invalid date"
       }
+      
       return formatDistanceToNow(date, { addSuffix: true })
     } catch (error) {
       console.error("Error formatting date:", timestamp, error)
@@ -156,9 +151,9 @@ export function CommentsSection({
                   <h4 className="font-medium text-sm text-white">Community Member</h4>
                   <span className="text-xs text-slate-400">
                     {formatCommentTime(comment.created_at)}
-                    {/* Debug: show actual timestamp */}
+                    {/* Debug - uncomment to see actual timestamp */}
                     {/* <br />
-                    <span className="text-xs">{comment.created_at}</span> */}
+                    <span className="text-[10px] opacity-50">{comment.created_at}</span> */}
                   </span>
                 </div>
                 <p className="text-sm text-slate-300 mb-2">{comment.content}</p>
