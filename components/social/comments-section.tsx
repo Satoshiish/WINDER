@@ -49,20 +49,34 @@ export function CommentsSection({
     if (!newComment.trim()) return
 
     setIsSubmitting(true)
-    const optimisticTimestamp = new Date().toISOString()
-    const result = await addComment(postId, newComment)
+    
+    // Store the current comment content for optimistic update
+    const commentContent = newComment
+    setNewComment("") // Clear input immediately for better UX
 
-    if (result.success && result.comment) {
-      const commentToAdd = {
-        ...result.comment,
-        created_at: optimisticTimestamp,
-      } as Comment
-      console.log("[v0] Comment added - returned timestamp:", result.comment.created_at, "using:", optimisticTimestamp)
-      setComments([commentToAdd, ...comments])
-      setNewComment("")
-      onCommentAdded?.()
+    try {
+      const result = await addComment(postId, commentContent)
+
+      if (result.success && result.comment) {
+        // Use the actual server timestamp from the response
+        const commentToAdd = {
+          ...result.comment,
+        } as Comment
+        console.log("[v0] Comment added - server timestamp:", result.comment.created_at)
+        setComments([commentToAdd, ...comments])
+        onCommentAdded?.()
+      } else {
+        // If the request failed, restore the comment content
+        setNewComment(commentContent)
+        console.error("Failed to add comment:", result.error)
+      }
+    } catch (error) {
+      // If there was an error, restore the comment content
+      setNewComment(commentContent)
+      console.error("Error adding comment:", error)
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsSubmitting(false)
   }
 
   return (
