@@ -46,49 +46,51 @@ export function CommentsSection({
   }
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return
+  if (!newComment.trim()) return
 
-    setIsSubmitting(true)
-    
-    // Store the current comment content for optimistic update
-    const commentContent = newComment
-    const currentTimestamp = new Date().toISOString()
-    
-    // Optimistically add the comment with current time
-    const optimisticComment: Comment = {
-      id: Date.now(), // Temporary ID
-      content: commentContent,
-      created_at: currentTimestamp,
-    }
-    
-    setComments([optimisticComment, ...comments])
-    setNewComment("")
+  setIsSubmitting(true)
+  
+  const commentContent = newComment
+  const currentTimestamp = new Date().toISOString()
+  
+  console.log('🔍 [CommentsSection] Before API call - client time:', currentTimestamp)
+  
+  const optimisticComment: Comment = {
+    id: Date.now(),
+    content: commentContent,
+    created_at: currentTimestamp,
+  }
+  
+  setComments([optimisticComment, ...comments])
+  setNewComment("")
 
-    try {
-      const result = await addComment(postId, commentContent)
+  try {
+    const result = await addComment(postId, commentContent)
 
-      if (result.success && result.comment) {
-        // Replace optimistic comment with server response
-        setComments(prev => [
-          { ...result.comment } as Comment,
-          ...prev.filter(c => c.id !== optimisticComment.id)
-        ])
-        onCommentAdded?.()
-      } else {
-        // If the request failed, remove optimistic comment and restore input
-        setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
-        setNewComment(commentContent)
-        console.error("Failed to add comment:", result.error)
-      }
-    } catch (error) {
-      // If there was an error, remove optimistic comment and restore input
+    if (result.success && result.comment) {
+      console.log('🔍 [CommentsSection] After API call - server time:', result.comment.created_at)
+      console.log('🔍 [CommentsSection] Time difference:', {
+        client: currentTimestamp,
+        server: result.comment.created_at
+      })
+      
+      setComments(prev => [
+        { ...result.comment } as Comment,
+        ...prev.filter(c => c.id !== optimisticComment.id)
+      ])
+      onCommentAdded?.()
+    } else {
       setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
       setNewComment(commentContent)
-      console.error("Error adding comment:", error)
-    } finally {
-      setIsSubmitting(false)
     }
+  } catch (error) {
+    setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
+    setNewComment(commentContent)
+    console.error("Error adding comment:", error)
+  } finally {
+    setIsSubmitting(false)
   }
+}
 
   // Helper function to format date with timezone awareness
   const formatCommentTime = (timestamp: string) => {

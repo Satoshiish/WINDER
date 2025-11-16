@@ -105,7 +105,9 @@ export async function addComment(
       return { success: false, error: "Comment content is required" }
     }
 
-    const now = new Date().toISOString() // Add current timestamp
+    // Use a more explicit timestamp format
+    const now = new Date().toISOString()
+    console.log('🔍 [DEBUG] Client timestamp being sent:', now)
 
     const { data, error } = await supabase
       .from("social_comments")
@@ -114,8 +116,8 @@ export async function addComment(
           post_id: postId,
           content: content.trim(),
           status: "active",
-          created_at: now, // Explicitly set the timestamp
-          updated_at: now, // Also set updated_at for consistency
+          created_at: now,
+          updated_at: now,
         },
       ])
       .select()
@@ -125,6 +127,9 @@ export async function addComment(
       console.error("Error adding comment:", error)
       return { success: false, error: "Failed to add comment" }
     }
+
+    console.log('🔍 [DEBUG] Server returned comment:', data)
+    console.log('🔍 [DEBUG] Server returned timestamp:', data?.created_at)
 
     const { data: post, error: fetchError } = await supabase
       .from("social_posts")
