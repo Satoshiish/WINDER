@@ -52,30 +52,56 @@ export function CommentsSection({
     
     // Store the current comment content for optimistic update
     const commentContent = newComment
-    setNewComment("") // Clear input immediately for better UX
+    const currentTimestamp = new Date().toISOString()
+    
+    // Optimistically add the comment with current time
+    const optimisticComment: Comment = {
+      id: Date.now(), // Temporary ID
+      content: commentContent,
+      created_at: currentTimestamp,
+    }
+    
+    setComments([optimisticComment, ...comments])
+    setNewComment("")
 
     try {
       const result = await addComment(postId, commentContent)
 
       if (result.success && result.comment) {
-        // Use the actual server timestamp from the response
-        const commentToAdd = {
-          ...result.comment,
-        } as Comment
-        console.log("[v0] Comment added - server timestamp:", result.comment.created_at)
-        setComments([commentToAdd, ...comments])
+        // Replace optimistic comment with server response
+        setComments(prev => [
+          { ...result.comment } as Comment,
+          ...prev.filter(c => c.id !== optimisticComment.id)
+        ])
         onCommentAdded?.()
       } else {
-        // If the request failed, restore the comment content
+        // If the request failed, remove optimistic comment and restore input
+        setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
         setNewComment(commentContent)
         console.error("Failed to add comment:", result.error)
       }
     } catch (error) {
-      // If there was an error, restore the comment content
+      // If there was an error, remove optimistic comment and restore input
+      setComments(prev => prev.filter(c => c.id !== optimisticComment.id))
       setNewComment(commentContent)
       console.error("Error adding comment:", error)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Helper function to format date with timezone awareness
+  const formatCommentTime = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp)
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return "Invalid date"
+      }
+      return formatDistanceToNow(date, { addSuffix: true })
+    } catch (error) {
+      console.error("Error formatting date:", timestamp, error)
+      return "Unknown time"
     }
   }
 
@@ -127,7 +153,10 @@ export function CommentsSection({
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-sm text-white">Community Member</h4>
                   <span className="text-xs text-slate-400">
-                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                    {formatCommentTime(comment.created_at)}
+                    {/* Debug: show actual timestamp */}
+                    {/* <br />
+                    <span className="text-xs">{comment.created_at}</span> */}
                   </span>
                 </div>
                 <p className="text-sm text-slate-300 mb-2">{comment.content}</p>
