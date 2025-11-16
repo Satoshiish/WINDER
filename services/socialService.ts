@@ -105,6 +105,8 @@ export async function addComment(
       return { success: false, error: "Comment content is required" }
     }
 
+    const now = new Date().toISOString() // Add current timestamp
+
     const { data, error } = await supabase
       .from("social_comments")
       .insert([
@@ -112,6 +114,8 @@ export async function addComment(
           post_id: postId,
           content: content.trim(),
           status: "active",
+          created_at: now, // Explicitly set the timestamp
+          updated_at: now, // Also set updated_at for consistency
         },
       ])
       .select()
