@@ -8,7 +8,7 @@ import { EnhancedPostCard } from "@/components/social/enhanced-post-card"
 import { CreatePostModal } from "@/components/social/create-post-modal"
 import { PostDetailModal } from "@/components/social/post-detail-modal"
 import { getSocialFeed, createSocialPost } from "@/services/socialService"
-import { Plus, AlertCircle, Search, MapPin, ChevronDown } from "lucide-react"
+import { Plus, AlertCircle, MapPin, ChevronDown } from "lucide-react"
 import { SocialFeedSkeleton } from "@/components/skeletons/social-skeleton"
 
 interface Post {
@@ -114,10 +114,6 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
       setSelectedPost(post)
       setIsPostDetailOpen(true)
     }
-  }
-
-  const handleReport = async (postId: number) => {
-    console.log("Report post:", postId)
   }
 
   const handleSelectLocation = (locationName: string) => {
@@ -256,8 +252,7 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
               commentsCount={post.comments_count}
               createdAt={post.created_at}
               onComment={handleComment}
-              onReport={handleReport}
-              onMore={() => {}}
+              // Removed onReport and onMore props
             />
           ))}
         </div>
