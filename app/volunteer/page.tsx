@@ -35,6 +35,7 @@ import {
   Users,
   Home,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react"
 import {
   getVolunteerAreas,
@@ -45,6 +46,33 @@ import {
   type VolunteerUpdate,
 } from "@/services/volunteerService"
 import { useToast } from "@/hooks/use-toast"
+
+// Olongapo City barangays data
+const OLONGAPO_LOCATIONS = [
+  { name: "Sta Rita", city: "Olongapo City", lat: 14.853, lng: 120.2982 },
+  { name: "Gordon Heights", city: "Olongapo City", lat: 14.8156, lng: 120.2689 },
+  { name: "East Bajac-Bajac", city: "Olongapo City", lat: 14.8347, lng: 120.2892 },
+  { name: "West Bajac-Bajac", city: "Olongapo City", lat: 14.8289, lng: 120.2756 },
+  { name: "East Tapinac", city: "Olongapo City", lat: 14.8423, lng: 120.2945 },
+  { name: "West Tapinac", city: "Olongapo City", lat: 14.8378, lng: 120.2834 },
+  { name: "Barretto", city: "Olongapo City", lat: 14.7989, lng: 120.2567 },
+  { name: "New Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.2978 },
+  { name: "Old Cabalan", city: "Olongapo City", lat: 14.8512, lng: 120.3045 },
+  { name: "Pag-asa", city: "Olongapo City", lat: 14.8534, lng: 120.3012 },
+  { name: "Kalaklan", city: "Olongapo City", lat: 14.8623, lng: 120.3089 },
+  { name: "Mabayuan", city: "Olongapo City", lat: 14.8712, lng: 120.3156 },
+  { name: "New Kalalake", city: "Olongapo City", lat: 14.8401, lng: 120.2912 },
+  { name: "Old Kalalake", city: "Olongapo City", lat: 14.8367, lng: 120.2867 },
+  { name: "New Ilalim", city: "Olongapo City", lat: 14.8334, lng: 120.2823 },
+  { name: "Old Ilalim", city: "Olongapo City", lat: 14.8301, lng: 120.2789 },
+  { name: "Asinan Poblacion", city: "Olongapo City", lat: 14.8234, lng: 120.2712 },
+]
+
+function searchLocations(query: string): typeof OLONGAPO_LOCATIONS {
+  if (!query.trim()) return OLONGAPO_LOCATIONS
+  const lowerQuery = query.toLowerCase()
+  return OLONGAPO_LOCATIONS.filter((location) => location.name.toLowerCase().includes(lowerQuery))
+}
 
 export default function VolunteerDashboard() {
   const { user, logout } = useAuth()
@@ -63,9 +91,12 @@ export default function VolunteerDashboard() {
   })
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [locationSearch, setLocationSearch] = useState("")
+  const [filteredLocations, setFilteredLocations] = useState(OLONGAPO_LOCATIONS)
   const [newUpdate, setNewUpdate] = useState({
     barangay: "",
-    municipality: "",
+    municipality: "Olongapo City", // Default value
     update_type: "weather" as VolunteerUpdate["update_type"],
     severity: "moderate" as VolunteerUpdate["severity"],
     title: "",
@@ -89,6 +120,10 @@ export default function VolunteerDashboard() {
     }
   }, [user])
 
+  useEffect(() => {
+    setFilteredLocations(searchLocations(locationSearch))
+  }, [locationSearch])
+
   const loadVolunteerData = async () => {
     if (!user?.id) return
 
@@ -102,6 +137,20 @@ export default function VolunteerDashboard() {
     setAreas(areasData)
     setUpdates(updatesData)
     setStats(statsData)
+  }
+
+  const handleSelectLocation = (locationName: string) => {
+    const selectedLocation = OLONGAPO_LOCATIONS.find(loc => loc.name === locationName)
+    if (selectedLocation) {
+      setNewUpdate({
+        ...newUpdate,
+        barangay: locationName,
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+      })
+      setLocationSearch("")
+      setShowLocationDropdown(false)
+    }
   }
 
   const handleCreateUpdate = async () => {
@@ -128,7 +177,7 @@ export default function VolunteerDashboard() {
         setIsCreateDialogOpen(false)
         setNewUpdate({
           barangay: "",
-          municipality: "",
+          municipality: "Olongapo City", // Reset to default
           update_type: "weather",
           severity: "moderate",
           title: "",
@@ -136,6 +185,8 @@ export default function VolunteerDashboard() {
           latitude: undefined,
           longitude: undefined,
         })
+        setLocationSearch("")
+        setShowLocationDropdown(false)
         await loadVolunteerData()
       } else {
         toast({
@@ -469,25 +520,60 @@ export default function VolunteerDashboard() {
                             />
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label className="text-white">Barangay</Label>
+                          <div className="space-y-2">
+                            <Label className="text-white">Barangay *</Label>
+                            <div className="relative">
                               <Input
-                                placeholder="Barangay name"
-                                value={newUpdate.barangay}
-                                onChange={(e) => setNewUpdate({ ...newUpdate, barangay: e.target.value })}
-                                className="bg-slate-800 border-slate-700 text-white"
+                                type="text"
+                                placeholder="Search barangay in Olongapo..."
+                                value={locationSearch}
+                                onChange={(e) => setLocationSearch(e.target.value)}
+                                onFocus={() => setShowLocationDropdown(true)}
+                                className="bg-slate-800 border-slate-700 text-white placeholder-slate-400 pr-8"
                               />
+                              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                              
+                              {/* Location Dropdown */}
+                              {showLocationDropdown && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                  {filteredLocations.length > 0 ? (
+                                    filteredLocations.map((loc) => (
+                                      <button
+                                        key={loc.name}
+                                        onClick={() => handleSelectLocation(loc.name)}
+                                        className="w-full text-left px-3 py-2 hover:bg-slate-700 transition-colors text-sm text-white border-b border-slate-700 last:border-b-0"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <MapPin className="w-3 h-3 text-green-400 flex-shrink-0" />
+                                          <span>{loc.name}</span>
+                                        </div>
+                                      </button>
+                                    ))
+                                  ) : (
+                                    <div className="px-3 py-2 text-sm text-slate-400">No barangays found</div>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                            <div className="space-y-2">
-                              <Label className="text-white">Municipality</Label>
-                              <Input
-                                placeholder="Municipality"
-                                value={newUpdate.municipality}
-                                onChange={(e) => setNewUpdate({ ...newUpdate, municipality: e.target.value })}
-                                className="bg-slate-800 border-slate-700 text-white"
-                              />
-                            </div>
+
+                            {/* Selected barangay display */}
+                            {newUpdate.barangay && (
+                              <div className="flex items-center gap-2 p-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <MapPin className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                <span className="text-sm text-white">{newUpdate.barangay}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-white">Municipality</Label>
+                            <Input
+                              placeholder="Municipality"
+                              value={newUpdate.municipality}
+                              onChange={(e) => setNewUpdate({ ...newUpdate, municipality: e.target.value })}
+                              className="bg-slate-800 border-slate-700 text-white"
+                              readOnly // Make it read-only since it's defaulted to Olongapo City
+                            />
                           </div>
                         </div>
                         <DialogFooter>
@@ -502,7 +588,7 @@ export default function VolunteerDashboard() {
                           <Button
                             onClick={handleCreateUpdate}
                             className="bg-green-600 hover:bg-green-700"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !newUpdate.barangay}
                           >
                             {isSubmitting ? "Posting..." : "Post Update"}
                           </Button>
