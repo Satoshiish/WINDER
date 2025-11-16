@@ -47,23 +47,25 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, isLoading = false }
   }
 
   const handleSubmit = () => {
-    if (content.trim() && location) {
-      onSubmit(content, {
-        location_name: location || undefined,
-        address: address || undefined,
-        latitude: latitude || undefined,
-        longitude: longitude || undefined,
-        post_type: postType,
-      })
-      setContent("")
-      setLocation("")
-      setAddress("")
-      setPostType("post")
-      setLatitude(null)
-      setLongitude(null)
-      setLocationSearch("")
-    }
+  if (content.trim() && location) {
+    console.log('🔍 [DEBUG] Submitting post with address:', address)
+    
+    onSubmit(content, {
+      location_name: location || undefined,
+      address: address || undefined, // Make sure this is included
+      latitude: latitude || undefined,
+      longitude: longitude || undefined,
+      post_type: postType,
+    })
+    setContent("")
+    setLocation("")
+    setAddress("")
+    setPostType("post")
+    setLatitude(null)
+    setLongitude(null)
+    setLocationSearch("")
   }
+}
 
   const handleClose = () => {
     setContent("")

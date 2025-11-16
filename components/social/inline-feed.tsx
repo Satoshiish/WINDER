@@ -90,23 +90,30 @@ export function InlineFeed({ onClose }: InlineFeedProps) {
   }
 
   const handleCreatePost = async (content: string, options: any) => {
-    setIsCreating(true)
+  setIsCreating(true)
 
-    try {
-      const result = await createSocialPost(content, options)
+  console.log('🔍 [DEBUG] Creating post with data:', {
+    content,
+    options
+  })
 
-      if (result.success && result.post) {
-        setPosts([result.post, ...posts])
-        setIsModalOpen(false)
-      } else {
-        console.error("Failed to create post:", result.error)
-      }
-    } catch (error) {
-      console.error("Error in handleCreatePost:", error)
-    } finally {
-      setIsCreating(false)
+  try {
+    const result = await createSocialPost(content, options)
+
+    console.log('🔍 [DEBUG] Create post result:', result)
+
+    if (result.success && result.post) {
+      setPosts([result.post, ...posts])
+      setIsModalOpen(false)
+    } else {
+      console.error("Failed to create post:", result.error)
     }
+  } catch (error) {
+    console.error("Error in handleCreatePost:", error)
+  } finally {
+    setIsCreating(false)
   }
+}
 
   const handleComment = (postId: number) => {
     const post = posts.find((p) => p.id === postId)

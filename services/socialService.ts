@@ -5,6 +5,7 @@ export interface SocialPost {
   content: string
   image_url?: string
   location_name?: string
+  address?: string
   latitude?: number
   longitude?: number
   comments_count: number
@@ -70,6 +71,7 @@ export async function createSocialPost(
       content: content.trim(),
       image_url: options?.image_url || null,
       location_name: options?.location_name || null,
+      address: options?.address || null, // Make sure this line is present
       latitude: options?.latitude || null,
       longitude: options?.longitude || null,
       comments_count: 0,
