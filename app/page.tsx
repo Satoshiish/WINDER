@@ -56,6 +56,7 @@ import { MapView } from "@/components/map-view"
 import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
 import { SMSSettings } from "@/components/sms-settings"
 import { sendSMS } from "@/services/smsService"
+import { saveWeatherCache, loadWeatherCache, isNearby } from "@/services/weatherCache"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { searchLocations, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
@@ -1566,6 +1567,18 @@ const getWeatherIconCode = (condition: string): string => {
     type: "warning" | "info" | "error" | "news" = "info",
     weatherData?: any,
   ) => {
+    // If caller didn't provide weatherData, try to enrich from cached weather
+    if (!weatherData) {
+      try {
+        const cached = loadWeatherCache()
+        if (cached && cached.data) {
+          weatherData = cached.data
+          message = `${message} (cached: ${new Date(cached.timestamp).toLocaleString()})`
+        }
+      } catch (e) {
+        // ignore cache errors
+      }
+    }
     if (!notificationsEnabled) {
       console.log("[v0] Notifications disabled, skipping notification:", title)
       return
@@ -1851,11 +1864,29 @@ const getWeatherIconCode = (condition: string): string => {
               console.log("[v0] Weather response status:", weatherResponse.status)
               const weatherData = await weatherResponse.json()
               console.log("[v0] Weather data received:", weatherData)
-              if (!isCancelled) setCurrentWeather(weatherData)
+              if (!isCancelled) {
+                setCurrentWeather(weatherData)
+                try {
+                  saveWeatherCache(weatherData, latitude, longitude)
+                } catch (e) {
+                  console.error("[v0] Failed to save weather cache:", e)
+                }
+              }
             } catch (error) {
               console.error("[v0] Weather API error:", error)
               if (!isCancelled) {
-                addNotification("Weather Error", "Failed to fetch current weather data", "error")
+                // Try to load cached weather when fetch fails
+                const cached = loadWeatherCache()
+                if (cached && (isNearby(cached.lat, cached.lon, latitude, longitude) || navigator.onLine === false)) {
+                  setCurrentWeather(cached.data)
+                  addNotification(
+                    "Offline Weather",
+                    `Unable to fetch live weather — showing cached data from ${new Date(cached.timestamp).toLocaleString()}`,
+                    "info",
+                  )
+                } else {
+                  addNotification("Weather Error", "Failed to fetch current weather data", "error")
+                }
               }
             }
 
@@ -2487,10 +2518,29 @@ const getWeatherIconCode = (condition: string): string => {
 
         if (!isMonitoring) {
           setCurrentWeather(weatherData)
+          try {
+            saveWeatherCache(weatherData, lat, lon)
+          } catch (e) {
+            console.error("[v0] Failed to save weather cache (monitoring):", e)
+          }
         }
       }
     } catch (error) {
       console.error("[v0] Error fetching weather for monitoring:", error)
+      // Try to fallback to cache when network fails
+      try {
+        const cached = loadWeatherCache()
+        if (cached && isNearby(cached.lat, cached.lon, lat, lon)) {
+          setCurrentWeather(cached.data)
+          addNotification(
+            "Offline Weather",
+            `Unable to fetch live weather — showing cached data from ${new Date(cached.timestamp).toLocaleString()}`,
+            "info",
+          )
+        }
+      } catch (e) {
+        console.error("[v0] Error loading cached weather during monitoring fallback:", e)
+      }
     }
   }
 

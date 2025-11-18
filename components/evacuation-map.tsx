@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EvacuationMapSkeleton, EvacuationZoneDetailSkeleton } from "@/components/skeletons/weather-skeleton"
+import { loadWeatherCache, isNearby } from "@/services/weatherCache"
 
 interface FloodZone {
   id: string
@@ -148,12 +149,27 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
         const data = await response.json()
         setWeatherData(data)
       } catch (error) {
-        console.warn("Error fetching weather, using fallback sample:", error)
-        setWeatherData({
-          windSpeed: 45,
-          humidity: 75,
-          temperature: 28,
-        })
+        console.warn("Error fetching weather, attempting to use cached data or fallback sample:", error)
+        try {
+          const cached = loadWeatherCache()
+          if (cached && isNearby(cached.lat, cached.lon, locationData.lat, locationData.lon)) {
+            console.log("Using cached weather for evacuation map (timestamp):", new Date(cached.timestamp).toLocaleString())
+            setWeatherData(cached.data)
+          } else {
+            setWeatherData({
+              windSpeed: 45,
+              humidity: 75,
+              temperature: 28,
+            })
+          }
+        } catch (e) {
+          console.warn("Error reading cached weather, using fallback sample:", e)
+          setWeatherData({
+            windSpeed: 45,
+            humidity: 75,
+            temperature: 28,
+          })
+        }
       }
     }
     fetchWeatherData()
