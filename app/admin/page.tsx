@@ -102,7 +102,7 @@ export default function AdminDashboard() {
     autoNotifications: true,
     criticalAlerts: true,
     locationTracking: true,
-    dataRetention: 30,
+    dataRetention: 0, // Changed to 0 to indicate no deletion
     autoResponse: false,
   })
 
@@ -232,7 +232,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const savedSettings = localStorage.getItem("winder-admin-settings")
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings))
+      const parsedSettings = JSON.parse(savedSettings)
+      // Ensure data retention is set to 0 (no deletion)
+      setSettings({ ...parsedSettings, dataRetention: 0 })
     }
   }, [])
 
@@ -258,6 +260,16 @@ export default function AdminDashboard() {
   }
 
   const handleSettingChange = (key: string, value: boolean | number) => {
+    // Prevent changing data retention from 0
+    if (key === "dataRetention") {
+      toast({
+        title: "Settings Locked",
+        description: "Data retention is permanently disabled. Reports will not be deleted.",
+        variant: "default",
+      })
+      return
+    }
+    
     const newSettings = { ...settings, [key]: value }
     setSettings(newSettings)
     localStorage.setItem("winder-admin-settings", JSON.stringify(newSettings))
@@ -673,7 +685,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-slate-950 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-transparent to-purple-900/10 pointer-events-none" />
 
-        <div className="sticky top-0 z-50 border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-xl shadow-2xl">
+        <div className="sticky top-0 z-50 border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-xl">
           <div className="container mx-auto px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-4">
@@ -1227,12 +1239,12 @@ export default function AdminDashboard() {
                     <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
                       <div className="flex items-center justify-between mb-2">
                         <Label className="text-white font-medium">Data Retention</Label>
-                        <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                          {settings.dataRetention} days
+                        <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                          Permanent
                         </Badge>
                       </div>
                       <p className="text-sm text-slate-400">
-                        Reports older than {settings.dataRetention} days are deleted
+                        All reports are permanently stored in the database
                       </p>
                     </div>
 
@@ -1612,8 +1624,6 @@ export default function AdminDashboard() {
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-
-                    {/* ... rest of the volunteer dialogs remain the same but with enhanced styling ... */}
                   </CardContent>
                 </Card>
               </div>
