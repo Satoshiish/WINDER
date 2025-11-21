@@ -3924,50 +3924,125 @@ const getWeatherIconCode = (condition: string): string => {
 
           {/* Scrollable Content */}
           <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-hidden">
-            {/* Emergency Numbers Section */}
-              <div className="space-y-3 relative z-50">
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-red-500 to-red-400 rounded-full"></div>
-                  {t("emergency.title")}
-                </h2>
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+            {/* Enhanced Emergency Numbers Section */}
+              <div className="space-y-4 relative z-50">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-3">
+                    <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-red-400 rounded-full shadow-lg shadow-red-500/25"></div>
+                    <span className="bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
+                      {t("emergency.title")}
+                    </span>
+                  </h2>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-red-500/20 rounded-full border border-red-500/30">
+                    <AlertTriangle className="w-3 h-3 text-red-400" />
+                    <span className="text-xs font-medium text-red-400">URGENT</span>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-slate-800/80 via-slate-800/60 to-slate-900/80 rounded-2xl p-4 border border-slate-600/40 backdrop-blur-xl shadow-2xl shadow-black/30">
                   <div className="space-y-3">
-                    <div>
+                    {/* 911 - Primary Emergency */}
+                    <div className="group relative">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-red-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-300"></div>
                       <button
                         onClick={() => window.open("tel:911", "_self")}
-                        className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-500 shadow-lg text-white font-semibold"
+                        className="relative w-full text-left rounded-xl py-4 px-5 flex items-center justify-between bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-lg hover:shadow-xl hover:shadow-red-500/25 text-white font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] group"
                       >
-                        <Phone className="w-4 h-4" />
-                        <span className="text-sm">{t("emergency.call911")}</span>
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                              <Phone className="w-5 h-5" />
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-base block">{t("emergency.call911")}</span>
+                            <span className="text-xs opacity-90 font-normal">Tap to call immediately</span>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <Phone className="w-4 h-4" />
+                          </div>
+                        </div>
                       </button>
-                      <p className="text-xs text-slate-400 mt-2 ml-3">National emergency hotline</p>
+                      <p className="text-xs text-slate-400 mt-2 ml-4 flex items-center gap-2">
+                        <Shield className="w-3 h-3" />
+                        National emergency hotline • 24/7 available
+                      </p>
                     </div>
 
-                    <div>
+                    {/* 143 - Red Cross */}
+                    <div className="group relative">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl blur opacity-20 group-hover:opacity-50 transition duration-300"></div>
                       <button
                         onClick={() => window.open("tel:143", "_self")}
-                        className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg text-white font-semibold"
+                        className="relative w-full text-left rounded-xl py-4 px-5 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg hover:shadow-xl hover:shadow-blue-500/25 text-white font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] group"
                       >
-                        <Phone className="w-4 h-4" />
-                        <span className="text-sm">{t("emergency.call143")}</span>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <Heart className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <span className="text-base block">{t("emergency.call143")}</span>
+                            <span className="text-xs opacity-90 font-normal">Medical & rescue services</span>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <Phone className="w-4 h-4" />
+                          </div>
+                        </div>
                       </button>
-                      <p className="text-xs text-slate-400 mt-2 ml-3">Philippine Red Cross hotline</p>
+                      <p className="text-xs text-slate-400 mt-2 ml-4 flex items-center gap-2">
+                        <Heart className="w-3 h-3" />
+                        Philippine Red Cross hotline • Medical emergencies
+                      </p>
                     </div>
 
-                    <div>
+                    {/* 117 - Police */}
+                    <div className="group relative">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-600 to-orange-500 rounded-2xl blur opacity-20 group-hover:opacity-50 transition duration-300"></div>
                       <button
                         onClick={() => window.open("tel:117", "_self")}
-                        className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-orange-600 to-orange-500 shadow-lg text-white font-semibold"
+                        className="relative w-full text-left rounded-xl py-4 px-5 flex items-center justify-between bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 shadow-lg hover:shadow-xl hover:shadow-orange-500/25 text-white font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] group"
                       >
-                        <Phone className="w-4 h-4" />
-                        <span className="text-sm">{t("emergency.call117")}</span>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <Shield className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <span className="text-base block">{t("emergency.call117")}</span>
+                            <span className="text-xs opacity-90 font-normal">Police & public safety</span>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <Phone className="w-4 h-4" />
+                          </div>
+                        </div>
                       </button>
-                      <p className="text-xs text-slate-400 mt-2 ml-3">Police and public safety hotline</p>
+                      <p className="text-xs text-slate-400 mt-2 ml-4 flex items-center gap-2">
+                        <Shield className="w-3 h-3" />
+                        Police and public safety hotline • Security emergencies
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Emergency Status Footer */}
+                  <div className="mt-4 pt-3 border-t border-slate-600/40">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 text-slate-400">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span>All systems operational</span>
+                      </div>
+                      <span className="text-slate-500">Emergency ready</span>
                     </div>
                   </div>
                 </div>
               </div>
-
             {/* Search Section */}
               <div className="space-y-3 relative z-50">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
