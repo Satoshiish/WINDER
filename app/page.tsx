@@ -3587,7 +3587,7 @@ const getWeatherIconCode = (condition: string): string => {
           <>
             {/* Mobile Bottom Navigation */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-t border-slate-700/50">
-              <div className="grid grid-cols-6 gap-1 p-2">
+              <div className="grid grid-cols-5 gap-1 p-2">
                 {/* Home */}
                 <button
                   className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
@@ -3930,93 +3930,109 @@ const getWeatherIconCode = (condition: string): string => {
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                 {t("search.title")}
               </h2>
-              <div className="relative">
-                {/* Desktop: emergency buttons positioned above the card (desktop only) */}
-                <div className="hidden lg:flex absolute -top-6 left-4 right-4 justify-between gap-3 z-20">
-                  <button
-                    title="Call 911"
-                    onClick={() => window.open("tel:911", "_self")}
-                    className="flex-1 max-w-[120px] h-10 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-md flex items-center justify-center gap-2 px-4"
-                  >
-                    <Phone className="w-4 h-4" />
-                    911
-                  </button>
-                  <button
-                    title="Call 143"
-                    onClick={() => window.open("tel:143", "_self")}
-                    className="flex-1 max-w-[120px] h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold shadow-md flex items-center justify-center gap-2 px-4"
-                  >
-                    <Phone className="w-4 h-4" />
-                    143
-                  </button>
-                  <button
-                    title="Call 117"
-                    onClick={() => window.open("tel:117", "_self")}
-                    className="flex-1 max-w-[120px] h-10 rounded-full bg-gradient-to-r from-orange-600 to-orange-500 text-white font-semibold shadow-md flex items-center justify-center gap-2 px-4"
-                  >
-                    <Phone className="w-4 h-4" />
-                    117
-                  </button>
-                </div>
-
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 pt-10 border border-slate-600/30 backdrop-blur-sm">
-                  <div className="relative">
-                    {/* Update search placeholder */}
-                    <input
-                      type="text"
-                      placeholder={t("search.placeholder")}
-                      value={searchLocation}
-                      onChange={(e) => handleSearchInputChange(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
-                      className={`w-full px-4 py-3 text-base bg-slate-700/50 border border-slate-600/50 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 ${
-                        searchLoading ? "text-white/50 placeholder-white/40" : "text-white placeholder-slate-400"
-                      }`}
-                    />
-
-                    {/* Update search button */}
-                    <Button
-                      onClick={() => handleLocationSearch(searchLocation)}
-                      disabled={searchLoading || !searchLocation.trim()}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
-                    >
-                      {searchLoading ? <SearchSkeleton /> : <Search className="w-4 h-4" />}
-                    </Button>
-
-                    {/* Search Suggestions */}
-                    {showSuggestions && filteredSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
-                        {filteredSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            onClick={() => {
-                              setSearchLocation(suggestion)
-                              setShowSuggestions(false)
-                              handleLocationSearch(suggestion)
-                            }}
-                            className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+                {/* Desktop: Emergency Numbers section (separate card) */}
+                <div className="mb-3">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 bg-gradient-to-tr from-red-600 to-red-500 rounded-lg flex items-center justify-center shadow-md">
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-white">{t("emergency.title")}</h3>
                   </div>
 
-                  <Button
-                    onClick={handleCurrentLocation}
-                    disabled={currentLocationLoading}
-                    className="w-full mt-2 sm:mt-3 md:mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
-                  >
-                    {currentLocationLoading ? (
-                      <LocationSkeleton />
-                    ) : (
-                      <>
-                        <MapPin className="h-4 w-4 mr-2" />
-                        {t("search.currentLocation")}
-                      </>
-                    )}
-                  </Button>
+                  <div className="bg-gradient-to-r from-slate-800/60 to-slate-700/60 rounded-2xl p-3 border border-slate-600/30">
+                    <div className="space-y-3">
+                      <div>
+                        <button
+                          onClick={() => window.open("tel:911", "_self")}
+                          className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-500 shadow-lg text-white font-semibold"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span className="text-sm">{t("emergency.call911")}</span>
+                        </button>
+                        <p className="text-xs text-slate-400 mt-2 ml-3">National emergency hotline</p>
+                      </div>
+
+                      <div>
+                        <button
+                          onClick={() => window.open("tel:143", "_self")}
+                          className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg text-white font-semibold"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span className="text-sm">{t("emergency.call143")}</span>
+                        </button>
+                        <p className="text-xs text-slate-400 mt-2 ml-3">Philippine Red Cross hotline</p>
+                      </div>
+
+                      <div>
+                        <button
+                          onClick={() => window.open("tel:117", "_self")}
+                          className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-orange-600 to-orange-500 shadow-lg text-white font-semibold"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span className="text-sm">{t("emergency.call117")}</span>
+                        </button>
+                        <p className="text-xs text-slate-400 mt-2 ml-3">Police and public safety hotline</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <div className="relative">
+                  {/* Update search placeholder */}
+                  <input
+                    type="text"
+                    placeholder={t("search.placeholder")}
+                    value={searchLocation}
+                    onChange={(e) => handleSearchInputChange(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleLocationSearch(searchLocation)}
+                    className={`w-full px-4 py-3 text-base bg-slate-700/50 border border-slate-600/50 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 ${
+                      searchLoading ? "text-white/50 placeholder-white/40" : "text-white placeholder-slate-400"
+                    }`}
+                  />
+
+                  {/* Update search button */}
+                  <Button
+                    onClick={() => handleLocationSearch(searchLocation)}
+                    disabled={searchLoading || !searchLocation.trim()}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3 text-sm bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-lg shadow-lg shadow-blue-500/25"
+                  >
+                    {searchLoading ? <SearchSkeleton /> : <Search className="w-4 h-4" />}
+                  </Button>
+
+                  {/* Search Suggestions */}
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-r from-slate-800/95 to-slate-700/95 backdrop-blur-md border border-slate-600/50 rounded-xl shadow-xl z-[200] max-h-64 overflow-y-auto scrollbar-hidden">
+                      {filteredSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setSearchLocation(suggestion)
+                            setShowSuggestions(false)
+                            handleLocationSearch(suggestion)
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={handleCurrentLocation}
+                  disabled={currentLocationLoading}
+                  className="w-full mt-2 sm:mt-3 md:mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200"
+                >
+                  {currentLocationLoading ? (
+                    <LocationSkeleton />
+                  ) : (
+                    <>
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {t("search.currentLocation")}
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
