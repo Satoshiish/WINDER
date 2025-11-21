@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 
@@ -37,18 +37,24 @@ const getEvacuationIcon = () =>
 export function EvacuationCenterMap({ userLat, userLon, nearestCenter }: EvacuationCenterMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
+  const [isValidDistance, setIsValidDistance] = useState(true)
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return
 
     try {
+      // Validate distance
+      const validDistance = !!(nearestCenter.distance && isFinite(nearestCenter.distance) && nearestCenter.distance > 0)
+      setIsValidDistance(validDistance)
+
       // Initialize map
       const map = L.map(mapRef.current).setView([userLat, userLon], 13)
 
-      // Add OpenStreetMap tiles
+      // Add OpenStreetMap tiles with better styling
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
+        minZoom: 5,
       }).addTo(map)
 
       // Add user location marker
@@ -56,33 +62,69 @@ export function EvacuationCenterMap({ userLat, userLon, nearestCenter }: Evacuat
         icon: getUserIcon(),
       })
         .bindPopup(
-          `<div style="color: white; font-size: 12px;">` +
-            `<p style="font-weight: bold;">Your Location</p>` +
-            `<p>Lat: ${userLat.toFixed(5)}</p>` +
-            `<p>Lon: ${userLon.toFixed(5)}</p>` +
+          `<div style="color: white; font-size: 13px; font-family: sans-serif;">` +
+            `<p style="font-weight: bold; margin: 0 0 6px 0;">📍 Your Location</p>` +
+            `<p style="margin: 4px 0;">Lat: <strong>${userLat.toFixed(5)}</strong></p>` +
+            `<p style="margin: 4px 0;">Lon: <strong>${userLon.toFixed(5)}</strong></p>` +
             `</div>`,
         )
+        .openPopup()
         .addTo(map)
 
       // Add evacuation center marker
       const occupancyPercent = (nearestCenter.currentOccupancy / nearestCenter.capacity) * 100
+      const occupancyColor = occupancyPercent > 80 ? "#ef4433" : occupancyPercent > 50 ? "#eab308" : "#22c55e"
+      const distanceDisplay = validDistance ? `${nearestCenter.distance.toFixed(1)} km` : "N/A"
+      
       const centerMarker = L.marker([nearestCenter.coordinates[0], nearestCenter.coordinates[1]], {
         icon: getEvacuationIcon(),
       })
         .bindPopup(
-          `<div style="color: white; font-size: 12px;">` +
-            `<p style="font-weight: bold; color: #ef4433;">${nearestCenter.name}</p>` +
-            `<p style="margin-top: 4px;">${nearestCenter.address}</p>` +
-            `<p style="margin-top: 4px;">Capacity: ${nearestCenter.currentOccupancy}/${nearestCenter.capacity}</p>` +
-            `<p style="color: ${occupancyPercent > 80 ? "#ef4433" : "#22c55e"};">` +
-            `${occupancyPercent.toFixed(0)}% full</p>` +
-            `<p style="margin-top: 4px; color: #60a5fa;">Distance: ${nearestCenter.distance.toFixed(1)} km</p>` +
-            `</div>`,
+          `<div style="color: white; font-size: 13px; font-family: sans-serif; max-width: 200px;">` +
+            `<p style="font-weight: bold; color: #ef4433; margin: 0 0 8px 0;">🏛️ ${nearestCenter.name}</p>` +
+            `<p style="margin: 4px 0; color: #e5e7eb;">${nearestCenter.address}</p>` +
+            `<div style="border-top: 1px solid #4b5563; margin: 8px 0; padding-top: 8px;">` +
+            `<p style="margin: 4px 0;">Capacity: <strong>${nearestCenter.currentOccupancy}/${nearestCenter.capacity}</strong></p>` +
+            `<p style="margin: 4px 0; color: ${occupancyColor};">` +
+            `Occupancy: <strong>${occupancyPercent.toFixed(0)}%</strong></p>` +
+            `<p style="margin: 4px 0; color: #60a5fa;">Distance: <strong>${distanceDisplay}</strong></p>` +
+            `</div></div>`,
         )
+        .openPopup()
         .addTo(map)
 
+      // Draw a line between user and evacuation center
+      if (validDistance) {
+        const polyline = L.polyline(
+          [
+            [userLat, userLon],
+            [nearestCenter.coordinates[0], nearestCenter.coordinates[1]],
+          ],
+          {
+            color: "#3b82f6",
+            weight: 3,
+            opacity: 0.7,
+            dashArray: "5, 10",
+          },
+        ).addTo(map)
+
+        // Add distance label at midpoint
+        const midLat = (userLat + nearestCenter.coordinates[0]) / 2
+        const midLon = (userLon + nearestCenter.coordinates[1]) / 2
+        const distanceLabel = L.marker([midLat, midLon], {
+          icon: L.divIcon({
+            html: `<div style="background: rgba(30, 41, 59, 0.95); color: #60a5fa; padding: 4px 8px; border-radius: 4px; border: 2px solid #3b82f6; font-size: 12px; font-weight: bold; white-space: nowrap;">↔ ${nearestCenter.distance.toFixed(1)} km</div>`,
+            iconSize: undefined,
+            className: "distance-label",
+          }),
+        }).addTo(map)
+      }
+
       // Fit bounds to show both markers
-      const bounds = L.latLngBounds([[userLat, userLon]], [[nearestCenter.coordinates[0], nearestCenter.coordinates[1]]])
+      const bounds = L.latLngBounds(
+        [userLat, userLon] as L.LatLngExpression,
+        [nearestCenter.coordinates[0], nearestCenter.coordinates[1]] as L.LatLngExpression,
+      )
       map.fitBounds(bounds, { padding: [50, 50] })
 
       mapInstanceRef.current = map

@@ -10,6 +10,7 @@ export interface LocationEvacuationData {
     affectedPopulation: number
     coordinates: [number, number]
     mapImage?: string
+    distance?: number
   }>
   evacuationCenters: Array<{
     id: string
@@ -18,6 +19,9 @@ export interface LocationEvacuationData {
     currentOccupancy: number
     coordinates: [number, number]
     address: string
+    distance?: number
+    facilities?: string[]
+    contact?: string
   }>
   safeRoutes: Array<{
     id: string
