@@ -87,6 +87,23 @@ export async function createVolunteerUpdate(
   update: Omit<VolunteerUpdate, "id" | "volunteer_id" | "created_at" | "updated_at" | "status">,
 ): Promise<{ success: boolean; message: string; data?: VolunteerUpdate }> {
   try {
+    // Validate that the volunteer exists and is active before creating an update
+    const { data: volunteerData, error: volunteerError } = await supabase
+      .from("volunteers")
+      .select("id, is_active")
+      .eq("id", volunteerId)
+      .maybeSingle()
+
+    if (volunteerError) {
+      console.error("Error validating volunteer:", volunteerError)
+      return { success: false, message: "Failed to validate volunteer" }
+    }
+
+    if (!volunteerData || volunteerData.is_active !== true) {
+      console.warn("Attempt to create update by non-active or unknown volunteer:", volunteerId)
+      return { success: false, message: "Volunteer not found or not active" }
+    }
+
     console.log("[v0] Creating volunteer update:", update)
 
     const { data, error } = await supabase
