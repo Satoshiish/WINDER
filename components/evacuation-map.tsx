@@ -318,7 +318,13 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
 
   // Haversine (good)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    if (!lat2 || !lon2) return Number.POSITIVE_INFINITY
+    // Validate inputs: consider null/undefined or non-finite values as "unknown"
+    if (
+      lat2 == null || lon2 == null || !Number.isFinite(lat2) || !Number.isFinite(lon2)
+    ) {
+      return Number.POSITIVE_INFINITY
+    }
+
     const R = 6371
     const dLat = ((lat2 - lat1) * Math.PI) / 180
     const dLon = ((lon2 - lon1) * Math.PI) / 180
@@ -421,6 +427,11 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
 
   const occupancyPercent = (center: EvacuationCenter): number => {
     return (center.currentOccupancy / Math.max(center.capacity, 1)) * 100
+  }
+
+  const formatDistance = (d?: number) => {
+    if (d == null || !Number.isFinite(d)) return "Unknown"
+    return `${d.toFixed(1)} km`
   }
 
   if (loading || apiLoading) {
@@ -527,7 +538,9 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
               </div>
               <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="text-slate-300 text-sm">Distance</p>
-                <p className="text-white font-semibold text-lg">{selectedZone.distance?.toFixed(1)}km</p>
+                <p className="text-white font-semibold text-lg">
+                  {Number.isFinite(selectedZone.distance ?? NaN) ? `${selectedZone.distance!.toFixed(1)}km` : "Unknown"}
+                </p>
               </div>
               <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="text-slate-300 text-sm">Last Updated</p>
@@ -656,7 +669,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                 Nearest Evacuation Center
               </h2>
               <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500 text-sm">
-                {(nearbyCenters[0].distance ?? 0).toFixed(1)} km away
+                {formatDistance(nearbyCenters[0].distance)}
               </Badge>
             </div>
           </CardHeader>
@@ -707,9 +720,7 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                     }}
                   />
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  {nearbyCenters[0].currentOccupancy} / {nearbyCenters[0].capacity} people
-                </p>
+                
               </div>
 
               {/* Contact */}
@@ -769,12 +780,12 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                     <div key={center.id} className="bg-slate-800/40 p-3 rounded border border-slate-700">
                       <p className="text-sm font-semibold text-white">{center.name}</p>
                       <p className="text-xs text-slate-400">{center.address}</p>
-                      <p className="text-xs text-slate-300 mt-1">
-                        <span className="text-emerald-400 font-semibold">{(center.distance ?? 0).toFixed(1)} km</span> •{" "}
-                        <span className={occupancyPercent(center) > 80 ? "text-red-400" : "text-green-400"}>
-                          {occupancyPercent(center).toFixed(0)}% full
-                        </span>
-                      </p>
+                        <p className="text-xs text-slate-300 mt-1">
+                          <span className="text-emerald-400 font-semibold">{formatDistance(center.distance)}</span> • {" "}
+                          <span className={occupancyPercent(center) > 80 ? "text-red-400" : "text-green-400"}>
+                            {occupancyPercent(center).toFixed(0)}% full
+                          </span>
+                        </p>
                     </div>
                   ))}
                 </div>
@@ -860,11 +871,13 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
                   <Users className="h-3 w-3" />
                   {(zone.affectedPopulation / 1000).toFixed(1)}K people
                 </span>
-                {zone.distance && (
+                {Number.isFinite(zone.distance ?? NaN) ? (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
-                    {zone.distance.toFixed(1)}km away
+                    {zone.distance!.toFixed(1)}km away
                   </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-slate-400">Unknown distance</span>
                 )}
               </div>
             </div>

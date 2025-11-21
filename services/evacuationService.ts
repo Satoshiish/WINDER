@@ -36,6 +36,14 @@ export interface LocationEvacuationData {
  * Returns distance in kilometers
  */
 function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  // Validate inputs: if coordinates are missing or invalid, return Infinity to indicate unknown distance
+  if (
+    lat1 == null || lon1 == null || lat2 == null || lon2 == null ||
+    !Number.isFinite(lat1) || !Number.isFinite(lon1) || !Number.isFinite(lat2) || !Number.isFinite(lon2)
+  ) {
+    return Number.POSITIVE_INFINITY
+  }
+
   const R = 6371 // Earth's radius in kilometers
   const dLat = ((lat2 - lat1) * Math.PI) / 180
   const dLon = ((lon2 - lon1) * Math.PI) / 180

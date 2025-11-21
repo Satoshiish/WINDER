@@ -101,7 +101,7 @@ export function EvacuationCenterMap({ userLat, userLon, nearestCenter }: Evacuat
                 {occupancyPercent.toFixed(0)}% full
               </span>
             </p>
-            <p className="text-xs text-blue-300 mt-1">Distance: {nearestCenter.distance.toFixed(1)} km</p>
+            <p className="text-xs text-blue-300 mt-1">Distance: {Number.isFinite(nearestCenter.distance ?? NaN) ? `${nearestCenter.distance.toFixed(1)} km` : "Unknown"}</p>
           </div>
         </Popup>
       </Marker>
