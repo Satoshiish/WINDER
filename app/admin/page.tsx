@@ -51,7 +51,6 @@ import {
   FileText,
   MessageSquare,
   Edit2,
-  X,
 } from "lucide-react"
 import { getEmergencyStats } from "@/services/emergencyService"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/services/adminStorageService"
@@ -87,7 +86,6 @@ export default function AdminDashboard() {
     inProgress: 0,
     resolved: 0,
     critical: 0,
-    cancelled: 0
   })
 
   const [volunteerUpdates, setVolunteerUpdates] = useState<VolunteerUpdate[]>([])
@@ -620,8 +618,6 @@ export default function AdminDashboard() {
         return "bg-red-500"
       case "high":
         return "bg-orange-500"
-      case "cancelled":
-        return "bg-gray-500"
       default:
         return "bg-gray-500"
     }
@@ -756,7 +752,7 @@ export default function AdminDashboard() {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
@@ -819,19 +815,6 @@ export default function AdminDashboard() {
                     </div>
                     <p className="text-3xl font-bold text-white mb-1">{emergencyStats.total}</p>
                     <p className="text-sm text-slate-400">Total Reports</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <X className="w-5 h-5 text-gray-500" />
-                      <Badge variant="outline" className="border-gray-500/50 text-gray-500 capitalize">
-                        Cancelled
-                      </Badge>
-                    </div>
-                    <p className="text-3xl font-bold text-white mb-1">{emergencyStats.cancelled}</p>
-                    <p className="text-sm text-slate-400">Cancelled</p>
                   </CardContent>
                 </Card>
               </div>
@@ -947,7 +930,7 @@ export default function AdminDashboard() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -986,19 +969,6 @@ export default function AdminDashboard() {
                     <p className="text-sm text-slate-400">High Priority</p>
                   </CardContent>
                 </Card>
-
-                <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <X className="w-8 h-8 text-gray-500" />
-                      <Badge variant="outline" className="border-gray-500/50 text-gray-500 capitalize">
-                        Cancelled
-                      </Badge>
-                    </div>
-                    <p className="text-4xl font-bold text-white mb-1">{emergencyStats.cancelled}</p>
-                    <p className="text-sm text-slate-400">Cancelled Reports</p>
-                  </CardContent>
-                </Card>
               </div>
 
               <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
@@ -1017,7 +987,7 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-slate-400 mb-4">
-                        {emergencyStats.total} total reports • {emergencyStats.pending} pending • {emergencyStats.cancelled} cancelled
+                        {emergencyStats.total} total reports • {emergencyStats.pending} pending
                       </p>
                       <Button
                         onClick={() => router.push("/admin/emergencies")}
