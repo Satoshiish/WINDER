@@ -3658,7 +3658,7 @@ const getWeatherIconCode = (condition: string): string => {
                 {/* SOS */}
                 <button
                   className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
-                  onClick={() => setEmergencyModalOpen(true)}
+                  onClick={() => window.open("tel:911", "_self")}
                 >
                   <Phone className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.sos")}</span>
@@ -3899,7 +3899,7 @@ const getWeatherIconCode = (condition: string): string => {
               {/* ... existing emergency/settings buttons ... */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-red-500/20"
-                onClick={() => setEmergencyModalOpen(true)}
+                onClick={() => window.open("tel:911", "_self")}
                 title={t("nav.sos")}
               >
                 <Phone className="h-5 w-5" />
@@ -3916,6 +3916,66 @@ const getWeatherIconCode = (condition: string): string => {
 
           {/* Scrollable Content */}
           <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-hidden">
+            {/* Emergency Numbers Section */}
+            <div className="space-y-3">
+              <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-red-500 rounded-full"></div>
+                {t("emergency.title")}
+              </h2>
+              <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                {/* Call 911 */}
+                <button
+                  onClick={() => window.open("tel:911", "_self")}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-red-600/20 to-red-500/20 hover:from-red-600/30 hover:to-red-500/30 
+                  border border-red-500/40 rounded-xl text-white font-semibold transition-all duration-200 flex items-center gap-3
+                  shadow-lg shadow-red-500/10 hover:shadow-red-500/20 group"
+                >
+                  <div className="w-9 h-9 bg-gradient-to-tr from-red-600 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0
+                  group-hover:scale-110 transition-transform">
+                    <Phone className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-red-400">911</div>
+                    <div className="text-xs text-slate-400">National emergency hotline</div>
+                  </div>
+                </button>
+
+                {/* Call 143 */}
+                <button
+                  onClick={() => window.open("tel:143", "_self")}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/30 hover:to-blue-500/30 
+                  border border-blue-500/40 rounded-xl text-white font-semibold transition-all duration-200 flex items-center gap-3
+                  shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 group"
+                >
+                  <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0
+                  group-hover:scale-110 transition-transform">
+                    <Phone className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-blue-400">143</div>
+                    <div className="text-xs text-slate-400">Philippine Red Cross hotline</div>
+                  </div>
+                </button>
+
+                {/* Call 117 */}
+                <button
+                  onClick={() => window.open("tel:117", "_self")}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-orange-600/20 to-orange-500/20 hover:from-orange-600/30 hover:to-orange-500/30 
+                  border border-orange-500/40 rounded-xl text-white font-semibold transition-all duration-200 flex items-center gap-3
+                  shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20 group"
+                >
+                  <div className="w-9 h-9 bg-gradient-to-tr from-orange-600 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0
+                  group-hover:scale-110 transition-transform">
+                    <Phone className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-orange-400">117</div>
+                    <div className="text-xs text-slate-400">Police and public safety hotline</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             {/* Search Section */}
             <div className="space-y-3 relative z-50">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
