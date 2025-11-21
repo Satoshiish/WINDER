@@ -3655,10 +3655,10 @@ const getWeatherIconCode = (condition: string): string => {
                   <span className="text-[11px] font-medium">{t("nav.quick")}</span>
                 </button>
 
-                {/* SOS - auto-dial primary emergency number (no modal) */}
+                {/* SOS (mobile bottom nav) - directly dial 911 instead of opening modal */}
                 <button
                   className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
-                  onClick={() => { window.open("tel:911", "_self") }}
+                  onClick={() => window.open("tel:911", "_self")}
                 >
                   <Phone className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.sos")}</span>
@@ -3688,6 +3688,30 @@ const getWeatherIconCode = (condition: string): string => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* Mobile: emergency call buttons beside notifications */}
+                  <div className="flex items-center gap-2 mr-1">
+                    <button
+                      title="Call 911"
+                      onClick={() => window.open("tel:911", "_self")}
+                      className="w-8 h-8 rounded-lg bg-gradient-to-r from-red-600 to-red-500 flex items-center justify-center text-white shadow-sm"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                    <button
+                      title="Call 143"
+                      onClick={() => window.open("tel:143", "_self")}
+                      className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-sm"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                    <button
+                      title="Call 117"
+                      onClick={() => window.open("tel:117", "_self")}
+                      className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-600 to-orange-500 flex items-center justify-center text-white shadow-sm"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -3896,14 +3920,7 @@ const getWeatherIconCode = (condition: string): string => {
               >
                 <Users className="h-5 w-5" />
               </button>
-              {/* ... existing emergency/settings buttons ... */}
-              <button
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-red-500/20"
-                onClick={() => { window.open("tel:911", "_self") }}
-                title={t("nav.sos")}
-              >
-                <Phone className="h-5 w-5" />
-              </button>
+              {/* ... existing settings button (removed desktop SOS modal opener) ... */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700/30 transition-all duration-200"
                 onClick={() => setSettingsModalOpen(true)}
@@ -3923,6 +3940,33 @@ const getWeatherIconCode = (condition: string): string => {
                 {t("search.title")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+                {/* Desktop: Emergency quick call buttons directly above the search input */}
+                <div className="mb-3 grid grid-cols-3 gap-2">
+                  <button
+                    title="Call 911"
+                    onClick={() => window.open("tel:911", "_self")}
+                    className="w-full h-10 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-md flex items-center justify-center"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    911
+                  </button>
+                  <button
+                    title="Call 143"
+                    onClick={() => window.open("tel:143", "_self")}
+                    className="w-full h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold shadow-md flex items-center justify-center"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    143
+                  </button>
+                  <button
+                    title="Call 117"
+                    onClick={() => window.open("tel:117", "_self")}
+                    className="w-full h-10 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 text-white font-semibold shadow-md flex items-center justify-center"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    117
+                  </button>
+                </div>
                 <div className="relative">
                   {/* Update search placeholder */}
                   <input
