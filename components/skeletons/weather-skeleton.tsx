@@ -223,7 +223,7 @@ export function EvacuationMapSkeleton() {
         <Skeleton className="h-6 w-40 bg-slate-600/50" />
         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
           <Skeleton className="h-4 w-48 mb-2 bg-slate-600/50" />
-          <Skeleton className="h-10 w-full bg-slate-600/50 rounded" />
+          <div className="skeleton-shimmer h-48 w-full rounded" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -258,6 +258,12 @@ export function EvacuationMapSkeleton() {
           ))}
         </div>
       </div>
+
+      {/* Map placeholder for the evacuation center / route */}
+      <div>
+        <Skeleton className="h-6 w-40 bg-slate-600/50" />
+        <div className="skeleton-shimmer h-96 w-full rounded-lg" />
+      </div>
     </div>
   )
 }
@@ -283,7 +289,7 @@ export function EvacuationZoneDetailSkeleton() {
         </div>
 
         {/* Map Image Skeleton */}
-        <Skeleton className="h-96 w-full rounded-lg bg-slate-600/50" />
+        <div className="skeleton-shimmer h-96 w-full rounded-lg" />
 
         {/* Statistics Grid Skeleton */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
