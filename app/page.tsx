@@ -3655,10 +3655,10 @@ const getWeatherIconCode = (condition: string): string => {
                   <span className="text-[11px] font-medium">{t("nav.quick")}</span>
                 </button>
 
-                {/* SOS */}
+                {/* SOS - auto-dial primary emergency number (no modal) */}
                 <button
                   className="flex flex-col items-center justify-center py-3 px-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
-                  onClick={() => setEmergencyModalOpen(true)}
+                  onClick={() => { window.open("tel:911", "_self") }}
                 >
                   <Phone className="h-5 w-5 mb-1" />
                   <span className="text-[11px] font-medium">{t("nav.sos")}</span>
@@ -3899,7 +3899,7 @@ const getWeatherIconCode = (condition: string): string => {
               {/* ... existing emergency/settings buttons ... */}
               <button
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-red-500/20"
-                onClick={() => setEmergencyModalOpen(true)}
+                onClick={() => { window.open("tel:911", "_self") }}
                 title={t("nav.sos")}
               >
                 <Phone className="h-5 w-5" />
