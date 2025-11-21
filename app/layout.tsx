@@ -11,7 +11,6 @@ import { LocationSharingProvider } from "@/contexts/location-sharing-context"
 import { LanguageProvider } from "@/contexts/language-context"
 import { AuthProvider } from "@/hooks/use-auth"
 import { Toaster } from "@/components/ui/toaster"
-import EmergencyCallFab from "@/components/emergency-call-fab"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -100,7 +99,6 @@ export default function RootLayout({
                 <WeatherProvider>
                   <LocationSharingProvider>
                     {children}
-                    <EmergencyCallFab />
                     <Toaster />
                   </LocationSharingProvider>
                 </WeatherProvider>
