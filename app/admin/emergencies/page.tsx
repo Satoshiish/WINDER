@@ -11,17 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -39,13 +28,10 @@ import {
   Users,
   MessageSquare,
   Bell,
-  Trash2,
 } from "lucide-react"
 import {
   loadEmergencyReports,
   updateEmergencyReport,
-  deleteEmergencyReport,
-  undoDeleteEmergencyReport,
   type EmergencyReport,
 } from "@/services/emergencyService"
 import { formatAddress } from "@/lib/format-address"
@@ -77,7 +63,6 @@ export default function EmergencyManagement() {
   const [assignTeam, setAssignTeam] = useState("")
   const [lastReportCount, setLastReportCount] = useState(0)
   const [hasNewReports, setHasNewReports] = useState(false)
-  const [showDeleted, setShowDeleted] = useState(false)
   const [responseTeams, setResponseTeams] = useState<ResponseTeam[]>([])
   const [isLoadingTeams, setIsLoadingTeams] = useState(false)
   const [isAssigningTeam, setIsAssigningTeam] = useState<string | null>(null)
@@ -174,10 +159,6 @@ export default function EmergencyManagement() {
   useEffect(() => {
     let filtered = emergencyRequests
 
-    if (!showDeleted) {
-      filtered = filtered.filter((request) => !request.deletedAt)
-    }
-
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
@@ -204,7 +185,7 @@ export default function EmergencyManagement() {
     }
 
     setFilteredRequests(filtered)
-  }, [emergencyRequests, searchTerm, statusFilter, typeFilter, priorityFilter, showDeleted])
+  }, [emergencyRequests, searchTerm, statusFilter, typeFilter, priorityFilter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -431,53 +412,61 @@ export default function EmergencyManagement() {
     }
   }
 
-  const handleExportData = () => {
-    const dataStr = JSON.stringify(filteredRequests, null, 2)
-    const dataBlob = new Blob([dataStr], { type: "application/json" })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement("a")
+  const handleExportToExcel = () => {
+    // Create CSV content
+    const headers = [
+      'ID',
+      'User Name',
+      'Contact Number',
+      'Emergency Type',
+      'Priority',
+      'Status',
+      'People Count',
+      'Location',
+      'Barangay',
+      'Assigned Team',
+      'Additional Info',
+      'Reported Date',
+      'Response Time',
+      'Notes Count'
+    ]
+
+    const csvContent = filteredRequests.map(request => [
+      request.id,
+      `"${request.userName.replace(/"/g, '""')}"`,
+      request.contactNumber,
+      request.emergencyType,
+      request.priority,
+      request.status,
+      request.peopleCount,
+      `"${request.address.replace(/"/g, '""')}"`,
+      barangayData[request.id] || 'Unknown',
+      request.assignedTo || 'Unassigned',
+      `"${(request.additionalInfo || '').replace(/"/g, '""')}"`,
+      new Date(request.timestamp).toLocaleString(),
+      request.responseTime ? new Date(request.responseTime).toLocaleString() : 'Not Responded',
+      request.notes.length
+    ])
+
+    const csv = [
+      headers.join(','),
+      ...csvContent.map(row => row.join(','))
+    ].join('\n')
+
+    // Create and download file
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
     link.href = url
-    link.download = `emergency-requests-${new Date().toISOString().split("T")[0]}.json`
+    link.download = `emergency-reports-${new Date().toISOString().split('T')[0]}.csv`
     link.click()
     URL.revokeObjectURL(url)
 
     toast({
       title: "Data Exported",
-      description: `Exported ${filteredRequests.length} emergency reports`,
+      description: `Exported ${filteredRequests.length} emergency reports to Excel format`,
       duration: 3000,
     })
-  }
-
-  const handleDeleteReport = async (reportId: string) => {
-    const success = await deleteEmergencyReport(reportId)
-    if (success) {
-      await loadStoredReports()
-      toast({
-        title: "Report Marked for Deletion",
-        description: "Report will be permanently deleted in 24 hours. You can undo this action.",
-        variant: "destructive",
-        duration: 5000,
-      })
-    }
-  }
-
-  const handleUndoDelete = async (reportId: string) => {
-    const success = await undoDeleteEmergencyReport(reportId)
-    if (success) {
-      await loadStoredReports()
-      toast({
-        title: "Deletion Cancelled",
-        description: "Emergency report has been restored",
-        duration: 3000,
-      })
-    }
-  }
-
-  const getTimeUntilDeletion = (deletedAt: Date | string) => {
-    const now = new Date()
-    const deletedDate = new Date(deletedAt)
-    const hoursRemaining = 24 - Math.floor((now.getTime() - deletedDate.getTime()) / (1000 * 60 * 60))
-    return Math.max(0, hoursRemaining)
   }
 
   const getEmergencyTypeInfo = (type: string) => {
@@ -527,20 +516,11 @@ export default function EmergencyManagement() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleExportData}
+                  onClick={handleExportToExcel}
                   className="bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 rounded-xl text-xs"
                 >
                   <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline ml-2">Export</span>
-                </Button>
-                <Button
-                  variant={showDeleted ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowDeleted(!showDeleted)}
-                  className={`${showDeleted ? "bg-red-500 hover:bg-red-600" : "bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50"} rounded-xl text-xs`}
-                >
-                  <Eye className="h-3 w-3 sm:h-4 sm:h-4" />
-                  <span className="hidden sm:inline ml-2">{showDeleted ? "Hide Deleted" : "Show Deleted"}</span>
+                  <span className="hidden sm:inline ml-2">Export to Excel</span>
                 </Button>
               </div>
             </div>
@@ -699,38 +679,12 @@ export default function EmergencyManagement() {
                 <div className="space-y-4">
                   {filteredRequests.map((request) => {
                     const typeInfo = getEmergencyTypeInfo(request.emergencyType)
-                    const isMarkedForDeletion = !!request.deletedAt
-                    const hoursUntilDeletion = isMarkedForDeletion ? getTimeUntilDeletion(request.deletedAt!) : 0
 
                     return (
                       <div
                         key={request.id}
-                        className={`p-3 sm:p-4 rounded-xl border space-y-3 ${
-                          isMarkedForDeletion
-                            ? "bg-red-900/20 border-red-500/50"
-                            : "bg-slate-700/50 border-slate-600/30"
-                        }`}
+                        className="p-3 sm:p-4 rounded-xl border space-y-3 bg-slate-700/50 border-slate-600/30"
                       >
-                        {isMarkedForDeletion && (
-                          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-2 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" />
-                              <p className="text-xs sm:text-sm text-red-300">
-                                Marked For Deletion - Will Be Permanently Removed In {hoursUntilDeletion} Hours
-                              </p>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUndoDelete(request.id)}
-                              className="bg-green-600/20 border-green-500/50 text-green-300 hover:bg-green-600/30 rounded-lg text-xs flex-shrink-0"
-                            >
-                              <RefreshCw className="h-3 w-3 mr-1" />
-                              Undo
-                            </Button>
-                          </div>
-                        )}
-
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div className="flex items-center gap-3">
                             <div className={`w-3 h-3 rounded-full flex-shrink-0 ${getStatusColor(request.status)}`} />
@@ -988,48 +942,6 @@ export default function EmergencyManagement() {
                               <Globe className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               Map
                             </Button>
-
-                            {isMarkedForDeletion ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleUndoDelete(request.id)}
-                                className="bg-green-600/20 border-green-500/50 text-green-300 hover:bg-green-600/30 rounded-xl text-xs"
-                              >
-                                <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                Undo
-                              </Button>
-                            ) : (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="destructive" className="rounded-xl text-xs">
-                                    <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                    Delete
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-gradient-to-br from-slate-950 via-slate-950 to-slate-950 border-slate-700/60 text-white">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle className="text-white">Delete Emergency Report?</AlertDialogTitle>
-                                    <AlertDialogDescription className="text-slate-300">
-                                      This Report Will Be Marked For Deletion And Permanently Removed After 24 Hours.
-                                      You Can Undo This Action During The Grace Period. Report For{" "}
-                                      <strong>{request.userName}</strong> (ID: {request.id}).
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel className="bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 rounded-xl">
-                                      Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeleteReport(request.id)}
-                                      className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded-xl"
-                                    >
-                                      Delete Report
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
                           </div>
                         </div>
                       </div>
