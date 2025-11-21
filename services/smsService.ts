@@ -24,6 +24,12 @@ export async function sendSMS(options: SendSMSOptions): Promise<{
   error?: string
 }> {
   try {
+    if (typeof window !== "undefined" && !navigator.onLine) {
+      // Offline: queue the SMS for later
+      queueSMS(options)
+      return { success: false, error: "Queued (offline)" }
+    }
+
     const response = await fetch("/api/notifications/sms", {
       method: "POST",
       headers: {
@@ -36,9 +42,11 @@ export async function sendSMS(options: SendSMSOptions): Promise<{
 
     if (!response.ok) {
       console.error("[v0] SMS send failed:", data)
+      // Queue failed send for retry
+      queueSMS(options)
       return {
         success: false,
-        error: data.error || "Failed to send SMS",
+        error: data.error || "Failed to send SMS (queued)",
       }
     }
 
@@ -48,10 +56,80 @@ export async function sendSMS(options: SendSMSOptions): Promise<{
     }
   } catch (error) {
     console.error("[v0] SMS service error:", error)
+    // On network error, queue for later
+    try {
+      queueSMS(options)
+    } catch (e) {
+      console.error("[v0] Failed to queue SMS after error:", e)
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     }
+  }
+}
+
+// Queue management for offline/resilient SMS sending
+const SMS_QUEUE_KEY = "winder-sms-queue"
+
+function getQueuedSMS(): SendSMSOptions[] {
+  try {
+    const raw = localStorage.getItem(SMS_QUEUE_KEY)
+    if (!raw) return []
+    return JSON.parse(raw) as SendSMSOptions[]
+  } catch (error) {
+    console.error("[v0] Error reading SMS queue:", error)
+    return []
+  }
+}
+
+function setQueuedSMS(queue: SendSMSOptions[]) {
+  try {
+    localStorage.setItem(SMS_QUEUE_KEY, JSON.stringify(queue))
+  } catch (error) {
+    console.error("[v0] Error saving SMS queue:", error)
+  }
+}
+
+export function queueSMS(options: SendSMSOptions) {
+  try {
+    const queue = getQueuedSMS()
+    queue.push(options)
+    setQueuedSMS(queue)
+    console.log("[v0] SMS queued. Queue length:", queue.length)
+  } catch (error) {
+    console.error("[v0] Error queueing SMS:", error)
+  }
+}
+
+export async function retryQueuedSMS(): Promise<void> {
+  try {
+    const queue = getQueuedSMS()
+    if (queue.length === 0) return
+
+    console.log("[v0] Retrying queued SMS messages:", queue.length)
+
+    const remaining: SendSMSOptions[] = []
+
+    for (const item of queue) {
+      try {
+        const res = await sendSMS(item)
+        if (!res.success) {
+          // keep for retry
+          remaining.push(item)
+        } else {
+          console.log("[v0] Queued SMS sent successfully", res.messageId)
+        }
+      } catch (error) {
+        console.error("[v0] Error retrying queued SMS:", error)
+        remaining.push(item)
+      }
+    }
+
+    setQueuedSMS(remaining)
+    console.log("[v0] SMS retry complete. Remaining in queue:", remaining.length)
+  } catch (error) {
+    console.error("[v0] Error during queued SMS retry:", error)
   }
 }
 

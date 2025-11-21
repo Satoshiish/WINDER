@@ -1,24 +1,70 @@
 // Simple LocalStorage cache for latest weather data
 export const WEATHER_CACHE_KEY = "winder-weather-cache"
 
+export interface CachedNotification {
+  title: string
+  message: string
+  type?: string
+  timestamp: number
+}
+
 export interface CachedWeather {
   data: any
   lat?: number
   lon?: number
   timestamp: number
+  lastNotification?: CachedNotification
 }
 
-export function saveWeatherCache(data: any, lat?: number, lon?: number) {
+export function saveWeatherCache(data: any, lat?: number, lon?: number, lastNotification?: CachedNotification) {
   try {
+    const existingRaw = localStorage.getItem(WEATHER_CACHE_KEY)
+    let existing: Partial<CachedWeather> | null = null
+    if (existingRaw) {
+      try {
+        existing = JSON.parse(existingRaw)
+      } catch (e) {
+        existing = null
+      }
+    }
+
     const payload: CachedWeather = {
       data,
       lat,
       lon,
       timestamp: Date.now(),
+      lastNotification: lastNotification ?? existing?.lastNotification,
     }
+
     localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(payload))
   } catch (error) {
     console.error("[v0] Error saving weather cache:", error)
+  }
+}
+
+export function saveLastNotificationToCache(notification: CachedNotification) {
+  try {
+    const existingRaw = localStorage.getItem(WEATHER_CACHE_KEY)
+    let existing: Partial<CachedWeather> | null = null
+    if (existingRaw) {
+      try {
+        existing = JSON.parse(existingRaw)
+      } catch (e) {
+        existing = null
+      }
+    }
+
+    const payload: CachedWeather = {
+      data: existing?.data ?? null,
+      lat: existing?.lat,
+      lon: existing?.lon,
+      timestamp: existing?.timestamp ?? Date.now(),
+      lastNotification: notification,
+    }
+
+    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(payload))
+  } catch (error) {
+    console.error("[v0] Error saving last notification to cache:", error)
   }
 }
 

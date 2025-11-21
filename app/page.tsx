@@ -55,8 +55,8 @@ import { EvacuationMap } from "@/components/evacuation-map"
 import { MapView } from "@/components/map-view"
 import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
 import { SMSSettings } from "@/components/sms-settings"
-import { sendSMS } from "@/services/smsService"
-import { saveWeatherCache, loadWeatherCache, isNearby } from "@/services/weatherCache"
+import { sendSMS, retryQueuedSMS } from "@/services/smsService"
+import { saveWeatherCache, loadWeatherCache, isNearby, saveLastNotificationToCache } from "@/services/weatherCache"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { searchLocations, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
@@ -1722,6 +1722,27 @@ const getWeatherIconCode = (condition: string): string => {
       )
     }
     // </CHANGE> End of merged SMS logic
+    // Persist last notification into the weather cache so SMS services can read it later
+    try {
+      const notifPayload = {
+        title,
+        message: enhancedMessage,
+        type,
+        timestamp: Date.now(),
+      }
+
+      // Prefer saving alongside the most recent weather data if available
+      try {
+        const existing = loadWeatherCache()
+        const weatherToSave = weatherData ?? existing?.data ?? null
+        saveWeatherCache(weatherToSave, location?.lat, location?.lon, notifPayload)
+      } catch (e) {
+        // fallback: save only the notification
+        saveLastNotificationToCache(notifPayload)
+      }
+    } catch (e) {
+      console.error("[v0] Failed to persist last notification to cache:", e)
+    }
   }
 
   const [notificationQueue, setNotificationQueue] = useState<Array<{ title: string; message: string; type: string }>>(
@@ -1742,9 +1763,14 @@ const getWeatherIconCode = (condition: string): string => {
   }
 
   useEffect(() => {
-    const handleOnline = () => {
-      console.log("[v0] Connection restored, processing queued notifications")
+    const handleOnline = async () => {
+      console.log("[v0] Connection restored, processing queued notifications and SMS")
       processNotificationQueue()
+      try {
+        await retryQueuedSMS()
+      } catch (e) {
+        console.error("[v0] Error retrying queued SMS on online event:", e)
+      }
     }
 
     const handleOffline = () => {
@@ -1753,6 +1779,17 @@ const getWeatherIconCode = (condition: string): string => {
 
     window.addEventListener("online", handleOnline)
     window.addEventListener("offline", handleOffline)
+
+    // Attempt a retry when component mounts if we're online
+    if (typeof window !== "undefined" && navigator.onLine) {
+      ;(async () => {
+        try {
+          await retryQueuedSMS()
+        } catch (e) {
+          console.error("[v0] Error retrying queued SMS on mount:", e)
+        }
+      })()
+    }
 
     return () => {
       window.removeEventListener("online", handleOnline)
