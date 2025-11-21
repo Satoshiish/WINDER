@@ -3924,59 +3924,57 @@ const getWeatherIconCode = (condition: string): string => {
 
           {/* Scrollable Content */}
           <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-hidden">
+            {/* Emergency Numbers Section */}
+              <div className="space-y-3 relative z-50">
+                <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-red-500 to-red-400 rounded-full"></div>
+                  {t("emergency.title")}
+                </h2>
+                <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
+                  <div className="space-y-3">
+                    <div>
+                      <button
+                        onClick={() => window.open("tel:911", "_self")}
+                        className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-500 shadow-lg text-white font-semibold"
+                      >
+                        <Phone className="w-4 h-4" />
+                        <span className="text-sm">{t("emergency.call911")}</span>
+                      </button>
+                      <p className="text-xs text-slate-400 mt-2 ml-3">National emergency hotline</p>
+                    </div>
+
+                    <div>
+                      <button
+                        onClick={() => window.open("tel:143", "_self")}
+                        className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg text-white font-semibold"
+                      >
+                        <Phone className="w-4 h-4" />
+                        <span className="text-sm">{t("emergency.call143")}</span>
+                      </button>
+                      <p className="text-xs text-slate-400 mt-2 ml-3">Philippine Red Cross hotline</p>
+                    </div>
+
+                    <div>
+                      <button
+                        onClick={() => window.open("tel:117", "_self")}
+                        className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-orange-600 to-orange-500 shadow-lg text-white font-semibold"
+                      >
+                        <Phone className="w-4 h-4" />
+                        <span className="text-sm">{t("emergency.call117")}</span>
+                      </button>
+                      <p className="text-xs text-slate-400 mt-2 ml-3">Police and public safety hotline</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             {/* Search Section */}
-            <div className="space-y-3 relative z-50">
+              <div className="space-y-3 relative z-50">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
                 {t("search.title")}
               </h2>
               <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-3 border border-slate-600/30 backdrop-blur-sm">
-                {/* Desktop: Emergency Numbers section (separate card) */}
-                <div className="mb-3">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 bg-gradient-to-tr from-red-600 to-red-500 rounded-lg flex items-center justify-center shadow-md">
-                      <Phone className="w-4 h-4 text-white" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-white">{t("emergency.title")}</h3>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-slate-800/60 to-slate-700/60 rounded-2xl p-3 border border-slate-600/30">
-                    <div className="space-y-3">
-                      <div>
-                        <button
-                          onClick={() => window.open("tel:911", "_self")}
-                          className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-500 shadow-lg text-white font-semibold"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-sm">{t("emergency.call911")}</span>
-                        </button>
-                        <p className="text-xs text-slate-400 mt-2 ml-3">National emergency hotline</p>
-                      </div>
-
-                      <div>
-                        <button
-                          onClick={() => window.open("tel:143", "_self")}
-                          className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg text-white font-semibold"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-sm">{t("emergency.call143")}</span>
-                        </button>
-                        <p className="text-xs text-slate-400 mt-2 ml-3">Philippine Red Cross hotline</p>
-                      </div>
-
-                      <div>
-                        <button
-                          onClick={() => window.open("tel:117", "_self")}
-                          className="w-full text-left rounded-full py-3 px-4 flex items-center gap-3 bg-gradient-to-r from-orange-600 to-orange-500 shadow-lg text-white font-semibold"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-sm">{t("emergency.call117")}</span>
-                        </button>
-                        <p className="text-xs text-slate-400 mt-2 ml-3">Police and public safety hotline</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
                 <div className="relative">
                   {/* Update search placeholder */}
                   <input
