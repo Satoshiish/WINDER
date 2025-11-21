@@ -31,6 +31,21 @@ export interface LocationEvacuationData {
   }>
 }
 
+/**
+ * Calculate distance between two coordinates using Haversine formula
+ * Returns distance in kilometers
+ */
+function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Earth's radius in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
 export async function getEvacuationDataForLocation(lat: number, lng: number): Promise<LocationEvacuationData> {
   try {
     const city = "Olongapo City"
@@ -99,7 +114,11 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       affectedPopulation: zone.affected_population,
       coordinates: [zone.latitude, zone.longitude] as [number, number],
       mapImage: zone.flood_zone_map || zone.evacuation_route_image || "/placeholder.svg",
+      distance: calculateHaversineDistance(lat, lng, zone.latitude, zone.longitude),
     }))
+
+    // Sort flood zones by distance from user location
+    floodZones.sort((a, b) => (a.distance || 0) - (b.distance || 0))
 
     const evacuationCenters = (centersData || []).map((center: any) => ({
       id: center.id,
@@ -108,7 +127,11 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       currentOccupancy: center.current_occupancy,
       coordinates: [center.latitude, center.longitude] as [number, number],
       address: center.address,
+      distance: calculateHaversineDistance(lat, lng, center.latitude, center.longitude),
     }))
+
+    // Sort evacuation centers by distance from user location (nearest first)
+    evacuationCenters.sort((a, b) => (a.distance || 0) - (b.distance || 0))
 
     const safeRoutes = (routesData || []).map((route: any) => ({
       id: route.id,
@@ -126,6 +149,8 @@ export async function getEvacuationDataForLocation(lat: number, lng: number): Pr
       floodZonesCount: floodZones.length,
       centersCount: evacuationCenters.length,
       routesCount: safeRoutes.length,
+      nearestCenter: evacuationCenters[0]?.name,
+      nearestCenterDistance: evacuationCenters[0]?.distance.toFixed(2) + " km",
     })
 
     return {

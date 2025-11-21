@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,10 +19,20 @@ import {
   Building,
   ArrowLeft,
   X,
+  Phone,
+  Zap,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EvacuationMapSkeleton, EvacuationZoneDetailSkeleton } from "@/components/skeletons/weather-skeleton"
 import { loadWeatherCache, isNearby } from "@/services/weatherCache"
+
+// Dynamic import for Leaflet map (SSR incompatible)
+const EvacuationCenterMap = dynamic(() => import("@/components/evacuation-center-map").then(mod => ({ default: mod.EvacuationCenterMap })), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-slate-800 rounded-lg border border-slate-600 flex items-center justify-center">
+    <p className="text-slate-400">Loading map...</p>
+  </div>,
+})
 
 interface FloodZone {
   id: string
@@ -408,6 +419,10 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
     }
   }
 
+  const occupancyPercent = (center: EvacuationCenter): number => {
+    return (center.currentOccupancy / Math.max(center.capacity, 1)) * 100
+  }
+
   if (loading || apiLoading) {
     return <EvacuationMapSkeleton />
   }
@@ -631,6 +646,144 @@ export function EvacuationMap({ userLat, userLon }: EvacuationMapProps) {
   // Main list view
   return (
     <div className="space-y-6 p-4">
+      {/* Nearest Evacuation Center Card */}
+      {locationData && nearbyCenters.length > 0 && (
+        <Card className="bg-gradient-to-br from-emerald-900/30 to-slate-900 border-2 border-emerald-500/50 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
+                <Zap className="h-6 w-6" />
+                Nearest Evacuation Center
+              </h2>
+              <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500 text-sm">
+                {(nearbyCenters[0].distance ?? 0).toFixed(1)} km away
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Main Center Info */}
+            <div className="bg-slate-800/60 p-6 rounded-lg border border-emerald-500/30 space-y-3">
+              <div>
+                <h3 className="text-2xl font-bold text-white">{nearbyCenters[0].name}</h3>
+                <p className="text-slate-300 text-sm flex items-center gap-2 mt-1">
+                  <MapPin className="h-4 w-4 text-emerald-400" />
+                  {nearbyCenters[0].address}
+                </p>
+                <p className="text-slate-400 text-xs mt-2">
+                  Coordinates: {nearbyCenters[0].coordinates[0].toFixed(4)}, {nearbyCenters[0].coordinates[1].toFixed(4)}
+                </p>
+              </div>
+
+              {/* Capacity Bar */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-slate-300 text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Occupancy
+                  </p>
+                  <Badge
+                    className={`text-xs ${
+                      occupancyPercent(nearbyCenters[0]) > 80
+                        ? "bg-red-500/20 text-red-400"
+                        : occupancyPercent(nearbyCenters[0]) > 50
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : "bg-green-500/20 text-green-400"
+                    }`}
+                  >
+                    {occupancyPercent(nearbyCenters[0]).toFixed(0)}% full
+                  </Badge>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full transition-all ${
+                      occupancyPercent(nearbyCenters[0]) > 80
+                        ? "bg-red-500"
+                        : occupancyPercent(nearbyCenters[0]) > 50
+                          ? "bg-yellow-500"
+                          : "bg-green-500"
+                    }`}
+                    style={{
+                      width: `${Math.min(Math.max(occupancyPercent(nearbyCenters[0]), 0), 100)}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  {nearbyCenters[0].currentOccupancy} / {nearbyCenters[0].capacity} people
+                </p>
+              </div>
+
+              {/* Contact */}
+              <div className="flex items-center gap-2 p-3 bg-blue-500/10 rounded border border-blue-500/30">
+                <Phone className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                <a
+                  href={`tel:${nearbyCenters[0].contact}`}
+                  className="text-sm text-blue-300 hover:text-blue-200 underline font-semibold"
+                >
+                  {nearbyCenters[0].contact}
+                </a>
+              </div>
+
+              {/* Facilities */}
+              {nearbyCenters[0].facilities && nearbyCenters[0].facilities.length > 0 && (
+                <div>
+                  <p className="text-sm text-slate-300 mb-2 font-semibold">Available Facilities:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {nearbyCenters[0].facilities.map((facility: string, idx: number) => (
+                      <Badge key={idx} className="bg-cyan-500/20 text-cyan-300 border-cyan-500 text-xs">
+                        {facility}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Interactive Map */}
+            {locationData && (
+              <div>
+                <p className="text-sm text-slate-300 mb-2 font-semibold flex items-center gap-2">
+                  <Navigation className="h-4 w-4 text-cyan-400" />
+                  Route on OpenStreetMap
+                </p>
+                <EvacuationCenterMap
+                  userLat={locationData.lat}
+                  userLon={locationData.lon}
+                  nearestCenter={{
+                    name: nearbyCenters[0].name,
+                    coordinates: nearbyCenters[0].coordinates,
+                    address: nearbyCenters[0].address,
+                    capacity: nearbyCenters[0].capacity,
+                    currentOccupancy: nearbyCenters[0].currentOccupancy,
+                    distance: nearbyCenters[0].distance ?? 0,
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Other Nearby Centers */}
+            {nearbyCenters.length > 1 && (
+              <div>
+                <p className="text-sm text-slate-300 mb-2 font-semibold">Other Nearby Centers:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {nearbyCenters.slice(1, 3).map((center) => (
+                    <div key={center.id} className="bg-slate-800/40 p-3 rounded border border-slate-700">
+                      <p className="text-sm font-semibold text-white">{center.name}</p>
+                      <p className="text-xs text-slate-400">{center.address}</p>
+                      <p className="text-xs text-slate-300 mt-1">
+                        <span className="text-emerald-400 font-semibold">{(center.distance ?? 0).toFixed(1)} km</span> •{" "}
+                        <span className={occupancyPercent(center) > 80 ? "text-red-400" : "text-green-400"}>
+                          {occupancyPercent(center).toFixed(0)}% full
+                        </span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Risk Assessment Overview */}
       {riskAssessment && (
         <Card className="bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700">
