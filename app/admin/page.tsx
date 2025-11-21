@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,9 @@ import {
   FileText,
   MessageSquare,
   Edit2,
+  Star,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react"
 import { getEmergencyStats } from "@/services/emergencyService"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/services/adminStorageService"
@@ -71,6 +75,9 @@ import {
   assignMultipleLocations,
   type Volunteer,
   type VolunteerArea,
+  submitVolunteerFeedback,
+  getVolunteerFeedback,
+  type VolunteerFeedback,
 } from "@/services/volunteerAdminService"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -145,6 +152,16 @@ export default function AdminDashboard() {
   })
   const [isAddingVolunteer, setIsAddingVolunteer] = useState(false)
   const [isEditingVolunteer, setIsEditingVolunteer] = useState(false)
+
+  // Volunteer feedback state
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
+  const [selectedVolunteerForFeedback, setSelectedVolunteerForFeedback] = useState<Volunteer | null>(null)
+  const [volunteerFeedbacks, setVolunteerFeedbacks] = useState<VolunteerFeedback[]>([])
+  const [feedbackForm, setFeedbackForm] = useState({
+    rating: 5,
+    feedback: "",
+    type: "positive" as "positive" | "constructive" | "critical",
+  })
 
   const handleLogout = () => {
     logout()
@@ -454,6 +471,105 @@ export default function AdminDashboard() {
     }
 
     setIsManageLocationsDialogOpen(true)
+  }
+
+  // Volunteer feedback functions
+  const openFeedbackDialog = async (volunteer: Volunteer) => {
+    setSelectedVolunteerForFeedback(volunteer)
+    setFeedbackForm({
+      rating: 5,
+      feedback: "",
+      type: "positive",
+    })
+    
+    try {
+      const feedbacks = await getVolunteerFeedback(volunteer.id)
+      setVolunteerFeedbacks(feedbacks)
+    } catch (error) {
+      console.error("Error loading volunteer feedback:", error)
+      setVolunteerFeedbacks([])
+    }
+    
+    setIsFeedbackDialogOpen(true)
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (!selectedVolunteerForFeedback) return
+
+    if (!feedbackForm.feedback.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide feedback text",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const result = await submitVolunteerFeedback(
+        selectedVolunteerForFeedback.id,
+        {
+          rating: feedbackForm.rating,
+          feedback: feedbackForm.feedback,
+          type: feedbackForm.type,
+        },
+        user?.name || "Admin"
+      )
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Feedback submitted successfully",
+        })
+        setIsFeedbackDialogOpen(false)
+        setSelectedVolunteerForFeedback(null)
+        
+        // Reload feedbacks
+        if (selectedVolunteerForFeedback) {
+          const feedbacks = await getVolunteerFeedback(selectedVolunteerForFeedback.id)
+          setVolunteerFeedbacks(feedbacks)
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const getFeedbackTypeColor = (type: string) => {
+    switch (type) {
+      case "positive":
+        return "bg-green-500/10 text-green-400 border-green-500/20"
+      case "constructive":
+        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+      case "critical":
+        return "bg-red-500/10 text-red-400 border-red-500/20"
+      default:
+        return "bg-slate-500/10 text-slate-400 border-slate-500/20"
+    }
+  }
+
+  const getFeedbackTypeIcon = (type: string) => {
+    switch (type) {
+      case "positive":
+        return <ThumbsUp className="w-4 h-4" />
+      case "constructive":
+        return <Edit2 className="w-4 h-4" />
+      case "critical":
+        return <AlertTriangle className="w-4 h-4" />
+      default:
+        return <MessageSquare className="w-4 h-4" />
+    }
   }
 
   const handleAddLocation = () => {
@@ -1018,29 +1134,38 @@ export default function AdminDashboard() {
             <TabsContent value="volunteer-reports" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-bold text-white mb-2">Volunteer Reports</h2>
-                  <p className="text-slate-400">Field updates and reports from volunteers</p>
+                  <h2 className="text-3xl font-bold text-white mb-2">Volunteer Management</h2>
+                  <p className="text-slate-400">Manage volunteers and provide feedback</p>
                 </div>
-                <Button
-                  onClick={loadVolunteerUpdates}
-                  variant="outline"
-                  className="bg-slate-800/50 border-slate-700 text-white hover:bg-slate-700/50"
-                >
-                  Refresh
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={loadVolunteerUpdates}
+                    variant="outline"
+                    className="bg-slate-800/50 border-slate-700 text-white hover:bg-slate-700/50"
+                  >
+                    Refresh
+                  </Button>
+                  <Button
+                    onClick={() => setIsAddVolunteerDialogOpen(true)}
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Add Volunteer
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
                 <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-3">
-                      <FileText className="w-5 h-5 text-slate-400" />
+                      <Users className="w-5 h-5 text-slate-400" />
                       <Badge variant="outline" className="border-slate-600 text-slate-400">
                         Total
                       </Badge>
                     </div>
-                    <p className="text-3xl font-bold text-white mb-1">{volunteerStats.total}</p>
-                    <p className="text-sm text-slate-400">Total Reports</p>
+                    <p className="text-3xl font-bold text-white mb-1">{volunteers.length}</p>
+                    <p className="text-sm text-slate-400">Volunteers</p>
                   </CardContent>
                 </Card>
 
@@ -1084,104 +1209,226 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
-              <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-white">All Volunteer Reports</CardTitle>
-                  <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                    {volunteerUpdates.length} Reports
-                  </Badge>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingVolunteerUpdates ? (
-                    <div className="text-center py-12">
-                      <div className="w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-                      <p className="text-slate-400">Loading volunteer reports...</p>
-                    </div>
-                  ) : volunteerUpdates.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                      <p className="text-slate-400">No volunteer reports yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {volunteerUpdates.map((update) => {
-                        const TypeIcon = getUpdateTypeInfo(update.update_type).icon
-                        const typeColor = getUpdateTypeInfo(update.update_type).color
-
-                        return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="text-white">Volunteer List</CardTitle>
+                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+                      {volunteers.length} Volunteers
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingVolunteers ? (
+                      <div className="text-center py-12">
+                        <div className="w-12 h-12 border-4 border-slate-700 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
+                        <p className="text-slate-400">Loading volunteers...</p>
+                      </div>
+                    ) : volunteers.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                        <p className="text-slate-400">No volunteers added yet</p>
+                        <Button
+                          onClick={() => setIsAddVolunteerDialogOpen(true)}
+                          className="mt-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Add First Volunteer
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {volunteers.map((volunteer) => (
                           <div
-                            key={update.id}
-                            className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800/60 hover:border-blue-500/30 transition-all"
+                            key={volunteer.id}
+                            className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800/60 hover:border-blue-500/30 transition-all"
                           >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-start gap-3 flex-1 min-w-0">
-                                <div
-                                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${getSeverityColor(update.severity)}/10`}
-                                >
-                                  <TypeIcon className={`w-5 h-5 ${typeColor}`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-semibold text-white truncate">{update.title}</h3>
-                                    <Badge
-                                      variant="outline"
-                                      className={`border-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "blue"}-500/50 text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "blue"}-500 capitalize`}
-                                    >
-                                      {update.severity}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-sm text-slate-400 mb-2 line-clamp-2">{update.description}</p>
-                                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                    <span className="flex items-center gap-1">
-                                      <User className="w-3 h-3" />
-                                      {update.volunteer_name}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3" />
-                                      {update.barangay}, {update.municipality}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {formatDate(update.created_at)}
-                                    </span>
-                                    <Badge variant="secondary" className="bg-slate-700 text-slate-300 capitalize">
-                                      {update.update_type}
-                                    </Badge>
-                                  </div>
-                                </div>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+                                <User className="w-5 h-5 text-green-500" />
                               </div>
-                              <div className="flex flex-col gap-2">
-                                <Badge
-                                  variant="outline"
-                                  className={`${
-                                    update.status === "active"
-                                      ? "border-green-500/50 text-green-500"
-                                      : update.status === "resolved"
-                                        ? "border-blue-500/50 text-blue-500"
-                                        : "border-slate-600 text-slate-400"
-                                  } capitalize whitespace-nowrap`}
-                                >
-                                  {update.status}
-                                </Badge>
-                                {update.status === "active" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleVolunteerUpdateStatus(update.id, "resolved")}
-                                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs"
-                                  >
-                                    Mark Resolved
-                                  </Button>
-                                )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-white truncate">{volunteer.full_name}</h3>
+                                  {!volunteer.is_active && (
+                                    <Badge variant="secondary" className="bg-red-500/10 text-red-500 text-xs">
+                                      Inactive
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-slate-400 truncate">{volunteer.email}</p>
+                                <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                                  <MapPin className="w-3 h-3" />
+                                  <span>{volunteer.barangay || "No primary location"}</span>
+                                  {volunteer.areas && volunteer.areas.length > 1 && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="bg-blue-500/10 text-blue-400 text-[10px] px-1"
+                                    >
+                                      +{volunteer.areas.length - 1} more
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openFeedbackDialog(volunteer)}
+                                className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                                title="Provide feedback"
+                              >
+                                <Star className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openManageLocationsDialog(volunteer)}
+                                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                                title="Manage locations"
+                              >
+                                <MapPin className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditDialog(volunteer)}
+                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setVolunteerToDelete(volunteer)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="text-white">Volunteer Reports</CardTitle>
+                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+                      {volunteerUpdates.length} Reports
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingVolunteerUpdates ? (
+                      <div className="text-center py-12">
+                        <div className="w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
+                        <p className="text-slate-400">Loading volunteer reports...</p>
+                      </div>
+                    ) : volunteerUpdates.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                        <p className="text-slate-400">No volunteer reports yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {volunteerUpdates.slice(0, 5).map((update) => {
+                          const TypeIcon = getUpdateTypeInfo(update.update_type).icon
+                          const typeColor = getUpdateTypeInfo(update.update_type).color
+
+                          return (
+                            <div
+                              key={update.id}
+                              className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800/60 hover:border-blue-500/30 transition-all"
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                  <div
+                                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${getSeverityColor(update.severity)}/10`}
+                                  >
+                                    <TypeIcon className={`w-5 h-5 ${typeColor}`} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h3 className="font-semibold text-white truncate">{update.title}</h3>
+                                      <Badge
+                                        variant="outline"
+                                        className={`border-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "blue"}-500/50 text-${update.severity === "critical" ? "red" : update.severity === "high" ? "orange" : update.severity === "moderate" ? "yellow" : "blue"}-500 capitalize`}
+                                      >
+                                        {update.severity}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-sm text-slate-400 mb-2 line-clamp-2">{update.description}</p>
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                      <span className="flex items-center gap-1">
+                                        <User className="w-3 h-3" />
+                                        {update.volunteer_name}
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <MapPin className="w-3 h-3" />
+                                        {update.barangay}, {update.municipality}
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {formatDate(update.created_at)}
+                                      </span>
+                                      <Badge variant="secondary" className="bg-slate-700 text-slate-300 capitalize">
+                                        {update.update_type}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Badge
+                                    variant="outline"
+                                    className={`${
+                                      update.status === "active"
+                                        ? "border-green-500/50 text-green-500"
+                                        : update.status === "resolved"
+                                          ? "border-blue-500/50 text-blue-500"
+                                          : "border-slate-600 text-slate-400"
+                                    } capitalize whitespace-nowrap`}
+                                  >
+                                    {update.status}
+                                  </Badge>
+                                  {update.status === "active" && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleVolunteerUpdateStatus(update.id, "resolved")}
+                                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs"
+                                    >
+                                      Mark Resolved
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                        {volunteerUpdates.length > 5 && (
+                          <div className="text-center pt-4">
+                            <Button
+                              variant="outline"
+                              className="bg-slate-800/50 border-slate-700 text-white hover:bg-slate-700/50"
+                              onClick={() => {
+                                // You can implement view all functionality here
+                                toast({
+                                  title: "View All Reports",
+                                  description: "Showing all volunteer reports",
+                                })
+                              }}
+                            >
+                              View All Reports
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Settings Tab */}
@@ -1492,6 +1739,15 @@ export default function AdminDashboard() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    onClick={() => openFeedbackDialog(volunteer)}
+                                    className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                                    title="Provide feedback"
+                                  >
+                                    <Star className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => openManageLocationsDialog(volunteer)}
                                     className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
                                     title="Manage locations"
@@ -1662,6 +1918,134 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Volunteer Feedback Dialog */}
+      <Dialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              Provide Feedback to {selectedVolunteerForFeedback?.full_name}
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Share your feedback and evaluation for this volunteer's performance
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-white">Rating</Label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Button
+                        key={star}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFeedbackForm({ ...feedbackForm, rating: star })}
+                        className={`p-1 h-auto ${feedbackForm.rating >= star ? "text-yellow-400" : "text-slate-600"}`}
+                      >
+                        <Star className="w-6 h-6 fill-current" />
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Feedback Type</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant={feedbackForm.type === "positive" ? "default" : "outline"}
+                      onClick={() => setFeedbackForm({ ...feedbackForm, type: "positive" })}
+                      className={`${feedbackForm.type === "positive" ? "bg-green-600 text-white" : "bg-slate-800 border-slate-700 text-white"}`}
+                    >
+                      <ThumbsUp className="w-4 h-4 mr-1" />
+                      Positive
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={feedbackForm.type === "constructive" ? "default" : "outline"}
+                      onClick={() => setFeedbackForm({ ...feedbackForm, type: "constructive" })}
+                      className={`${feedbackForm.type === "constructive" ? "bg-yellow-600 text-white" : "bg-slate-800 border-slate-700 text-white"}`}
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      Constructive
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={feedbackForm.type === "critical" ? "default" : "outline"}
+                      onClick={() => setFeedbackForm({ ...feedbackForm, type: "critical" })}
+                      className={`${feedbackForm.type === "critical" ? "bg-red-600 text-white" : "bg-slate-800 border-slate-700 text-white"}`}
+                    >
+                      <AlertTriangle className="w-4 h-4 mr-1" />
+                      Critical
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Feedback</Label>
+                  <Textarea
+                    placeholder="Provide detailed feedback about the volunteer's performance, areas of improvement, or recognition for good work..."
+                    value={feedbackForm.feedback}
+                    onChange={(e) => setFeedbackForm({ ...feedbackForm, feedback: e.target.value })}
+                    className="bg-slate-800 border-slate-700 text-white min-h-[120px]"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleSubmitFeedback}
+                  className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800"
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Submit Feedback
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-white">Previous Feedback</Label>
+              {volunteerFeedbacks.length === 0 ? (
+                <div className="text-center py-8 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                  <MessageSquare className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400">No feedback provided yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {volunteerFeedbacks.map((feedback) => (
+                    <div
+                      key={feedback.id}
+                      className={`p-3 rounded-lg border ${getFeedbackTypeColor(feedback.type)}`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {getFeedbackTypeIcon(feedback.type)}
+                          <span className="text-sm font-medium capitalize">{feedback.type}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-3 h-3 ${feedback.rating >= star ? "text-yellow-400 fill-current" : "text-slate-600"}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-300 mb-2">{feedback.feedback}</p>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>By {feedback.admin_name}</span>
+                        <span>{formatDate(feedback.created_at)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
           <AlertDialogHeader>
@@ -1708,6 +2092,161 @@ export default function AdminDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Volunteer Dialog */}
+      <Dialog open={isEditVolunteerDialogOpen} onOpenChange={setIsEditVolunteerDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">Edit Volunteer</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Update volunteer information and status
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-white">Full Name</Label>
+              <Input
+                placeholder="Juan Dela Cruz"
+                value={editVolunteerForm.full_name}
+                onChange={(e) => setEditVolunteerForm({ ...editVolunteerForm, full_name: e.target.value })}
+                className="bg-slate-800 border-slate-700 text-white"
+                disabled={isEditingVolunteer}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-white">Phone Number</Label>
+              <Input
+                placeholder="0917-123-4567"
+                value={editVolunteerForm.phone_number}
+                onChange={(e) => setEditVolunteerForm({ ...editVolunteerForm, phone_number: e.target.value })}
+                className="bg-slate-800 border-slate-700 text-white"
+                disabled={isEditingVolunteer}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-white">Assigned Barangay</Label>
+              <Select
+                value={editVolunteerForm.barangay}
+                onValueChange={(value) => setEditVolunteerForm({ ...editVolunteerForm, barangay: value })}
+                disabled={isEditingVolunteer}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Select barangay" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {getOlongapoBarangays().map((barangay) => (
+                    <SelectItem key={barangay} value={barangay} className="text-white">
+                      {barangay}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={editVolunteerForm.is_active}
+                onCheckedChange={(checked) => setEditVolunteerForm({ ...editVolunteerForm, is_active: checked })}
+                disabled={isEditingVolunteer}
+              />
+              <Label className="text-white">Active Volunteer</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditVolunteerDialogOpen(false)}
+              className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+              disabled={isEditingVolunteer}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEditVolunteer}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              disabled={isEditingVolunteer}
+            >
+              {isEditingVolunteer ? "Updating..." : "Update Volunteer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Locations Dialog */}
+      <Dialog open={isManageLocationsDialogOpen} onOpenChange={setIsManageLocationsDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">Manage Volunteer Locations</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Assign multiple barangays to {selectedVolunteerForLocations?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {locationSelections.map((location, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Select
+                  value={location.barangay}
+                  onValueChange={(value) => handleLocationChange(index, value)}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white flex-1">
+                    <SelectValue placeholder="Select barangay" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    {getOlongapoBarangays().map((barangay) => (
+                      <SelectItem key={barangay} value={barangay} className="text-white">
+                        {barangay}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePrimaryChange(index)}
+                  className={`${location.is_primary ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300"}`}
+                >
+                  Primary
+                </Button>
+                {locationSelections.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveLocation(index)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddLocation}
+              className="w-full bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Add Another Location
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsManageLocationsDialogOpen(false)}
+              className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveLocations}
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+            >
+              Save Locations
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </RouteGuard>
   )
 }
