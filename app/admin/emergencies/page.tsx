@@ -46,7 +46,6 @@ import {
   updateEmergencyReport,
   deleteEmergencyReport,
   undoDeleteEmergencyReport,
-  cleanupOldReports,
   type EmergencyReport,
 } from "@/services/emergencyService"
 import { formatAddress } from "@/lib/format-address"
@@ -449,26 +448,6 @@ export default function EmergencyManagement() {
     })
   }
 
-  const handleCleanupOldReports = async () => {
-    const beforeCount = emergencyRequests.length
-    const cleaned = await cleanupOldReports()
-    await loadStoredReports()
-
-    if (cleaned > 0) {
-      toast({
-        title: "Cleanup Complete",
-        description: `Removed ${cleaned} reports older than 30 days`,
-        duration: 5000,
-      })
-    } else {
-      toast({
-        title: "No Cleanup Needed",
-        description: "All reports are within the 30-day retention period",
-        duration: 3000,
-      })
-    }
-  }
-
   const handleDeleteReport = async (reportId: string) => {
     const success = await deleteEmergencyReport(reportId)
     if (success) {
@@ -544,15 +523,6 @@ export default function EmergencyManagement() {
                 >
                   <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                   <span className="hidden sm:inline ml-2">Refresh</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCleanupOldReports}
-                  className="bg-slate-700/50 border-slate-600/50 text-white hover:bg-slate-600/50 rounded-xl text-xs"
-                >
-                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline ml-2">Cleanup Old</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -722,7 +692,7 @@ export default function EmergencyManagement() {
                   <AlertTriangle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                   <p className="text-slate-400 text-sm sm:text-base">No Emergency Requests Found</p>
                   <p className="text-xs sm:text-sm text-slate-400 mt-2">
-                    Reports Are Automatically Cleaned Up After 30 Days
+                    All Reports Are Permanently Stored In The Database
                   </p>
                 </div>
               ) : (
