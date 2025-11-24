@@ -36,6 +36,11 @@ import {
   Home,
   AlertCircle,
   ChevronDown,
+  Star,
+  MessageSquare,
+  UserCheck,
+  Calendar,
+  User,
 } from "lucide-react"
 import {
   getVolunteerAreas,
@@ -46,6 +51,7 @@ import {
   type VolunteerUpdate,
 } from "@/services/volunteerService"
 import { useToast } from "@/hooks/use-toast"
+import { getVolunteerFeedback, getVolunteerValidationStatus, getFeedbackStats } from "@/services/feedbackService"
 
 // Olongapo City barangays data
 const OLONGAPO_LOCATIONS = [
@@ -104,6 +110,18 @@ export default function VolunteerDashboard() {
     latitude: undefined as number | undefined,
     longitude: undefined as number | undefined,
   })
+  
+  // Feedback states
+  const [volunteerFeedback, setVolunteerFeedback] = useState<any[]>([])
+  const [validationStatus, setValidationStatus] = useState({
+    is_validated: false,
+    overall_rating: 0,
+  })
+  const [feedbackStats, setFeedbackStats] = useState({
+    total: 0,
+    average_rating: 0,
+    approved: 0,
+  })
 
   const handleLogout = () => {
     logout()
@@ -117,6 +135,7 @@ export default function VolunteerDashboard() {
   useEffect(() => {
     if (user?.id) {
       loadVolunteerData()
+      loadFeedbackData()
     }
   }, [user])
 
@@ -137,6 +156,25 @@ export default function VolunteerDashboard() {
     setAreas(areasData)
     setUpdates(updatesData)
     setStats(statsData)
+  }
+
+  const loadFeedbackData = async () => {
+    if (!user?.id) return
+
+    const volunteerId = Number.parseInt(user.id)
+    try {
+      const [feedback, validation, stats] = await Promise.all([
+        getVolunteerFeedback(volunteerId),
+        getVolunteerValidationStatus(volunteerId),
+        getFeedbackStats(volunteerId)
+      ])
+      
+      setVolunteerFeedback(feedback)
+      setValidationStatus(validation)
+      setFeedbackStats(stats)
+    } catch (error) {
+      console.error("Error loading feedback data:", error)
+    }
   }
 
   const handleSelectLocation = (locationName: string) => {
@@ -239,6 +277,49 @@ export default function VolunteerDashboard() {
     }
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-500'
+      case 'rejected':
+        return 'bg-red-500'
+      case 'needs_improvement':
+        return 'bg-yellow-500'
+      case 'pending':
+        return 'bg-blue-500'
+      default:
+        return 'bg-gray-500'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'Approved'
+      case 'rejected':
+        return 'Rejected'
+      case 'needs_improvement':
+        return 'Needs Improvement'
+      case 'pending':
+        return 'Pending Review'
+      default:
+        return status
+    }
+  }
+
+  const getFeedbackTypeIcon = (type: string) => {
+    switch (type) {
+      case 'validation':
+        return <UserCheck className="w-4 h-4" />
+      case 'performance':
+        return <Star className="w-4 h-4" />
+      case 'general':
+        return <MessageSquare className="w-4 h-4" />
+      default:
+        return <MessageSquare className="w-4 h-4" />
+    }
+  }
+
   // FIXED: Properly handle UTC timestamps
   const formatTimeAgo = (timestamp: string) => {
     try {
@@ -292,6 +373,20 @@ export default function VolunteerDashboard() {
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-semibold text-white">{user?.name}</p>
                   <p className="text-xs text-slate-400">{user?.email}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge 
+                      variant={validationStatus.is_validated ? "default" : "secondary"}
+                      className={validationStatus.is_validated ? "bg-green-500" : "bg-yellow-500"}
+                    >
+                      {validationStatus.is_validated ? "Validated" : "Pending"}
+                    </Badge>
+                    {validationStatus.overall_rating > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-500" />
+                        <span className="text-xs text-slate-400">{validationStatus.overall_rating}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <Button
                   variant="ghost"
@@ -308,7 +403,7 @@ export default function VolunteerDashboard() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-slate-900/50 border border-slate-800 p-1.5 rounded-xl backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-4 bg-slate-900/50 border border-slate-800 p-1.5 rounded-xl backdrop-blur-sm">
               <TabsTrigger
                 value="overview"
                 className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
@@ -329,6 +424,13 @@ export default function VolunteerDashboard() {
               >
                 <Send className="w-4 h-4" />
                 <span className="hidden xs:inline">Updates</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="feedback"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden xs:inline">Feedback</span>
               </TabsTrigger>
             </TabsList>
 
@@ -380,18 +482,18 @@ export default function VolunteerDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-slate-900 to-slate-900/50 border-slate-800 hover:border-green-500/50 transition-colors">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-900/50 border-slate-800 hover:border-purple-500/50 transition-colors">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                        <Star className="w-5 h-5 text-purple-500" />
                       </div>
-                      <Badge variant="outline" className="border-green-500/50 text-green-500">
-                        Resolved
+                      <Badge variant="outline" className="border-purple-500/50 text-purple-500">
+                        Rating
                       </Badge>
                     </div>
-                    <p className="text-3xl font-bold text-white mb-1">{stats.resolved}</p>
-                    <p className="text-sm text-slate-400">Resolved</p>
+                    <p className="text-3xl font-bold text-white mb-1">{feedbackStats.average_rating || 0}</p>
+                    <p className="text-sm text-slate-400">Avg. Rating</p>
                   </CardContent>
                 </Card>
               </div>
@@ -797,6 +899,172 @@ export default function VolunteerDashboard() {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            {/* Feedback Tab */}
+            <TabsContent value="feedback" className="space-y-6">
+              <div className="mb-2">
+                <h2 className="text-2xl font-bold text-white mb-1">Admin Feedback</h2>
+                <p className="text-slate-400">Reviews and validation from administrators</p>
+              </div>
+
+              {/* Feedback Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                        <Star className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <Badge variant="outline" className="border-purple-500/50 text-purple-500">
+                        Rating
+                      </Badge>
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-1">{feedbackStats.average_rating || 0}</p>
+                    <p className="text-sm text-slate-400">Average Rating</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <UserCheck className="w-5 h-5 text-green-500" />
+                      </div>
+                      <Badge variant="outline" className="border-green-500/50 text-green-500">
+                        Approved
+                      </Badge>
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-1">{feedbackStats.approved}</p>
+                    <p className="text-sm text-slate-400">Approved Reports</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                        <MessageSquare className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <Badge variant="outline" className="border-blue-500/50 text-blue-500">
+                        Total
+                      </Badge>
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-1">{feedbackStats.total}</p>
+                    <p className="text-sm text-slate-400">Total Reviews</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Validation Status */}
+              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-green-500" />
+                    Validation Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${validationStatus.is_validated ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                      <div>
+                        <p className="font-semibold text-white">
+                          {validationStatus.is_validated ? 'Validated Volunteer' : 'Pending Validation'}
+                        </p>
+                        <p className="text-sm text-slate-400">
+                          {validationStatus.is_validated 
+                            ? 'Your account has been validated by administrators' 
+                            : 'Awaiting admin validation and review'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <Badge 
+                      variant={validationStatus.is_validated ? "default" : "secondary"}
+                      className={validationStatus.is_validated ? "bg-green-500" : "bg-yellow-500"}
+                    >
+                      {validationStatus.is_validated ? "Validated" : "Pending"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Feedback List */}
+              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-white">All Feedback</CardTitle>
+                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+                      {volunteerFeedback.length} Reviews
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {volunteerFeedback.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageSquare className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+                      <p className="text-slate-400 font-medium mb-2">No feedback yet</p>
+                      <p className="text-sm text-slate-500">
+                        Administrators will provide feedback on your reports and performance
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {volunteerFeedback.map((feedback) => (
+                        <div
+                          key={feedback.id}
+                          className="p-4 bg-slate-800/50 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              {getFeedbackTypeIcon(feedback.feedback_type)}
+                              <Badge 
+                                variant="outline" 
+                                className={`capitalize ${
+                                  feedback.status === 'approved' ? 'border-green-500/50 text-green-400' :
+                                  feedback.status === 'rejected' ? 'border-red-500/50 text-red-400' :
+                                  feedback.status === 'needs_improvement' ? 'border-yellow-500/50 text-yellow-400' :
+                                  'border-blue-500/50 text-blue-400'
+                                }`}
+                              >
+                                {getStatusText(feedback.status)}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(feedback.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <p className="text-sm font-medium text-white">{feedback.admin_name}</p>
+                              <p className="text-xs text-slate-400 capitalize">{feedback.feedback_type} Feedback</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`w-4 h-4 ${
+                                    i < feedback.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-500'
+                                  }`} 
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {feedback.comments && (
+                            <div className="mt-3 p-3 bg-slate-700/30 rounded-lg">
+                              <p className="text-sm text-slate-300">{feedback.comments}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

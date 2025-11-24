@@ -51,6 +51,9 @@ import {
   FileText,
   MessageSquare,
   Edit2,
+  Star,
+  UserCheck,
+  UserX,
 } from "lucide-react"
 import { getEmergencyStats } from "@/services/emergencyService"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/services/adminStorageService"
@@ -73,6 +76,15 @@ import {
   type VolunteerArea,
 } from "@/services/volunteerAdminService"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { 
+  getVolunteerFeedback, 
+  addVolunteerFeedback, 
+  getFeedbackStats,
+  validateVolunteer, 
+  revokeValidation,
+  getVolunteerValidationStatus,
+  type VolunteerFeedback 
+} from "@/services/feedbackService"
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
@@ -146,6 +158,28 @@ export default function AdminDashboard() {
   const [isAddingVolunteer, setIsAddingVolunteer] = useState(false)
   const [isEditingVolunteer, setIsEditingVolunteer] = useState(false)
 
+  // Feedback system state
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
+  const [selectedVolunteerForFeedback, setSelectedVolunteerForFeedback] = useState<Volunteer | null>(null)
+  const [volunteerFeedback, setVolunteerFeedback] = useState<VolunteerFeedback[]>([])
+  const [feedbackStats, setFeedbackStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    needs_improvement: 0,
+    average_rating: 0,
+  })
+  const [feedbackForm, setFeedbackForm] = useState({
+    feedback_type: 'validation' as 'validation' | 'performance' | 'general',
+    rating: 5,
+    comments: '',
+    status: 'approved' as 'pending' | 'approved' | 'rejected' | 'needs_improvement',
+  })
+  const [isValidatingVolunteer, setIsValidatingVolunteer] = useState(false)
+  const [volunteerToValidate, setVolunteerToValidate] = useState<Volunteer | null>(null)
+  const [volunteerToRevoke, setVolunteerToRevoke] = useState<Volunteer | null>(null)
+
   const handleLogout = () => {
     logout()
     router.push("/")
@@ -192,6 +226,7 @@ export default function AdminDashboard() {
   // Volunteer loading effect
   useEffect(() => {
     loadVolunteers()
+    loadFeedbackData()
   }, [])
 
   const loadVolunteerUpdates = async () => {
@@ -209,6 +244,19 @@ export default function AdminDashboard() {
       })
     } finally {
       setIsLoadingVolunteerUpdates(false)
+    }
+  }
+
+  const loadFeedbackData = async () => {
+    try {
+      const [feedback, stats] = await Promise.all([
+        getVolunteerFeedback(),
+        getFeedbackStats()
+      ])
+      setVolunteerFeedback(feedback)
+      setFeedbackStats(stats)
+    } catch (error) {
+      console.error("Error loading feedback data:", error)
     }
   }
 
@@ -285,7 +333,19 @@ export default function AdminDashboard() {
     setIsLoadingVolunteers(true)
     try {
       const data = await getAllVolunteers()
-      setVolunteers(data)
+      
+      // Fetch validation status for each volunteer and add it to the volunteer object
+      const volunteersWithValidation = await Promise.all(
+        data.map(async (volunteer) => {
+          const validationStatus = await getVolunteerValidationStatus(volunteer.id)
+          return {
+            ...volunteer,
+            is_validated: validationStatus.is_validated // Add this field
+          }
+        })
+      )
+      
+      setVolunteers(volunteersWithValidation)
     } catch (error) {
       console.error("Error loading volunteers:", error)
       toast({
@@ -421,6 +481,119 @@ export default function AdminDashboard() {
       })
     } finally {
       setVolunteerToDelete(null)
+    }
+  }
+
+  // Feedback functions
+  const openFeedbackDialog = (volunteer: Volunteer) => {
+    setSelectedVolunteerForFeedback(volunteer)
+    setIsFeedbackDialogOpen(true)
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (!selectedVolunteerForFeedback || !user) return
+
+    const result = await addVolunteerFeedback(
+      selectedVolunteerForFeedback.id,
+      selectedVolunteerForFeedback.full_name,
+      user.id,
+      user.name || 'Admin',
+      feedbackForm
+    )
+
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: result.message,
+      })
+      setIsFeedbackDialogOpen(false)
+      setSelectedVolunteerForFeedback(null)
+      setFeedbackForm({
+        feedback_type: 'validation',
+        rating: 5,
+        comments: '',
+        status: 'approved',
+      })
+      await loadFeedbackData()
+    } else {
+      toast({
+        title: "Error",
+        description: result.message,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleValidateVolunteer = async () => {
+    if (!volunteerToValidate || !user) return
+
+    setIsValidatingVolunteer(true)
+    try {
+      const result = await validateVolunteer(volunteerToValidate.id)
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `${volunteerToValidate.full_name} has been validated successfully`,
+        })
+        setVolunteerToValidate(null)
+        
+        // Force complete refresh
+        await loadVolunteers()
+        await loadFeedbackData()
+        
+        // Add a small delay and force state update
+        setTimeout(() => {
+          setVolunteers(prev => [...prev.map(v => ({...v}))])
+        }, 100)
+        
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error validating volunteer:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsValidatingVolunteer(false)
+    }
+  }
+
+  const handleRevokeValidation = async () => {
+    if (!volunteerToRevoke) return
+
+    try {
+      const result = await revokeValidation(volunteerToRevoke.id)
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `${volunteerToRevoke.full_name}'s validation has been revoked`,
+        })
+        setVolunteerToRevoke(null)
+        await loadFeedbackData()
+        await loadVolunteers()
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error revoking validation:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
     }
   }
 
@@ -1435,91 +1608,144 @@ export default function AdminDashboard() {
                         <div className="w-8 h-8 border-2 border-slate-700 border-t-green-500 rounded-full animate-spin mx-auto mb-3" />
                         <p className="text-slate-400">Loading volunteers...</p>
                       </div>
+                    ) : volunteers.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                        <p className="text-slate-400">No volunteers added yet</p>
+                      </div>
                     ) : (
-                      <>
-                        <div
-                          className="space-y-2 max-h-[300px] overflow-y-auto flex-1"
-                          style={{
-                            scrollbarWidth: "none",
-                            msOverflowStyle: "none",
-                          }}
-                        >
-                          <style jsx>{`
-                            div::-webkit-scrollbar {
-                              display: none;
-                            }
-                          `}</style>
-                          {volunteers.length === 0 ? (
-                            <div className="text-center py-8">
-                              <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                              <p className="text-slate-400">No volunteers added yet</p>
-                            </div>
-                          ) : (
-                            volunteers.map((volunteer: any) => (
-                              <div
-                                key={volunteer.id}
-                                className="flex items-center justify-between p-3 bg-slate-800/30 rounded-xl border border-slate-700/30 hover:bg-slate-800/40 transition-all"
-                              >
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                  <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-                                    <User className="w-5 h-5 text-green-500" />
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <p className="font-medium text-white truncate">{volunteer.full_name}</p>
-                                      {!volunteer.is_active && (
-                                        <Badge variant="secondary" className="bg-red-500/10 text-red-500 text-xs">
-                                          Inactive
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <p className="text-xs text-slate-400 truncate">{volunteer.email}</p>
-                                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-                                      <MapPin className="w-3 h-3" />
-                                      <span>{volunteer.barangay || "No primary location"}</span>
-                                      {volunteer.areas && volunteer.areas.length > 1 && (
-                                        <Badge
-                                          variant="secondary"
-                                          className="bg-blue-500/10 text-blue-400 text-[10px] px-1"
-                                        >
-                                          +{volunteer.areas.length - 1} more
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
+                      <div
+                        className="space-y-2 max-h-[300px] overflow-y-auto flex-1"
+                        style={{
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none",
+                        }}
+                      >
+                        <style jsx>{`
+                          div::-webkit-scrollbar {
+                            display: none;
+                          }
+                        `}</style>
+                        {volunteers.map((volunteer: any) => {
+                          const validationStatus = getVolunteerValidationStatus(volunteer.id)
+                          const isVolunteerValidated = validationStatus.is_validated
+
+                          return (
+                            <div
+                              key={volunteer.id}
+                              className="flex items-center justify-between p-3 bg-slate-800/30 rounded-xl border border-slate-700/30 hover:bg-slate-800/40 transition-all"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                  isVolunteerValidated ? 'bg-green-500/20' : 'bg-slate-500/20'
+                                }`}>
+                                  {isVolunteerValidated ? (
+                                    <UserCheck className="w-5 h-5 text-green-500" />
+                                  ) : (
+                                    <User className="w-5 h-5 text-slate-400" />
+                                  )}
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openManageLocationsDialog(volunteer)}
-                                    className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-                                    title="Manage locations"
-                                  >
-                                    <MapPin className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openEditDialog(volunteer)}
-                                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setVolunteerToDelete(volunteer)}
-                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-white truncate">{volunteer.full_name}</p>
+                                    {!volunteer.is_active && (
+                                      <Badge variant="secondary" className="bg-red-500/10 text-red-500 text-xs">
+                                        Inactive
+                                      </Badge>
+                                    )}
+                                    {volunteer.is_validated && (
+                                      <Badge variant="secondary" className="bg-green-500/10 text-green-500 text-xs">
+                                        <UserCheck className="w-3 h-3 mr-1" />
+                                        Validated
+                                      </Badge>
+                                    )}
+                                    {!volunteer.is_validated && (
+                                      <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 text-xs">
+                                        <UserX className="w-3 h-3 mr-1" />
+                                        Unvalidated
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-slate-400 truncate">{volunteer.email}</p>
+                                  <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                                    <MapPin className="w-3 h-3" />
+                                    <span>{volunteer.barangay || "No primary location"}</span>
+                                    {volunteer.areas && volunteer.areas.length > 1 && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="bg-blue-500/10 text-blue-400 text-[10px] px-1"
+                                      >
+                                        +{volunteer.areas.length - 1} more
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            ))
-                          )}
-                        </div>
-                      </>
+                              <div className="flex items-center gap-1">
+                                {/* Validation Button - Changes based on current state */}
+                                {!isVolunteerValidated ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setVolunteerToValidate(volunteer)}
+                                    className="text-green-400 hover:text-green-300 hover:bg-green-500/10 border border-green-500/30"
+                                    title="Validate Volunteer"
+                                  >
+                                    <UserCheck className="w-4 h-4" />
+                                    <span className="ml-1 text-xs">Validate</span>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setVolunteerToRevoke(volunteer)}
+                                    className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 border border-yellow-500/30"
+                                    title="Unvalidate Volunteer"
+                                  >
+                                    <UserX className="w-4 h-4" />
+                                    <span className="ml-1 text-xs">Unvalidate</span>
+                                  </Button>
+                                )}
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openFeedbackDialog(volunteer)}
+                                  className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                                  title="Give feedback"
+                                >
+                                  <MessageSquare className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openManageLocationsDialog(volunteer)}
+                                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                  title="Manage locations"
+                                >
+                                  <MapPin className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditDialog(volunteer)}
+                                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setVolunteerToDelete(volunteer)}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     )}
 
                     <Dialog open={isAddVolunteerDialogOpen} onOpenChange={setIsAddVolunteerDialogOpen}>
@@ -1628,6 +1854,73 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
+              {/* Feedback Management Card */}
+              <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-purple-500" />
+                    Volunteer Feedback System
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Review and provide feedback to volunteers
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                    <div className="text-center p-4 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                      <p className="text-2xl font-bold text-white">{feedbackStats.total}</p>
+                      <p className="text-sm text-slate-400">Total</p>
+                    </div>
+                    <div className="text-center p-4 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                      <p className="text-2xl font-bold text-green-500">{feedbackStats.approved}</p>
+                      <p className="text-sm text-slate-400">Approved</p>
+                    </div>
+                    <div className="text-center p-4 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                      <p className="text-2xl font-bold text-yellow-500">{feedbackStats.pending}</p>
+                      <p className="text-sm text-slate-400">Pending</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {volunteerFeedback.slice(0, 5).map((feedback) => (
+                      <div key={feedback.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            feedback.status === 'approved' ? 'bg-green-500' :
+                            feedback.status === 'rejected' ? 'bg-red-500' :
+                            feedback.status === 'needs_improvement' ? 'bg-yellow-500' : 'bg-gray-500'
+                          }`} />
+                          <div>
+                            <p className="text-sm font-medium text-white">{feedback.volunteer_name}</p>
+                            <p className="text-xs text-slate-400">{feedback.feedback_type}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`w-3 h-3 ${
+                                  i < feedback.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-500'
+                                }`} 
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {new Date(feedback.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {volunteerFeedback.length === 0 && (
+                      <div className="text-center py-4">
+                        <p className="text-slate-400">No feedback given yet</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-white">Quick Actions</CardTitle>
@@ -1661,6 +1954,103 @@ export default function AdminDashboard() {
           </Tabs>
         </div>
       </div>
+
+      {/* Feedback Dialog */}
+      <Dialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">Provide Feedback</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Give feedback to {selectedVolunteerForFeedback?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-white">Feedback Type</Label>
+              <Select
+                value={feedbackForm.feedback_type}
+                onValueChange={(value: 'validation' | 'performance' | 'general') => 
+                  setFeedbackForm({...feedbackForm, feedback_type: value})
+                }
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="validation" className="text-white">Validation</SelectItem>
+                  <SelectItem value="performance" className="text-white">Performance</SelectItem>
+                  <SelectItem value="general" className="text-white">General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Rating</Label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Button
+                    key={star}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFeedbackForm({...feedbackForm, rating: star})}
+                    className={`p-1 hover:bg-transparent ${
+                      star <= feedbackForm.rating ? 'text-yellow-500' : 'text-gray-500'
+                    }`}
+                  >
+                    <Star className={`w-6 h-6 ${star <= feedbackForm.rating ? 'fill-yellow-500' : ''}`} />
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Status</Label>
+              <Select
+                value={feedbackForm.status}
+                onValueChange={(value: 'pending' | 'approved' | 'rejected' | 'needs_improvement') => 
+                  setFeedbackForm({...feedbackForm, status: value})
+                }
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="approved" className="text-white">Approved</SelectItem>
+                  <SelectItem value="needs_improvement" className="text-white">Needs Improvement</SelectItem>
+                  <SelectItem value="rejected" className="text-white">Rejected</SelectItem>
+                  <SelectItem value="pending" className="text-white">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Comments</Label>
+              <textarea
+                placeholder="Provide detailed feedback..."
+                value={feedbackForm.comments}
+                onChange={(e) => setFeedbackForm({...feedbackForm, comments: e.target.value})}
+                className="w-full h-24 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsFeedbackDialogOpen(false)}
+              className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitFeedback}
+              className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800"
+            >
+              Submit Feedback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
@@ -1704,6 +2094,79 @@ export default function AdminDashboard() {
               className="bg-red-600 hover:bg-red-700"
             >
               Delete Volunteer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Volunteer Validation Confirmation Dialog */}
+      <AlertDialog open={!!volunteerToValidate} onOpenChange={() => setVolunteerToValidate(null)}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Validate Volunteer</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to validate <strong>{volunteerToValidate?.full_name}</strong>? 
+              This will mark them as a validated volunteer in the system and they will receive a validated badge.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleValidateVolunteer}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isValidatingVolunteer}
+            >
+              {isValidatingVolunteer ? "Validating..." : "Validate Volunteer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Volunteer Unvalidation Confirmation Dialog */}
+      <AlertDialog open={!!volunteerToRevoke} onOpenChange={() => setVolunteerToRevoke(null)}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Unvalidate Volunteer</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to unvalidate <strong>{volunteerToRevoke?.full_name}</strong>? 
+              This will remove their validated status and badge.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevokeValidation}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              Unvalidate Volunteer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Volunteer Validation Revocation Dialog */}
+      <AlertDialog open={!!volunteerToRevoke} onOpenChange={() => setVolunteerToRevoke(null)}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Revoke Validation</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to revoke validation for <strong>{volunteerToRevoke?.full_name}</strong>? 
+              This will remove their validated status.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevokeValidation}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              Revoke Validation
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
