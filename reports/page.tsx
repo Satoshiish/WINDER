@@ -1,13 +1,9 @@
-"use client"
+export const revalidate = 60 // Revalidate page every 60 seconds (ISR)
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   ArrowLeft,
   MessageSquare,
@@ -16,16 +12,15 @@ import {
   Plus,
   Map,
   List,
-  Send,
   AlertTriangle,
   Droplets,
   Mountain,
   Car,
   Zap,
   Users,
-  ChevronDown,
 } from "lucide-react"
-import { searchLocations, getLocationByName, OLONGAPO_LOCATIONS } from "@/services/locationSearch"
+// searchLocations and friends left out intentionally — this page is server-rendered for SEO
+import Link from "next/link"
 
 interface Report {
   id: string
@@ -46,26 +41,12 @@ interface Report {
 type ViewMode = "list" | "map"
 type FilterType = "all" | "flood" | "landslide" | "blocked_road" | "power_outage" | "other"
 
-export default function ReportsPage() {
-  const router = useRouter()
-  const [viewMode, setViewMode] = useState<ViewMode>("list")
-  const [filter, setFilter] = useState<FilterType>("all")
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [reports, setReports] = useState<Report[]>([])
-  const [language, setLanguage] = useState<"en" | "tl">("en")
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
-  const [locationSearch, setLocationSearch] = useState("")
-  const [filteredLocations, setFilteredLocations] = useState(OLONGAPO_LOCATIONS)
+export default async function ReportsPage({ searchParams }: { searchParams?: { filter?: string; lang?: string; view?: string } }) {
+  // server-rendered language/filters from query params
+  const language = (searchParams?.lang as "en" | "tl") ?? "en"
+  const filterParam = (searchParams?.filter as FilterType) ?? "all"
 
-  // New report form state
-  const [newReport, setNewReport] = useState({
-    type: "flood" as const,
-    title: "",
-    description: "",
-    location: "",
-    severity: "moderate" as const,
-  })
-
+  // Sample reports data (rendered server-side for SEO)
   const translations = {
     en: {
       title: "Community Reports",
@@ -138,75 +119,75 @@ export default function ReportsPage() {
     { value: "power_outage", label: "Power Outage / Walang Kuryente", icon: Zap, color: "bg-yellow-500" },
     { value: "other", label: "Other / Iba pa", icon: AlertTriangle, color: "bg-gray-500" },
   ]
+  const sampleReports: Report[] = [
+    {
+      id: "1",
+      type: "flood",
+      title: "Flooding on EDSA Underpass",
+      description: "Knee-deep flooding reported at EDSA-Shaw underpass. Traffic heavily affected.",
+      location: {
+        address: "EDSA-Shaw Underpass, Mandaluyong City",
+        coordinates: [14.5764, 121.0851],
+      },
+      timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+      reporter: "Maria Santos",
+      severity: "high",
+      verified: true,
+    },
+    {
+      id: "2",
+      type: "landslide",
+      title: "Small Landslide on Marcos Highway",
+      description: "Rocks and debris blocking one lane. Authorities on site clearing the area.",
+      location: {
+        address: "Marcos Highway, Antipolo City",
+        coordinates: [14.5995, 121.1794],
+      },
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      reporter: "Juan dela Cruz",
+      severity: "moderate",
+      verified: true,
+    },
+    {
+      id: "3",
+      type: "blocked_road",
+      title: "Fallen Tree Blocks Road",
+      description: "Large tree fell across the road due to strong winds. No injuries reported.",
+      location: {
+        address: "Katipunan Avenue, Quezon City",
+        coordinates: [14.6417, 121.07],
+      },
+      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+      reporter: "Anna Reyes",
+      severity: "moderate",
+      verified: false,
+    },
+    {
+      id: "4",
+      type: "power_outage",
+      title: "Power Outage in Barangay 123",
+      description: "Entire barangay without electricity since this morning. Meralco notified.",
+      location: {
+        address: "Barangay 123, Taguig City",
+        coordinates: [14.5176, 121.0509],
+      },
+      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+      reporter: "Pedro Garcia",
+      severity: "low",
+      verified: false,
+    },
+  ]
 
-  // Sample reports data
-  useEffect(() => {
-    const sampleReports: Report[] = [
-      {
-        id: "1",
-        type: "flood",
-        title: "Flooding on EDSA Underpass",
-        description: "Knee-deep flooding reported at EDSA-Shaw underpass. Traffic heavily affected.",
-        location: {
-          address: "EDSA-Shaw Underpass, Mandaluyong City",
-          coordinates: [14.5764, 121.0851],
-        },
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        reporter: "Maria Santos",
-        severity: "high",
-        verified: true,
-      },
-      {
-        id: "2",
-        type: "landslide",
-        title: "Small Landslide on Marcos Highway",
-        description: "Rocks and debris blocking one lane. Authorities on site clearing the area.",
-        location: {
-          address: "Marcos Highway, Antipolo City",
-          coordinates: [14.5995, 121.1794],
-        },
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        reporter: "Juan dela Cruz",
-        severity: "moderate",
-        verified: true,
-      },
-      {
-        id: "3",
-        type: "blocked_road",
-        title: "Fallen Tree Blocks Road",
-        description: "Large tree fell across the road due to strong winds. No injuries reported.",
-        location: {
-          address: "Katipunan Avenue, Quezon City",
-          coordinates: [14.6417, 121.07],
-        },
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-        reporter: "Anna Reyes",
-        severity: "moderate",
-        verified: false,
-      },
-      {
-        id: "4",
-        type: "power_outage",
-        title: "Power Outage in Barangay 123",
-        description: "Entire barangay without electricity since this morning. Meralco notified.",
-        location: {
-          address: "Barangay 123, Taguig City",
-          coordinates: [14.5176, 121.0509],
-        },
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-        reporter: "Pedro Garcia",
-        severity: "low",
-        verified: false,
-      },
-    ]
-    setReports(sampleReports)
-  }, [])
+  const filteredReports = sampleReports.filter((report) => filterParam === "all" || report.type === filterParam)
 
-  useEffect(() => {
-    setFilteredLocations(searchLocations(locationSearch))
-  }, [locationSearch])
-
-  const filteredReports = reports.filter((report) => filter === "all" || report.type === filter)
+  const viewMode = (searchParams?.view as ViewMode) ?? "list"
+  const baseQuery = (overrides: Record<string, string | undefined> = {}) => {
+    const params = new URLSearchParams()
+    params.set("lang", language)
+    params.set("filter", overrides.filter ?? filterParam)
+    if (overrides.view) params.set("view", overrides.view)
+    return `/reports?${params.toString()}`
+  }
 
   const getTimeAgo = (timestamp: Date) => {
     const now = new Date()
@@ -247,192 +228,6 @@ export default function ReportsPage() {
     }
   }
 
-  const handleSelectLocation = (locationName: string) => {
-    const selectedLocation = getLocationByName(locationName)
-    if (selectedLocation) {
-      setNewReport({
-        ...newReport,
-        location: locationName,
-      })
-      setLocationSearch("")
-      setShowLocationDropdown(false)
-    }
-  }
-
-  const handleSubmitReport = () => {
-    if (!newReport.title || !newReport.description || !newReport.location) return
-
-    const selectedLocation = getLocationByName(newReport.location)
-    const coordinates: [number, number] = selectedLocation
-      ? [selectedLocation.lat, selectedLocation.lng]
-      : [14.8436, 120.3089] // Fallback to Olongapo center
-
-    createReport(coordinates)
-  }
-
-  const createReport = (coordinates: [number, number]) => {
-    const report: Report = {
-      id: Date.now().toString(),
-      type: newReport.type,
-      title: newReport.title,
-      description: newReport.description,
-      location: {
-        address: newReport.location,
-        coordinates,
-      },
-      timestamp: new Date(),
-      reporter: "Current User",
-      severity: newReport.severity,
-      verified: false,
-    }
-
-    setReports([report, ...reports])
-    setNewReport({
-      type: "flood",
-      title: "",
-      description: "",
-      location: "",
-      severity: "moderate",
-    })
-    setShowCreateForm(false)
-  }
-
-  const renderCreateForm = () => (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>{t.createReport}</span>
-          <Button variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
-            ×
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label className="text-sm font-medium">{t.reportType}</Label>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {reportTypes.slice(0, 4).map((type) => (
-              <Button
-                key={type.value}
-                variant={newReport.type === type.value ? "default" : "outline"}
-                size="sm"
-                className="justify-start gap-2 h-auto p-3"
-                onClick={() => setNewReport({ ...newReport, type: type.value as any })}
-              >
-                <type.icon className="h-4 w-4" />
-                <span className="text-xs">{type.label.split(" / ")[0]}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="title">{t.reportTitle}</Label>
-          <Input
-            id="title"
-            value={newReport.title}
-            onChange={(e) => setNewReport({ ...newReport, title: e.target.value })}
-            placeholder="Brief description of the hazard"
-            className="mt-1"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="description">{t.reportDescription}</Label>
-          <Textarea
-            id="description"
-            value={newReport.description}
-            onChange={(e) => setNewReport({ ...newReport, description: e.target.value })}
-            placeholder="Detailed description of the situation"
-            className="mt-1 min-h-[80px]"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="location" className="flex items-center justify-between">
-            <span>{t.reportLocation}</span>
-          </Label>
-          <div className="relative mt-1">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  type="text"
-                  placeholder="Search location in Olongapo..."
-                  value={locationSearch}
-                  onChange={(e) => setLocationSearch(e.target.value)}
-                  onFocus={() => setShowLocationDropdown(true)}
-                  className="flex-1 bg-muted/50 border-border/50 text-foreground placeholder-muted-foreground pr-8"
-                />
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Dropdown */}
-            {showLocationDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                {filteredLocations.length > 0 ? (
-                  filteredLocations.map((loc) => (
-                    <button
-                      key={loc.name}
-                      onClick={() => handleSelectLocation(loc.name)}
-                      className="w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors text-sm text-foreground border-b border-border/20 last:border-b-0"
-                    >
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
-                        <span>{loc.name}</span>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">No locations found</div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Selected location display */}
-          {newReport.location && (
-            <div className="flex items-center gap-2 p-2 mt-2 bg-primary/10 border border-primary/30 rounded-lg">
-              <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-sm text-foreground">{newReport.location}</span>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <Label className="text-sm font-medium">{t.severity}</Label>
-          <div className="flex gap-2 mt-2">
-            {["low", "moderate", "high"].map((severity) => (
-              <Button
-                key={severity}
-                variant={newReport.severity === severity ? "default" : "outline"}
-                size="sm"
-                onClick={() => setNewReport({ ...newReport, severity: severity as any })}
-                className={`${newReport.severity === severity ? getSeverityColor(severity) : ""}`}
-              >
-                {getSeverityLabel(severity)}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-3 pt-2">
-          <Button
-            onClick={handleSubmitReport}
-            className="flex-1"
-            disabled={!newReport.title || !newReport.description || !newReport.location}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {t.submit}
-          </Button>
-          <Button variant="outline" onClick={() => setShowCreateForm(false)}>
-            {t.cancel}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-
   const renderReportCard = (report: Report) => {
     const reportType = reportTypes.find((type) => type.value === report.type)
     const IconComponent = reportType?.icon || AlertTriangle
@@ -447,7 +242,7 @@ export default function ReportsPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-sm leading-tight">{report.title}</h3>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <Badge variant="secondary" className={getSeverityColor(report.severity)}>
                     {getSeverityLabel(report.severity)}
                   </Badge>
@@ -466,7 +261,7 @@ export default function ReportsPage() {
                   <MapPin className="h-3 w-3" />
                   <span className="truncate">{report.location.address}</span>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <Clock className="h-3 w-3" />
                   <span>{getTimeAgo(report.timestamp)}</span>
                 </div>
@@ -497,14 +292,11 @@ export default function ReportsPage() {
       <div className="bg-primary text-primary-foreground p-4 lg:p-6">
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 ease-out"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200 ease-out">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
             <div className="flex-1">
               <h1 className="text-lg lg:text-xl font-bold font-sans">{t.title}</h1>
               <p className="text-sm opacity-90 font-body">{t.subtitle}</p>
@@ -519,61 +311,45 @@ export default function ReportsPage() {
           <div className="lg:col-span-3">
             <div className="flex items-center justify-between mb-6">
               <div className="flex gap-2">
-                <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                  className="transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]"
-                >
-                  <List className="h-4 w-4 mr-1" />
-                  {t.viewList}
-                </Button>
-                <Button
-                  variant={viewMode === "map" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("map")}
-                  className="transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]"
-                >
-                  <Map className="h-4 w-4 mr-1" />
-                  {t.viewMap}
-                </Button>
+                <Link href={baseQuery({ view: "list" })}>
+                  <Button variant={viewMode === "list" ? "default" : "outline"} size="sm" className="transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]">
+                    <List className="h-4 w-4 mr-1" />
+                    {t.viewList}
+                  </Button>
+                </Link>
+                <Link href={baseQuery({ view: "map" })}>
+                  <Button variant={viewMode === "map" ? "default" : "outline"} size="sm" className="transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]">
+                    <Map className="h-4 w-4 mr-1" />
+                    {t.viewMap}
+                  </Button>
+                </Link>
               </div>
 
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                size="sm"
-                className="transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                {t.createReport}
-              </Button>
+              <Link href="#create">
+                <Button size="sm" className="transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]">
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t.createReport}
+                </Button>
+              </Link>
             </div>
 
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              <Button
-                variant={filter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter("all")}
-                className="whitespace-nowrap transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]"
-              >
-                {t.filterAll}
-              </Button>
-              {reportTypes.map((type) => (
-                <Button
-                  key={type.value}
-                  variant={filter === type.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilter(type.value as FilterType)}
-                  className="whitespace-nowrap flex items-center gap-1 transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]"
-                >
-                  <type.icon className="h-3 w-3" />
-                  {type.label.split(" / ")[0]}
+              <Link href={baseQuery({ filter: "all" })}>
+                <Button variant={filterParam === "all" ? "default" : "outline"} size="sm" className="whitespace-nowrap transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]">
+                  {t.filterAll}
                 </Button>
+              </Link>
+              {reportTypes.map((type) => (
+                <Link key={type.value} href={baseQuery({ filter: type.value })}>
+                  <Button variant={filterParam === type.value ? "default" : "outline"} size="sm" className="whitespace-nowrap flex items-center gap-1 transition-all duration-200 ease-out hover:shadow-lg hover:scale-[1.02]">
+                    <type.icon className="h-3 w-3" />
+                    {type.label.split(" / ")[0]}
+                  </Button>
+                </Link>
               ))}
             </div>
 
-            {/* Create Report Form */}
-            {showCreateForm && renderCreateForm()}
+            {/* Create Report Form placeholder (see client-side form in app if available) */}
 
             {viewMode === "list" && (
               <div className="lg:grid lg:grid-cols-2 lg:gap-4">
@@ -616,18 +392,18 @@ export default function ReportsPage() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-body">Total Reports</span>
-                  <Badge variant="secondary">{reports.length}</Badge>
+                  <Badge variant="secondary">{sampleReports.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-body">Verified</span>
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    {reports.filter((r) => r.verified).length}
+                    {sampleReports.filter((r) => r.verified).length}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-body">High Priority</span>
                   <Badge variant="secondary" className="bg-red-100 text-red-800">
-                    {reports.filter((r) => r.severity === "high").length}
+                    {sampleReports.filter((r) => r.severity === "high").length}
                   </Badge>
                 </div>
               </CardContent>

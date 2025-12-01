@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { cookies } from "next/headers"
 import { Inter } from "next/font/google"
 import { Manrope } from "next/font/google"
 import "./globals.css"
@@ -49,11 +50,30 @@ export const metadata: Metadata = {
     siteName: "WINDER+",
     locale: "en_PH",
     type: "website",
+    images: [
+      {
+        url: "/Winder+_OG.png",
+        width: 1200,
+        height: 630,
+        alt: "WINDER+ - Weather and Emergency Response",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "WINDER+ - Weather, Index (Heat), Natural Disasters & Emergency Response",
     description: "Stay prepared, stay safe. Emergency weather alerts and rescue requests for the Philippines.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   appleWebApp: {
     capable: true,
@@ -89,8 +109,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Read locale preference from cookies (server-side) and fall back to English
+  const locale = cookies().get("NEXT_LOCALE")?.value ?? "en"
+
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable} antialiased`}>
+    <html lang={locale} className={`${inter.variable} ${manrope.variable} antialiased`}>
       <body className="font-sans filipino-pattern">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>

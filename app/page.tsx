@@ -32,7 +32,10 @@ import {
   Package,
 } from "lucide-react"
 import { useState, useEffect, useCallback } from "react" // Import useMemo
-import { InlineFeed } from "@/components/social/inline-feed"
+import dynamic from "next/dynamic"
+
+// Dynamically load heavy client components to reduce initial bundle size
+const InlineFeed = dynamic(() => import("@/components/social/inline-feed"), { ssr: false })
 
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -51,10 +54,10 @@ import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
 // import {useUser} from "@clerk/nextjs" // Import useUser
 import { useLocationSharing } from "@/contexts/location-sharing-context"
 import { saveEmergencyReport } from "@/services/emergencyService" // Updated import to use services directory
-import { EvacuationMap } from "@/components/evacuation-map"
-import { MapView } from "@/components/map-view"
-import { EmergencyKitTracker } from "@/components/emergency-kit-tracker"
-import { SMSSettings } from "@/components/sms-settings"
+const EvacuationMap = dynamic(() => import("@/components/evacuation-map"), { ssr: false })
+const MapView = dynamic(() => import("@/components/map-view"), { ssr: false })
+const EmergencyKitTracker = dynamic(() => import("@/components/emergency-kit-tracker"), { ssr: false })
+const SMSSettings = dynamic(() => import("@/components/sms-settings"), { ssr: false })
 import { sendSMS, retryQueuedSMS } from "@/services/smsService"
 import { saveWeatherCache, loadWeatherCache, isNearby, saveLastNotificationToCache } from "@/services/weatherCache"
 import { LanguageSelector } from "@/components/language-selector"
