@@ -35,7 +35,7 @@ import { useState, useEffect, useCallback } from "react" // Import useMemo
 import dynamic from "next/dynamic"
 
 // Dynamically load heavy client components to reduce initial bundle size
-const InlineFeed = dynamic(() => import("@/components/social/inline-feed"), { ssr: false })
+const InlineFeed = dynamic(() => import("@/components/social/inline-feed").then((mod) => ({ default: mod.InlineFeed })), { ssr: false })
 
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -54,10 +54,10 @@ import { useAuth } from "@/hooks/use-auth" // Replace Clerk with custom auth
 // import {useUser} from "@clerk/nextjs" // Import useUser
 import { useLocationSharing } from "@/contexts/location-sharing-context"
 import { saveEmergencyReport } from "@/services/emergencyService" // Updated import to use services directory
-const EvacuationMap = dynamic(() => import("@/components/evacuation-map"), { ssr: false })
-const MapView = dynamic(() => import("@/components/map-view"), { ssr: false })
-const EmergencyKitTracker = dynamic(() => import("@/components/emergency-kit-tracker"), { ssr: false })
-const SMSSettings = dynamic(() => import("@/components/sms-settings"), { ssr: false })
+const EvacuationMap = dynamic(() => import("@/components/evacuation-map").then((mod) => ({ default: mod.EvacuationMap })), { ssr: false })
+const MapView = dynamic(() => import("@/components/map-view").then((mod) => ({ default: mod.MapView })), { ssr: false })
+const EmergencyKitTracker = dynamic(() => import("@/components/emergency-kit-tracker").then((mod) => ({ default: mod.EmergencyKitTracker })), { ssr: false })
+const SMSSettings = dynamic(() => import("@/components/sms-settings").then((mod) => ({ default: mod.SMSSettings })), { ssr: false })
 import { sendSMS, retryQueuedSMS } from "@/services/smsService"
 import { saveWeatherCache, loadWeatherCache, isNearby, saveLastNotificationToCache } from "@/services/weatherCache"
 import { LanguageSelector } from "@/components/language-selector"

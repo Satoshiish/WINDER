@@ -109,13 +109,47 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Read locale preference from cookies (server-side) and fall back to English
-  const locale = cookies().get("NEXT_LOCALE")?.value ?? "en"
+  // Read locale preference from cookies (server-side) and fall back to English.
+  // `cookies` can be a function (callable) or an object depending on Next.js/runtime.
+  let locale = "en"
+  try {
+    const cookieStore = typeof cookies === "function" ? cookies() : cookies
+    const maybeCookie = cookieStore && typeof cookieStore.get === "function" ? cookieStore.get("NEXT_LOCALE") : (cookieStore?.get?.("NEXT_LOCALE") ?? undefined)
+    if (maybeCookie) {
+      // `maybeCookie` may be a CookieValue object with `.value` or a plain string
+      // Handle both shapes defensively.
+      // @ts-ignore -- runtime shape varies across Next.js versions
+      locale = typeof maybeCookie === "string" ? maybeCookie : maybeCookie?.value ?? locale
+    }
+  } catch (err) {
+    // If cookies access fails (e.g., running in edge or different runtime), fall back to default
+    // Avoid throwing — locale is non-critical
+    // eslint-disable-next-line no-console
+    console.error("[layout] failed to read NEXT_LOCALE cookie:", err)
+    locale = "en"
+  }
+
+  // Read theme preference from cookies (server-side) and fall back to 'light'.
+  let theme = "light"
+  try {
+    const cookieStore = typeof cookies === "function" ? cookies() : cookies
+    const maybeTheme = cookieStore && typeof cookieStore.get === "function" ? cookieStore.get("theme") : (cookieStore?.get?.("theme") ?? undefined)
+    if (maybeTheme) {
+      // may be a CookieValue object with `.value` or a plain string
+      // @ts-ignore
+      theme = typeof maybeTheme === "string" ? maybeTheme : maybeTheme?.value ?? theme
+    }
+  } catch (err) {
+    // ignore and keep default theme
+    // eslint-disable-next-line no-console
+    console.error("[layout] failed to read theme cookie:", err)
+    theme = "light"
+  }
 
   return (
-    <html lang={locale} className={`${inter.variable} ${manrope.variable} antialiased`}>
-      <body className="font-sans filipino-pattern">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <html lang={locale} data-theme={theme} className={`antialiased`}>
+      <body className={`${inter.className} ${manrope.className} font-sans filipino-pattern`}>
+        <ThemeProvider attribute="data-theme" defaultTheme={theme} enableSystem disableTransitionOnChange enableColorScheme={false}>
           <AuthProvider>
             <LanguageProvider>
               <UserPreferencesProvider>
