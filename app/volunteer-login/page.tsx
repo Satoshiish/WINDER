@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,7 @@ import { Users, Eye, EyeOff, Loader2, Cloud, ArrowLeft } from "lucide-react"
 export default function VolunteerLoginPage() {
   const router = useRouter()
   const { login, loading } = useAuth()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -27,7 +28,8 @@ export default function VolunteerLoginPage() {
     try {
       const success = await login(email, password, "volunteer")
       if (success) {
-        router.push("/volunteer")
+        const returnTo = searchParams.get("returnTo") || "/volunteer"
+        router.push(returnTo)
       } else {
         setError("Invalid email or password. Please check your credentials.")
       }

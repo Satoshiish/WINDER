@@ -114,6 +114,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(user)
         localStorage.setItem("weather-app-user", JSON.stringify(user))
 
+        // Set a simple client cookie so server-side middleware can detect authenticated users.
+        try {
+          // Cookie lasts 1 day by default; this is a lightweight session marker (not secure).
+          document.cookie = `auth-token=${encodeURIComponent(user.id)}; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Lax`
+          // If the userData contains a setup indicator, propagate it to a cookie used by middleware
+          if ((userData as any).setup_complete) {
+            document.cookie = `setup-complete=1; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Lax`
+          }
+        } catch (e) {
+          // If document is unavailable or cookie set fails, continue gracefully
+          console.debug("Unable to set auth-token cookie:", e)
+        }
+
         setLoading(false)
         return true
       }
@@ -130,6 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem("weather-app-user")
+    try {
+      document.cookie = `auth-token=; Path=/; Max-Age=0; SameSite=Lax`
+      document.cookie = `setup-complete=; Path=/; Max-Age=0; SameSite=Lax`
+    } catch (e) {
+      console.debug("Unable to clear auth cookies:", e)
+    }
   }
 
   const isAuthenticated = !!user

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +12,7 @@ import { authenticateResponder } from "@/services/responderService"
 
 export default function ResponderLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -34,8 +35,16 @@ export default function ResponderLoginPage() {
         // Store responder data in localStorage
         localStorage.setItem("weather-app-user", JSON.stringify(result.responder))
 
-        // Redirect to responder dashboard
-        window.location.replace("/responder")
+        // Set simple auth cookie so middleware recognizes the session
+        try {
+          document.cookie = `auth-token=${encodeURIComponent(result.responder.id)}; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Lax`
+        } catch (e) {
+          console.debug("Unable to set auth cookie for responder:", e)
+        }
+
+        // Redirect to responder dashboard or returnTo
+        const returnTo = searchParams.get("returnTo") || "/responder"
+        window.location.replace(returnTo)
       } else {
         setError("Invalid email or password. Please check your credentials.")
       }
