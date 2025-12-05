@@ -54,6 +54,10 @@ import {
   Star,
   UserCheck,
   UserX,
+  Plus,
+  X,
+  Download,
+  Mail,
 } from "lucide-react"
 import { getEmergencyStats } from "@/services/emergencyService"
 import { loadAdminUsers, addAdminUser, removeAdminUser, type AdminUser } from "@/services/adminStorageService"
@@ -72,11 +76,13 @@ import {
   deleteVolunteer,
   getOlongapoBarangays,
   assignMultipleLocations,
+  setPrimaryLocation,
+  removeVolunteerAssignment,
   type Volunteer,
   type VolunteerArea,
 } from "@/services/volunteerAdminService"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
+import {
   getVolunteerFeedback, 
   addVolunteerFeedback, 
   getFeedbackStats,
@@ -85,6 +91,7 @@ import {
   getVolunteerValidationStatus,
   type VolunteerFeedback 
 } from "@/services/feedbackService"
+import { getVolunteerProfile, upsertVolunteerProfile } from "@/services/volunteerProfileService"
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
@@ -179,6 +186,12 @@ export default function AdminDashboard() {
   const [isValidatingVolunteer, setIsValidatingVolunteer] = useState(false)
   const [volunteerToValidate, setVolunteerToValidate] = useState<Volunteer | null>(null)
   const [volunteerToRevoke, setVolunteerToRevoke] = useState<Volunteer | null>(null)
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
+  const [profileVolunteer, setProfileVolunteer] = useState<Volunteer | null>(null)
+  const [profileDetails, setProfileDetails] = useState<any | null>(null)
+  const [profileValidation, setProfileValidation] = useState<{ is_validated: boolean; overall_rating?: number }>({ is_validated: false })
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [editProfileForm, setEditProfileForm] = useState<any>({ bio: "", trainings: "", total_hours: undefined, phone_number: "", barangay: "" })
 
   const handleLogout = () => {
     logout()
@@ -601,14 +614,112 @@ export default function AdminDashboard() {
     setSelectedVolunteer(volunteer)
     setEditVolunteerForm({
       full_name: volunteer.full_name,
-      phone_number: volunteer.phone_number,
-      barangay: volunteer.barangay,
+      phone_number: volunteer.phone_number || "",
+      barangay: volunteer.barangay || "",
       is_active: volunteer.is_active,
     })
     setIsEditVolunteerDialogOpen(true)
   }
 
-  const openManageLocationsDialog = (volunteer: any) => {
+  const openVolunteerProfile = async (volunteer: Volunteer) => {
+    setProfileVolunteer(volunteer)
+    try {
+      const [profile, validation] = await Promise.all([
+        getVolunteerProfile(Number(volunteer.id)),
+        getVolunteerValidationStatus(Number(volunteer.id)),
+      ])
+      
+      setProfileDetails(profile)
+      setProfileValidation({ is_validated: validation.is_validated, overall_rating: validation.overall_rating })
+      
+      // Prepare edit form with default values
+      setEditProfileForm({
+        bio: profile?.bio || "",
+        trainings: (profile?.trainings || []).join(", ") || "",
+        total_hours: profile?.total_hours ?? undefined,
+        phone_number: volunteer.phone_number || "",
+        barangay: volunteer.barangay || "",
+      })
+      
+      setIsProfileDialogOpen(true)
+    } catch (err) {
+      console.error("Error loading volunteer profile or validation:", err)
+      toast({
+        title: "Error",
+        description: "Failed to load volunteer profile",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    if (!profileVolunteer) return
+    try {
+      const payload = {
+        bio: editProfileForm.bio,
+        trainings: editProfileForm.trainings ? editProfileForm.trainings.split(/,\s*/) : [],
+        total_hours: editProfileForm.total_hours ? Number(editProfileForm.total_hours) : null,
+      }
+
+      const res = await upsertVolunteerProfile(profileVolunteer.id, payload)
+      if (!res.success) {
+        toast({ title: "Error", description: res.message || "Failed to save profile", variant: "destructive" })
+        return
+      }
+
+      // Update core volunteer fields if changed
+      const volUpdates: any = {}
+      if (editProfileForm.phone_number !== profileVolunteer.phone_number) volUpdates.phone_number = editProfileForm.phone_number
+      if (editProfileForm.barangay !== profileVolunteer.barangay) volUpdates.barangay = editProfileForm.barangay
+      if (Object.keys(volUpdates).length > 0) {
+        const ures = await updateVolunteer(profileVolunteer.id, volUpdates)
+        if (!ures.success) {
+          toast({ title: "Warning", description: "Profile saved, but failed to update volunteer core details", variant: "destructive" })
+        }
+      }
+
+      toast({ title: "Success", description: "Profile updated" })
+      setIsEditingProfile(false)
+      // Refresh data
+      await loadVolunteers()
+      const refreshed = await getVolunteerProfile(profileVolunteer.id)
+      setProfileDetails(refreshed)
+    } catch (err) {
+      console.error("Error saving profile:", err)
+      toast({ title: "Error", description: "Failed to save profile", variant: "destructive" })
+    }
+  }
+
+  const handleSetPrimaryLocation = async (areaId: number) => {
+    if (!profileVolunteer) return
+    const res = await setPrimaryLocation(profileVolunteer.id, areaId)
+    if (res.success) {
+      toast({ title: "Success", description: res.message })
+      await loadVolunteers()
+      // Refresh volunteer areas
+      const v = (await getAllVolunteers()).find((x: any) => x.id === profileVolunteer.id)
+      if (v) setProfileVolunteer(v)
+    } else {
+      toast({ title: "Error", description: res.message, variant: "destructive" })
+    }
+  }
+
+  const handleRemoveArea = async (areaId: number) => {
+    if (!profileVolunteer) return
+    const confirmDelete = confirm("Remove this area assignment for the volunteer? This cannot be undone.")
+    if (!confirmDelete) return
+    const res = await removeVolunteerAssignment(areaId)
+    if (res.success) {
+      toast({ title: "Success", description: res.message })
+      await loadVolunteers()
+      const v = (await getAllVolunteers()).find((x: any) => x.id === profileVolunteer.id)
+      if (v) setProfileVolunteer(v)
+    } else {
+      toast({ title: "Error", description: res.message, variant: "destructive" })
+    }
+  }
+
+  const openManageLocationsDialog = (volunteer: Volunteer) => {
     setSelectedVolunteerForLocations(volunteer)
     const areas = volunteer.areas || []
     setSelectedVolunteerAreas(areas)
@@ -1627,9 +1738,6 @@ export default function AdminDashboard() {
                           }
                         `}</style>
                         {volunteers.map((volunteer: any) => {
-                          const validationStatus = getVolunteerValidationStatus(volunteer.id)
-                          const isVolunteerValidated = validationStatus.is_validated
-
                           return (
                             <div
                               key={volunteer.id}
@@ -1637,9 +1745,9 @@ export default function AdminDashboard() {
                             >
                               <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                  isVolunteerValidated ? 'bg-green-500/20' : 'bg-slate-500/20'
+                                  volunteer.is_validated ? 'bg-green-500/20' : 'bg-slate-500/20'
                                 }`}>
-                                  {isVolunteerValidated ? (
+                                  {volunteer.is_validated ? (
                                     <UserCheck className="w-5 h-5 text-green-500" />
                                   ) : (
                                     <User className="w-5 h-5 text-slate-400" />
@@ -1683,7 +1791,7 @@ export default function AdminDashboard() {
                               </div>
                               <div className="flex items-center gap-1">
                                 {/* Validation Button - Changes based on current state */}
-                                {!isVolunteerValidated ? (
+                                {!volunteer.is_validated ? (
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -1710,12 +1818,14 @@ export default function AdminDashboard() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => openFeedbackDialog(volunteer)}
-                                  className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
-                                  title="Give feedback"
+                                  onClick={() => openVolunteerProfile(volunteer)}
+                                  className="text-slate-300 hover:text-white hover:bg-slate-700/20"
+                                  title="View Profile"
                                 >
-                                  <MessageSquare className="w-4 h-4" />
+                                  <FileText className="w-4 h-4" />
                                 </Button>
+
+                                {/* Message action removed from row — available in profile modal */}
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -2052,6 +2162,471 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Volunteer Profile Dialog - FIXED DESIGN */}
+<Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+  <DialogContent className="bg-slate-900/95 border-slate-700/40 text-white w-[92vw] sm:max-w-4xl max-w-[calc(100%-2rem)] backdrop-blur-xl rounded-2xl p-0 overflow-hidden">
+    {/* Header */}
+    <div className="sticky top-0 z-10 bg-slate-900/90 border-b border-slate-700/40 px-6 py-4 backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <User className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <DialogTitle className="text-white text-xl">Volunteer Profile</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Review details, reports, and feedback for {profileVolunteer?.full_name}
+            </DialogDescription>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsProfileDialogOpen(false)}
+          className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+      </div>
+    </div>
+
+    <style jsx>{`
+      .profile-modal-scroll::-webkit-scrollbar { display: none; }
+      .profile-modal-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    `}</style>
+
+    <div className="flex flex-col lg:flex-row max-h-[70vh] overflow-hidden">
+      {/* Left Column - Basic Info */}
+      <div
+        className="lg:w-1/3 border-r border-slate-700/40 p-6 overflow-y-auto profile-modal-scroll"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {/* Profile Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl flex items-center justify-center border border-slate-700/50">
+              <User className="w-8 h-8 text-slate-300" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-bold text-white truncate">{profileVolunteer?.full_name}</p>
+              <p className="text-sm text-slate-400 truncate">{profileVolunteer?.email}</p>
+              {profileVolunteer?.phone_number && (
+                <p className="text-sm text-slate-300 mt-1 flex items-center gap-2">
+                  <Mail className="w-4 h-4" /> {profileVolunteer.phone_number}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          {/* Status Badge */}
+          <div className="flex items-center gap-3">
+            {profileValidation.is_validated ? (
+              <Badge className="bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full border border-green-500/30 flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4" />
+                Validated
+              </Badge>
+            ) : (
+              <Badge className="bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded-full border border-yellow-500/30 flex items-center gap-1.5">
+                <UserX className="w-4 h-4" />
+                Unvalidated
+              </Badge>
+            )}
+            {!profileVolunteer?.is_active && (
+              <Badge className="bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full">
+                Inactive
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Primary Location */}
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-blue-400" />
+            Primary Location
+          </h4>
+          <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/30">
+            <p className="text-white font-medium">{profileVolunteer?.barangay || "Not assigned"}</p>
+            <p className="text-sm text-slate-400 mt-1">{profileVolunteer?.municipality || "Olongapo City"}</p>
+          </div>
+        </div>
+
+        {/* Assigned Areas */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-slate-300">Assigned Areas</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => profileVolunteer && openManageLocationsDialog(profileVolunteer)}
+              className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-xs px-3 py-1.5 h-auto"
+            >
+              <Plus className="w-3 h-3 mr-1.5" />
+              Manage Areas
+            </Button>
+          </div>
+          
+          {profileVolunteer?.areas && profileVolunteer.areas.length > 0 ? (
+            <div className="space-y-2">
+              {profileVolunteer.areas.map((area: any) => (
+                <div key={area.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg border border-slate-700/30 hover:bg-slate-800/40 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <MapPin className={`w-4 h-4 ${area.is_primary ? 'text-green-400' : 'text-blue-400'}`} />
+                    <div>
+                      <p className="text-sm font-medium text-white">{area.barangay}</p>
+                      <p className="text-xs text-slate-400">
+                        {area.is_primary ? "Primary" : "Secondary"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!area.is_primary && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSetPrimaryLocation(area.id)}
+                        className="text-green-400 hover:text-green-300 hover:bg-green-500/10 p-1"
+                        title="Set as Primary"
+                      >
+                        <MapPin className="w-3 h-3" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveArea(area.id)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1"
+                      title="Remove Area"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 border-2 border-dashed border-slate-700/50 rounded-xl text-center">
+              <MapPin className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+              <p className="text-sm text-slate-400">No areas assigned</p>
+              <p className="text-xs text-slate-500 mt-1">Manage areas to assign locations</p>
+            </div>
+          )}
+        </div>
+
+        {/* Bio Section */}
+        {(profileDetails?.bio || isEditingProfile) && (
+          <div>
+            <h4 className="text-sm font-semibold text-slate-300 mb-3">About</h4>
+            {isEditingProfile ? (
+              <textarea
+                value={editProfileForm.bio}
+                onChange={(e) => setEditProfileForm({ ...editProfileForm, bio: e.target.value })}
+                className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 resize-none h-32 text-sm"
+                placeholder="Tell us about this volunteer..."
+              />
+            ) : (
+              <p className="text-sm text-slate-300 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30 leading-relaxed">
+                {profileDetails.bio}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Right Column - Reports & Feedback */}
+      <div
+        className="lg:w-2/3 p-6 overflow-y-auto profile-modal-scroll"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {/* Recent Reports Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <FileText className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-white">Recent Reports</h4>
+                <p className="text-sm text-slate-400">
+                  {volunteerUpdates.filter(u => u.volunteer_name === profileVolunteer?.full_name).length} reports submitted
+                </p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+              {volunteerUpdates.filter(u => u.volunteer_name === profileVolunteer?.full_name).length} total
+            </Badge>
+          </div>
+
+          {volunteerUpdates.filter(u => u.volunteer_name === profileVolunteer?.full_name).length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-slate-700/50 rounded-xl">
+              <FileText className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+              <p className="text-slate-400 mb-2">No reports submitted</p>
+              <p className="text-xs text-slate-500">This volunteer hasn't submitted any reports yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {volunteerUpdates
+                .filter(u => u.volunteer_name === profileVolunteer?.full_name)
+                .slice(0, 5)
+                .map((u) => {
+                  const TypeIcon = getUpdateTypeInfo(u.update_type).icon
+                  const typeColor = getUpdateTypeInfo(u.update_type).color
+                  
+                  return (
+                    <div key={u.id} className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/30 hover:bg-slate-800/40 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getSeverityColor(u.severity)}/10 flex-shrink-0`}>
+                          <TypeIcon className={`w-6 h-6 ${typeColor}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h5 className="font-medium text-white mb-1">{u.title}</h5>
+                              <p className="text-sm text-slate-400 line-clamp-2">{u.description}</p>
+                            </div>
+                            <Badge 
+                              className={`ml-2 flex-shrink-0 ${
+                                u.severity === "critical" ? "bg-red-500/20 text-red-400" :
+                                u.severity === "high" ? "bg-orange-500/20 text-orange-400" :
+                                u.severity === "moderate" ? "bg-yellow-500/20 text-yellow-400" :
+                                "bg-blue-500/20 text-blue-400"
+                              } capitalize`}
+                            >
+                              {u.severity}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-3 mt-3">
+                            <Badge 
+                              variant="outline" 
+                              className={`${
+                                u.status === "active" ? "border-green-500/50 text-green-500" :
+                                u.status === "resolved" ? "border-blue-500/50 text-blue-500" :
+                                "border-slate-600 text-slate-400"
+                              } capitalize text-xs`}
+                            >
+                              {u.status}
+                            </Badge>
+                            <span className="text-xs text-slate-500">{formatDate(u.created_at)}</span>
+                            <span className="text-xs text-slate-500">{u.barangay}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          )}
+        </div>
+
+        {/* Feedback & History Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                <MessageSquare className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-white">Feedback & History</h4>
+                <p className="text-sm text-slate-400">
+                  {volunteerFeedback.filter(f => f.volunteer_name === profileVolunteer?.full_name).length} feedback records
+                </p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+              {volunteerFeedback.filter(f => f.volunteer_name === profileVolunteer?.full_name).length} records
+            </Badge>
+          </div>
+
+          {volunteerFeedback.filter(f => f.volunteer_name === profileVolunteer?.full_name).length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-slate-700/50 rounded-xl">
+              <MessageSquare className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+              <p className="text-slate-400 mb-2">No feedback recorded</p>
+              <p className="text-xs text-slate-500">No feedback has been given to this volunteer yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {volunteerFeedback
+                .filter(f => f.volunteer_name === profileVolunteer?.full_name)
+                .slice(0, 5)
+                .map((f) => (
+                  <div key={f.id} className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/30 hover:bg-slate-800/40 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          className={`${
+                            f.status === 'approved' ? 'bg-green-500/20 text-green-400' :
+                            f.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                            f.status === 'needs_improvement' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          } capitalize`}
+                        >
+                          {f.status}
+                        </Badge>
+                        <Badge variant="outline" className="border-purple-500/50 text-purple-400">
+                          {f.feedback_type}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {new Date(f.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    <p className="text-sm text-slate-300 mb-3">{f.comments || "No comments provided."}</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`w-4 h-4 ${
+                                i < f.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-500'
+                              }`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-slate-400">Rating: {f.rating}/5</span>
+                      </div>
+                      <p className="text-xs text-slate-400">By: {f.admin_name}</p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Footer Actions */}
+    <div className="sticky bottom-0 bg-slate-900/90 border-t border-slate-700/40 px-6 py-4 backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {profileValidation.is_validated ? (
+            <Button
+              onClick={async () => {
+                if (!profileVolunteer) return
+                const res = await revokeValidation(profileVolunteer.id)
+                if (res.success) {
+                  toast({ title: "Success", description: res.message })
+                  setProfileValidation({ is_validated: false })
+                  await loadVolunteers()
+                } else {
+                  toast({ title: "Error", description: res.message, variant: "destructive" })
+                }
+              }}
+              variant="outline"
+              className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 px-4"
+            >
+              <UserX className="w-4 h-4 mr-2" />
+              Revoke Validation
+            </Button>
+          ) : (
+            <Button
+              onClick={async () => {
+                if (!profileVolunteer) return
+                const res = await validateVolunteer(profileVolunteer.id)
+                if (res.success) {
+                  toast({ title: "Success", description: res.message })
+                  setProfileValidation({ is_validated: true })
+                  await loadVolunteers()
+                } else {
+                  toast({ title: "Error", description: res.message, variant: "destructive" })
+                }
+              }}
+              variant="outline"
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10 px-4"
+            >
+              <UserCheck className="w-4 h-4 mr-2" />
+              Validate Volunteer
+            </Button>
+          )}
+          
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (!profileVolunteer) return
+              setSelectedVolunteerForFeedback(profileVolunteer)
+              setIsFeedbackDialogOpen(true)
+            }}
+            className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 px-4"
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Send Feedback
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const payload = {
+                volunteer: profileVolunteer,
+                profile: profileDetails,
+                recent_reports: volunteerUpdates.filter(u => u.volunteer_name === profileVolunteer?.full_name),
+                feedback: volunteerFeedback.filter(f => f.volunteer_name === profileVolunteer?.full_name),
+              }
+              const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `${profileVolunteer?.full_name?.replace(/\s+/g, "_") || "volunteer"}_profile.json`
+              document.body.appendChild(a)
+              a.click()
+              a.remove()
+              URL.revokeObjectURL(url)
+              toast({
+                title: "Exported",
+                description: "Volunteer profile exported successfully",
+              })
+            }}
+            className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 px-4"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+          
+          {isEditingProfile ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditingProfile(false)}
+                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 px-4"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveProfile}
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-4"
+              >
+                Save Changes
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => setIsEditingProfile(true)}
+                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 px-4"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsProfileDialogOpen(false)}
+                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 px-4"
+              >
+                Close
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+
+      {/* Admin User Deletion Dialog */}
       <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
           <AlertDialogHeader>
@@ -2075,7 +2650,7 @@ export default function AdminDashboard() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Volunteer deletion confirmation dialog */}
+      {/* Volunteer Deletion Dialog */}
       <AlertDialog open={!!volunteerToDelete} onOpenChange={() => setVolunteerToDelete(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
           <AlertDialogHeader>
@@ -2099,7 +2674,7 @@ export default function AdminDashboard() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Volunteer Validation Confirmation Dialog */}
+      {/* Volunteer Validation Dialog */}
       <AlertDialog open={!!volunteerToValidate} onOpenChange={() => setVolunteerToValidate(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
           <AlertDialogHeader>
@@ -2124,7 +2699,7 @@ export default function AdminDashboard() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Volunteer Unvalidation Confirmation Dialog */}
+      {/* Volunteer Unvalidation Dialog */}
       <AlertDialog open={!!volunteerToRevoke} onOpenChange={() => setVolunteerToRevoke(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
           <AlertDialogHeader>
@@ -2143,30 +2718,6 @@ export default function AdminDashboard() {
               className="bg-yellow-600 hover:bg-yellow-700"
             >
               Unvalidate Volunteer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Volunteer Validation Revocation Dialog */}
-      <AlertDialog open={!!volunteerToRevoke} onOpenChange={() => setVolunteerToRevoke(null)}>
-        <AlertDialogContent className="bg-slate-900 border-slate-700 text-white backdrop-blur-xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Revoke Validation</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to revoke validation for <strong>{volunteerToRevoke?.full_name}</strong>? 
-              This will remove their validated status.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRevokeValidation}
-              className="bg-yellow-600 hover:bg-yellow-700"
-            >
-              Revoke Validation
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

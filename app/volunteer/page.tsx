@@ -50,6 +50,7 @@ import {
   type VolunteerArea,
   type VolunteerUpdate,
 } from "@/services/volunteerService"
+import { getVolunteerProfile, upsertVolunteerProfile } from "@/services/volunteerProfileService"
 import { useToast } from "@/hooks/use-toast"
 import { getVolunteerFeedback, getVolunteerValidationStatus, getFeedbackStats } from "@/services/feedbackService"
 
@@ -96,6 +97,8 @@ export default function VolunteerDashboard() {
     byType: {} as Record<string, number>,
   })
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [profile, setProfile] = useState<any>({ bio: "", trainings: [], total_hours: 0, certifications: null })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [locationSearch, setLocationSearch] = useState("")
@@ -136,8 +139,19 @@ export default function VolunteerDashboard() {
     if (user?.id) {
       loadVolunteerData()
       loadFeedbackData()
+      loadProfile()
     }
   }, [user])
+
+  const loadProfile = async () => {
+    if (!user?.id) return
+    try {
+      const p = await getVolunteerProfile(Number.parseInt(user.id))
+      if (p) setProfile(p)
+    } catch (err) {
+      console.error("Error loading profile:", err)
+    }
+  }
 
   useEffect(() => {
     setFilteredLocations(searchLocations(locationSearch))
@@ -431,6 +445,13 @@ export default function VolunteerDashboard() {
               >
                 <MessageSquare className="w-4 h-4" />
                 <span className="hidden xs:inline">Feedback</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="profile"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden xs:inline">Profile</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1063,6 +1084,73 @@ export default function VolunteerDashboard() {
                       ))}
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">My Profile</h2>
+                <p className="text-slate-400">Update your contact info, bio and experience</p>
+              </div>
+
+              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-white">Phone Number</Label>
+                      <Input
+                        value={profile.phone_number || user?.phone_number || ""}
+                        onChange={(e) => setProfile({ ...profile, phone_number: e.target.value })}
+                        className="bg-slate-800 border-slate-700 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Barangay</Label>
+                      <Select
+                        value={profile.barangay || ""}
+                        onValueChange={(v) => setProfile({ ...profile, barangay: v })}
+                      >
+                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                          {OLONGAPO_LOCATIONS.map((loc) => (
+                            <SelectItem key={loc.name} value={loc.name}>{loc.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label className="text-white">Bio / Experience</Label>
+                      <Textarea
+                        value={profile.bio || ""}
+                        onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                        className="bg-slate-800 border-slate-700 text-white min-h-[120px]"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Button
+                      onClick={async () => {
+                        if (!user?.id) return
+                        setIsSavingProfile(true)
+                        const result = await upsertVolunteerProfile(Number.parseInt(user.id), profile)
+                        if (result.success) {
+                          toast({ title: "Saved", description: "Profile updated" })
+                        } else {
+                          toast({ title: "Error", description: result.message, variant: "destructive" })
+                        }
+                        setIsSavingProfile(false)
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                      disabled={isSavingProfile}
+                    >
+                      {isSavingProfile ? "Saving..." : "Save Profile"}
+                    </Button>
+                    <Button variant="outline" onClick={loadProfile} className="bg-slate-800 border-slate-700 text-white">Reload</Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
